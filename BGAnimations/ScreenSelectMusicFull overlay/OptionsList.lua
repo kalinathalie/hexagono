@@ -4,19 +4,15 @@ local OptionsListActors = {}
 local CurrentClosingPlayer -- Global hack for race condition when exiting with the Select button...
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 
--- Closing the list with the red (upper) pad panels, XSanity style.
--- The engine swallows every input while the list is open, so the theme never
--- sees the panels directly. What it does see are the engine messages:
---   * Start on a submenu / Exit row: OptionsMenuChanged followed by
---     OptionsListPush / OptionsListPop
---   * upper panels (SwitchMenu, see metrics CodeEnteredNextOpList):
---     OptionsMenuChanged alone
--- A menu change that is not followed by Push/Pop within the same frame is
--- therefore a panel press, and the list is closed. "XSClose" is a stub
--- submenu placed last in SongMenu so the panels also work from the last
--- real submenu (where SwitchMenu +1 would otherwise do nothing).
-local JustOpened = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
-local PendingSwitch = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
+-- Red (upper) pad panels inside the command window, XSanity style:
+-- go back one menu level, and close when already on the main menu.
+-- The engine swallows raw input while the list is open, but it still runs the
+-- list's own code set ([OptionsList] CodeNames / CodeXSClosePad*) and sends a
+-- "Code" message to the list actor. That message arrives from inside the
+-- engine's input handling, so the action is deferred one frame.
+-- "XSClose" is a stub submenu (last entry of SongMenu, labelled "Close"):
+-- entering it closes the list.
+local PendingBack = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
 
 -- Same order the LuaNoteSkins row uses for its choices, so the list
 -- selection index maps directly onto this table.
@@ -32,6 +28,16 @@ local function CloseList(pn)
         List:Close()
     else
         SCREENMAN:SystemMessage("OptionsList:Close() indisponivel neste build")
+    end
+end
+
+-- Engine Pop(): back one level, or Close() when on the top menu.
+local function BackList(pn)
+    local List = OptionsListActors[pn]
+    if List and List.Pop then
+        List:Pop()
+    else
+        CloseList(pn)
     end
 end
 
@@ -85,15 +91,14 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             if params.Player == pn then
                 self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and 200 or SCREEN_RIGHT - 200)
                 IsMenuOpen[pn] = true
-                JustOpened[pn] = true
-                PendingSwitch[pn] = false
+                PendingBack[pn] = false
             end
         end,
 
         OptionsListClosedMessageCommand=function(self, params)
             if params.Player == pn then
                 CurrentClosingPlayer = pn
-                PendingSwitch[pn] = false
+                PendingBack[pn] = false
                 self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and -200 or SCREEN_RIGHT + 200)
                 self:queuecommand("ClosedMenu")
             end
@@ -101,14 +106,6 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 
         ClosedMenuCommand=function(self)
             IsMenuOpen[CurrentClosingPlayer] = false
-        end,
-
-        -- Start on a submenu or on an Exit row: a legitimate menu change
-        OptionsListPushMessageCommand=function(self, params)
-            if params.Player == pn then PendingSwitch[pn] = false end
-        end,
-        OptionsListPopMessageCommand=function(self, params)
-            if params.Player == pn then PendingSwitch[pn] = false end
         end,
 
         -- Make us able to view what menu we're in later (and also adjust its position)
@@ -119,17 +116,9 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 
                 self:playcommand("Adjust", params)
 
+                -- "Close" stub entered (Start on it): close the whole list next frame
                 if params.Menu == "XSClose" then
-                    -- Stub submenu reached (Start on "Close", or panels from the last submenu)
-                    PendingSwitch[pn] = true
-                    self:GetChild("SwitchTimer"):stoptweening():sleep(0.01):queuecommand("CheckSwitch")
-                elseif JustOpened[pn] then
-                    -- First menu change comes from Open() itself
-                    JustOpened[pn] = false
-                else
-                    -- If no Push/Pop follows within the frame, this was a panel press
-                    PendingSwitch[pn] = true
-                    self:GetChild("SwitchTimer"):stoptweening():sleep(0.01):queuecommand("CheckSwitch")
+                    self:GetChild("BackTimer"):stoptweening():sleep(0.01):queuecommand("DoClose")
                 end
             end
         end,
@@ -155,14 +144,17 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             end
         end,
 
-        -- Timer used to decide, one frame later, whether a menu change was a panel press
+        -- Runs the deferred back/close actions one frame after the engine message
         Def.Actor {
-            Name="SwitchTimer",
-            CheckSwitchCommand=function(self)
-                if PendingSwitch[pn] and IsMenuOpen[pn] then
-                    PendingSwitch[pn] = false
-                    CloseList(pn)
+            Name="BackTimer",
+            DoBackCommand=function(self)
+                if PendingBack[pn] and IsMenuOpen[pn] then
+                    PendingBack[pn] = false
+                    BackList(pn)
                 end
+            end,
+            DoCloseCommand=function(self)
+                if IsMenuOpen[pn] then CloseList(pn) end
             end
         },
 
@@ -186,13 +178,12 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             CodeMessageCommand=function(self, params)
                 if params.PlayerNumber ~= pn then return end
 
-                -- Upper pad panels (codes from the [OptionsList] metrics section).
-                -- This message arrives from inside the engine's input handling,
-                -- so the close is deferred one frame to leave the menu stack alone.
+                -- Upper pad panels (codes from the [OptionsList] metrics section):
+                -- back one level, or close on the main menu. Deferred one frame.
                 if params.Name == "XSClosePad1" or params.Name == "XSClosePad2" then
                     if IsMenuOpen[pn] then
-                        PendingSwitch[pn] = true
-                        self:GetParent():GetChild("SwitchTimer"):stoptweening():sleep(0.01):queuecommand("CheckSwitch")
+                        PendingBack[pn] = true
+                        self:GetParent():GetChild("BackTimer"):stoptweening():sleep(0.01):queuecommand("DoBack")
                     end
                     return
                 end
