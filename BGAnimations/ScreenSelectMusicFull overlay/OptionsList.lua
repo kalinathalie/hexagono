@@ -14,6 +14,14 @@ local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 -- entering it closes the list.
 local PendingBack = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
 
+-- Menu stack mirrored from the engine messages (Opened/MenuChanged/Push/Pop),
+-- used to go back one level. This build exposes Open() and Close() to Lua but
+-- not Pop(), so "back" is done by closing and reopening the list silently at
+-- the parent menu (Push() is used for deeper levels when it exists).
+local MenuStack = { PlayerNumber_P1 = {}, PlayerNumber_P2 = {} }
+local AwaitingTop = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
+local Reopening = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
+
 -- Same order the LuaNoteSkins row uses for its choices, so the list
 -- selection index maps directly onto this table.
 local SkinNames = NOTESKIN:GetNoteSkinNames()
@@ -31,14 +39,31 @@ local function CloseList(pn)
     end
 end
 
--- Engine Pop(): back one level, or Close() when on the top menu.
+-- Back one level, or close when already on the top menu.
 local function BackList(pn)
     local List = OptionsListActors[pn]
-    if List and List.Pop then
-        List:Pop()
-    else
+    if not List then return end
+
+    local Stack = MenuStack[pn] or {}
+    if #Stack <= 1 or not List.Close or not List.Open then
         CloseList(pn)
+        return
     end
+
+    -- Rebuild the stack without its last entry
+    local Target = {}
+    for i = 1, #Stack - 1 do Target[i] = Stack[i] end
+
+    Reopening[pn] = true
+    List:Close()
+    List:Open()
+    if List.Push then
+        for i = 2, #Target do List:Push(Target[i]) end
+    else
+        Target = { Target[1] }
+    end
+    Reopening[pn] = false
+    MenuStack[pn] = Target
 end
 
 local t = Def.ActorFrame {
@@ -49,7 +74,9 @@ local t = Def.ActorFrame {
 
     Def.Sound {
         File=THEME:GetPathS("", "CloseCommandWindow"),
-        OptionsListClosedMessageCommand=function(self) self:play() end
+        OptionsListClosedMessageCommand=function(self, params)
+            if not Reopening[params.Player] then self:play() end
+        end
     },
 
     Def.Sound {
@@ -89,18 +116,35 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         -- Move the list around when opened/closed
         OptionsListOpenedMessageCommand=function(self, params)
             if params.Player == pn then
-                self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and 200 or SCREEN_RIGHT - 200)
                 IsMenuOpen[pn] = true
                 PendingBack[pn] = false
+                AwaitingTop[pn] = true
+                MenuStack[pn] = {}
+                -- Silent reopen while going back one level: stay in place
+                if Reopening[pn] then return end
+                self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and 200 or SCREEN_RIGHT - 200)
             end
         end,
 
         OptionsListClosedMessageCommand=function(self, params)
             if params.Player == pn then
-                CurrentClosingPlayer = pn
                 PendingBack[pn] = false
+                if Reopening[pn] then return end
+                CurrentClosingPlayer = pn
                 self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and -200 or SCREEN_RIGHT + 200)
                 self:queuecommand("ClosedMenu")
+            end
+        end,
+
+        -- Start on a submenu entry / on an Exit row: keep the mirrored stack in sync
+        OptionsListPushMessageCommand=function(self, params)
+            if params.Player == pn and not Reopening[pn] then
+                table.insert(MenuStack[pn], CurrentMenu[pn])
+            end
+        end,
+        OptionsListPopMessageCommand=function(self, params)
+            if params.Player == pn and not Reopening[pn] then
+                table.remove(MenuStack[pn])
             end
         end,
 
@@ -113,6 +157,10 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             if params.Player == pn then
                 OptionsListMenu = params.Menu
                 CurrentMenu[pn] = params.Menu
+                if AwaitingTop[pn] then
+                    MenuStack[pn] = { params.Menu }
+                    AwaitingTop[pn] = false
+                end
 
                 self:playcommand("Adjust", params)
 
