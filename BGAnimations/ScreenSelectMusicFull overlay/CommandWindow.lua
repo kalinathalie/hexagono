@@ -212,14 +212,22 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             InitCommand=function(self) self:zoomto(FrameW, FrameH) end
         },
 
-        -- Category carousel arrows
+        -- Category carousel: neighbor names as small text (sprites would overflow the frame)
+        Def.BitmapText {
+            Name="NeighborL", Font="Montserrat semibold 40px",
+            InitCommand=function(self) self:xy(-98, TitleY):zoom(0.3):maxwidth(230):diffusealpha(0.45):shadowlength(1) end
+        },
+        Def.BitmapText {
+            Name="NeighborR", Font="Montserrat semibold 40px",
+            InitCommand=function(self) self:xy(98, TitleY):zoom(0.3):maxwidth(230):diffusealpha(0.45):shadowlength(1) end
+        },
         Def.Sprite {
             Name="CatArrowL", Texture=G("CW/ARRCW 1x2.png"),
-            InitCommand=function(self) self:animate(false):setstate(1):xy(-148, TitleY):zoom(0.45):rotationz(90) end
+            InitCommand=function(self) self:animate(false):setstate(1):xy(-138, TitleY):zoom(0.38):rotationz(90) end
         },
         Def.Sprite {
             Name="CatArrowR", Texture=G("CW/ARRCW 1x2.png"),
-            InitCommand=function(self) self:animate(false):setstate(1):xy(148, TitleY):zoom(0.45):rotationz(-90) end
+            InitCommand=function(self) self:animate(false):setstate(1):xy(138, TitleY):zoom(0.38):rotationz(-90) end
         },
 
         -- Cursor behind the current item
@@ -254,17 +262,24 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         },
     }
 
-    -- Category titles: one actor per category, positioned on each redraw
+    -- Category titles: one actor per category, only the current one is shown.
+    -- Each title is scaled so it never exceeds MaxTitleW inside the frame.
+    local MaxTitleW = 200
+    local TitleZoom = {}
     for i, Category in ipairs(Categories) do
         if Category.Title then
             Window[#Window + 1] = Def.Sprite {
                 Name="Title" .. i, Texture=G(Category.Title .. ".png"),
-                InitCommand=function(self) self:y(TitleY):visible(false) end
+                InitCommand=function(self) self:y(TitleY):visible(false) end,
+                OnCommand=function(self) TitleZoom[i] = math.min(1, MaxTitleW / math.max(1, self:GetWidth())) end
             }
         else
             Window[#Window + 1] = Def.BitmapText {
                 Name="Title" .. i, Font="Montserrat extrabold 40px", Text=string.upper(Category.Label or Category.Name),
-                InitCommand=function(self) self:y(TitleY):zoom(0.9):shadowlength(1):visible(false) end
+                InitCommand=function(self)
+                    self:y(TitleY):diffuse(0.45, 0.9, 1, 1):strokecolor(0.05, 0.15, 0.3, 1):shadowlength(2):visible(false)
+                end,
+                OnCommand=function(self) TitleZoom[i] = math.min(0.9, MaxTitleW / math.max(1, self:GetWidth())) end
             }
         end
     end
@@ -277,7 +292,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             Def.Sprite { Name="Generic", Texture=G("Icons08 1x1.png"), InitCommand=function(self) self:visible(false) end },
             Def.BitmapText {
                 Name="GenericLabel", Font="Montserrat extrabold 40px",
-                InitCommand=function(self) self:zoom(0.7):maxwidth(150):shadowlength(1):visible(false) end
+                -- badge is 120 px wide: keep the text inside it (maxwidth is pre-zoom)
+                InitCommand=function(self) self:zoom(0.5):maxwidth(196):shadowlength(1):visible(false) end
             },
         }
         for _, Sheet in ipairs(Sheets) do
@@ -294,20 +310,19 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         local Category = S:CurrentCategory()
         local AtItems = S.Level == "item" and Category.Kind ~= "exit"
 
-        -- Titles
+        -- Titles: current one in art, neighbors as small text
         for i, _ in ipairs(Categories) do
             local Title = self:GetChild("Title" .. i)
-            local Off = i - S.Cat
-            if Off > #Categories / 2 then Off = Off - #Categories end
-            if Off < -#Categories / 2 then Off = Off + #Categories end
-            if Off == 0 then
-                Title:visible(true):x(0):zoom(AtItems and 0.75 or 1):diffusealpha(1)
-            elseif math.abs(Off) == 1 and not AtItems then
-                Title:visible(true):x(Off * 105):zoom(0.4):diffusealpha(0.4)
+            if i == S.Cat then
+                Title:visible(true):zoom((TitleZoom[i] or 1) * (AtItems and 0.75 or 1))
             else
                 Title:visible(false)
             end
         end
+        local Prev = Categories[Wrap(S.Cat - 1, #Categories)]
+        local Next = Categories[Wrap(S.Cat + 1, #Categories)]
+        self:GetChild("NeighborL"):visible(not AtItems):settext(string.upper(Prev.Label or Prev.Name))
+        self:GetChild("NeighborR"):visible(not AtItems):settext(string.upper(Next.Label or Next.Name))
         self:GetChild("CatArrowL"):visible(not AtItems)
         self:GetChild("CatArrowR"):visible(not AtItems)
 

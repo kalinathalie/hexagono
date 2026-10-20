@@ -108,7 +108,7 @@ return function(Deps)
     for _, SkinName in ipairs(Deps.NoteSkinNames or {}) do
         NoteSkin.Items[#NoteSkin.Items + 1] = {
             Label = SkinName, Sheet = nil, Frame = 0,
-            Description = SkinName,
+            Description = NoteSkin.Description,
             Apply = function(pn) Deps.SetNoteSkin(pn, SkinName) end,
             IsActive = function(pn)
                 return string.lower(tostring(Deps.GetNoteSkin(pn))) == string.lower(SkinName)
