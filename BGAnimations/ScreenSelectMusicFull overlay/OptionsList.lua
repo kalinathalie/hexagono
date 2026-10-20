@@ -4,6 +4,20 @@ local OptionsListActors = {}
 local CurrentClosingPlayer -- Global hack for race condition when exiting with the Select button...
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 
+-- Closing the list with the red (upper) pad panels, XSanity style.
+-- The engine swallows every input while the list is open, so the theme never
+-- sees the panels directly. What it does see are the engine messages:
+--   * Start on a submenu / Exit row: OptionsMenuChanged followed by
+--     OptionsListPush / OptionsListPop
+--   * upper panels (SwitchMenu, see metrics CodeEnteredNextOpList):
+--     OptionsMenuChanged alone
+-- A menu change that is not followed by Push/Pop within the same frame is
+-- therefore a panel press, and the list is closed. "XSClose" is a stub
+-- submenu placed last in SongMenu so the panels also work from the last
+-- real submenu (where SwitchMenu +1 would otherwise do nothing).
+local JustOpened = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
+local PendingSwitch = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
+
 -- Same order the LuaNoteSkins row uses for its choices, so the list
 -- selection index maps directly onto this table.
 local SkinNames = NOTESKIN:GetNoteSkinNames()
@@ -12,30 +26,16 @@ local function GetPlayerSkin(pn)
     return GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred"):NoteSkin()
 end
 
--- Back closes the options list (arcade/XSanity style) instead of doing nothing.
--- Runs before the engine, so the Back press never reaches the music wheel.
-local function InputHandler(event)
-    if event.type ~= "InputEventType_FirstPress" then return end
-    local pn = event.PlayerNumber
-    if not pn or not IsMenuOpen[pn] then return end
-
-    if event.GameButton == "Back" then
-        local List = OptionsListActors[pn]
-        if List and List.Close then
-            List:Close()
-        else
-            -- Engine build without a Close binding: fall back to the Select behavior
-            SCREENMAN:SystemMessage("OptionsList:Close() not available on this build")
-        end
-        return true
+local function CloseList(pn)
+    local List = OptionsListActors[pn]
+    if List and List.Close then
+        List:Close()
+    else
+        SCREENMAN:SystemMessage("OptionsList:Close() indisponivel neste build")
     end
 end
 
 local t = Def.ActorFrame {
-    OnCommand=function(self)
-        SCREENMAN:GetTopScreen():AddInputCallback(InputHandler)
-    end,
-
     Def.Sound {
         File=THEME:GetPathS("", "OpenCommandWindow"),
         OptionsListPlaySoundMessageCommand=function(self, params) self:play() end
@@ -85,12 +85,15 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             if params.Player == pn then
                 self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and 200 or SCREEN_RIGHT - 200)
                 IsMenuOpen[pn] = true
+                JustOpened[pn] = true
+                PendingSwitch[pn] = false
             end
         end,
 
         OptionsListClosedMessageCommand=function(self, params)
             if params.Player == pn then
                 CurrentClosingPlayer = pn
+                PendingSwitch[pn] = false
                 self:stoptweening():easeoutexpo(0.5):x(pn == PLAYER_1 and -200 or SCREEN_RIGHT + 200)
                 self:queuecommand("ClosedMenu")
             end
@@ -100,6 +103,14 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             IsMenuOpen[CurrentClosingPlayer] = false
         end,
 
+        -- Start on a submenu or on an Exit row: a legitimate menu change
+        OptionsListPushMessageCommand=function(self, params)
+            if params.Player == pn then PendingSwitch[pn] = false end
+        end,
+        OptionsListPopMessageCommand=function(self, params)
+            if params.Player == pn then PendingSwitch[pn] = false end
+        end,
+
         -- Make us able to view what menu we're in later (and also adjust its position)
         OptionsMenuChangedMessageCommand=function(self, params)
             if params.Player == pn then
@@ -107,6 +118,19 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 CurrentMenu[pn] = params.Menu
 
                 self:playcommand("Adjust", params)
+
+                if params.Menu == "XSClose" then
+                    -- Stub submenu reached (Start on "Close", or panels from the last submenu)
+                    PendingSwitch[pn] = true
+                    self:GetChild("SwitchTimer"):stoptweening():sleep(0.01):queuecommand("CheckSwitch")
+                elseif JustOpened[pn] then
+                    -- First menu change comes from Open() itself
+                    JustOpened[pn] = false
+                else
+                    -- If no Push/Pop follows within the frame, this was a panel press
+                    PendingSwitch[pn] = true
+                    self:GetChild("SwitchTimer"):stoptweening():sleep(0.01):queuecommand("CheckSwitch")
+                end
             end
         end,
 
@@ -130,6 +154,17 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 end
             end
         end,
+
+        -- Timer used to decide, one frame later, whether a menu change was a panel press
+        Def.Actor {
+            Name="SwitchTimer",
+            CheckSwitchCommand=function(self)
+                if PendingSwitch[pn] and IsMenuOpen[pn] then
+                    PendingSwitch[pn] = false
+                    CloseList(pn)
+                end
+            end
+        },
 
         Def.Sprite {
             Texture=THEME:GetPathG("", "MusicWheel/Options"),
