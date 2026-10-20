@@ -184,8 +184,21 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             Name="OptionsList" .. pname(pn),
             Player=pn,
             CodeMessageCommand=function(self, params)
+                if params.PlayerNumber ~= pn then return end
+
+                -- Upper pad panels (codes from the [OptionsList] metrics section).
+                -- This message arrives from inside the engine's input handling,
+                -- so the close is deferred one frame to leave the menu stack alone.
+                if params.Name == "XSClosePad1" or params.Name == "XSClosePad2" then
+                    if IsMenuOpen[pn] then
+                        PendingSwitch[pn] = true
+                        self:GetParent():GetChild("SwitchTimer"):stoptweening():sleep(0.01):queuecommand("CheckSwitch")
+                    end
+                    return
+                end
+
                 if ((params.Name == "OpenOpList" and not MenuButtonsOnly) or
-                    params.Name == "OpenOpListButton") and params.PlayerNumber == pn and not IsMenuOpen[pn] then
+                    params.Name == "OpenOpListButton") and not IsMenuOpen[pn] then
                     self:Open()
                     MESSAGEMAN:Broadcast("OptionsListPlaySound")
                 end
