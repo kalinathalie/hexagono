@@ -88,11 +88,15 @@ return function(Deps)
         AutoVelocity.Items[#AutoVelocity.Items + 1] = {
             Label = (Step > 0 and "+" or "") .. Step, Sheet = AVSheet, Frame = i - 1,
             Description = Deps.Text("AutoVelocity_Step"),
-            Apply = function(pn) Deps.SetAV(pn, Clamp(CurrentAV(pn) + Step)) end,
+            Apply = function(pn)
+                Deps.SetAV(pn, Clamp(CurrentAV(pn) + Step))
+                -- AV is a constant speed (PIU meaning); only Speed's Nx badges use a multiplier
+                if Deps.GetAVType(pn) == false then Deps.SetAVType(pn, "Constant") end
+            end,
             IsActive = function(pn) return false end,
         }
     end
-    for _, Kind in ipairs({ { "Multiply", false }, { "Auto", "Auto" }, { "Constant", "Constant" } }) do
+    for _, Kind in ipairs({ { "Auto", "Auto" }, { "Constant", "Constant" } }) do
         AutoVelocity.Items[#AutoVelocity.Items + 1] = {
             Label = Deps.Text(Kind[1]), Sheet = nil, Frame = 0,
             Description = Deps.Text("AutoVelocity_" .. Kind[1]),
@@ -124,8 +128,8 @@ return function(Deps)
     end
     for _, BGA in ipairs({
         { "BGA OFF", 7, 8, 1, "Display_BGAOff" },
-        { "BGA DARK", 9, 10, 0.6, "Display_BGADark" },
-        { "BGA PARTIAL", 11, 12, 0.3, "Display_BGAPartial" },
+        { "BGA DARK", 9, 10, 0.8, "Display_BGADark" },
+        { "BGA PARTIAL", 11, 12, 0.5, "Display_BGAPartial" },
     }) do
         local Level = BGA[4]
         Display.Items[#Display.Items + 1] = {
@@ -135,6 +139,8 @@ return function(Deps)
                 local NewLevel = CurrentFilter(pn) == Level and 0 or Level
                 Deps.SetPref(pn, "ScreenFilter", NewLevel)
                 Deps.SetPref(pn, "ScreenFilterSize", "Full")
+                -- 2 = plain black; the theme default (1) tints the bottom with the player color
+                Deps.SetPref(pn, "ScreenFilterColor", 2)
             end,
             IsActive = function(pn) return CurrentFilter(pn) == Level end,
         }

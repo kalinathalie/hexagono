@@ -64,10 +64,11 @@ local t = Def.ActorFrame {
 
         if AV then
             table.remove(PlayerModsArray, 1)
+            -- PIU wording: AV = constant speed, AUTO = BPM-adjusted
             if not AVType then
                 table.insert(PlayerModsArray, 1, (AV / 100) .. "X")
             else
-                table.insert(PlayerModsArray, 1, (AVType == "Auto" and "AV " or "C") .. AV)
+                table.insert(PlayerModsArray, 1, (AVType == "Auto" and "AUTO " or "AV ") .. AV)
             end
         end
 
@@ -97,7 +98,9 @@ local t = Def.ActorFrame {
         -- Increase the value so that we can use it as percentage
         BGAFilter = round(BGAFilter * 100)
         if BGAFilter ~= 0 then
-            table.insert(PlayerModsArray, 2, THEME:GetString("ModIcons", "Filter") .. " " .. (BGAFilter == 100 and "Off" or BGAFilter .. "%"))
+            -- The command window levels get their PIU names; anything else shows the percentage
+            local BGANames = { [100] = "OFF", [80] = "DARK", [50] = "PARTIAL" }
+            table.insert(PlayerModsArray, 2, THEME:GetString("ModIcons", "Filter") .. "\n" .. (BGANames[BGAFilter] or (BGAFilter .. "%")))
         end
 
         -- Music rate
