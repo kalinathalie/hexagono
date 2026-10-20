@@ -47,6 +47,10 @@ local GroupSubIndex = LastGroupSubIndex > 0 and LastGroupSubIndex or 1
 
 local IsBusy = false
 
+-- Tracks which players have the options list open, so Back closes the
+-- list (handled in the overlay) instead of leaving the screen.
+local OptionsOpen = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
+
 -- Default is to start at All for now
 Songs = GroupsList[GroupMainIndex].SubGroups[GroupSubIndex].Songs
 
@@ -106,7 +110,9 @@ local function InputHandler(event)
 				MESSAGEMAN:Broadcast("MusicWheelStart")
 
 			elseif button == "Back" then
-				SCREENMAN:GetTopScreen():Cancel()
+				if not (OptionsOpen[PLAYER_1] or OptionsOpen[PLAYER_2]) then
+					SCREENMAN:GetTopScreen():Cancel()
+				end
 			end
 		end
 
@@ -151,6 +157,9 @@ local t = Def.ActorFrame {
         :playcommand("NotBusy")
     end,
     
+    OptionsListOpenedMessageCommand=function(self, params) OptionsOpen[params.Player] = true end,
+    OptionsListClosedMessageCommand=function(self, params) OptionsOpen[params.Player] = false end,
+
     OpenGroupWheelMessageCommand=function(self) IsBusy = true end,
     CloseGroupWheelMessageCommand=function(self, params)
         if params.Silent == false then

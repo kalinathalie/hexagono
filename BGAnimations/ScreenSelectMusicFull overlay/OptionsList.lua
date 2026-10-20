@@ -1,8 +1,41 @@
 local IsMenuOpen = { PlayerNumber_P1 = false, PlayerNumber_P2 = false}
+local CurrentMenu = { PlayerNumber_P1 = nil, PlayerNumber_P2 = nil }
+local OptionsListActors = {}
 local CurrentClosingPlayer -- Global hack for race condition when exiting with the Select button...
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 
+-- Same order the LuaNoteSkins row uses for its choices, so the list
+-- selection index maps directly onto this table.
+local SkinNames = NOTESKIN:GetNoteSkinNames()
+
+local function GetPlayerSkin(pn)
+    return GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred"):NoteSkin()
+end
+
+-- Back closes the options list (arcade/XSanity style) instead of doing nothing.
+-- Runs before the engine, so the Back press never reaches the music wheel.
+local function InputHandler(event)
+    if event.type ~= "InputEventType_FirstPress" then return end
+    local pn = event.PlayerNumber
+    if not pn or not IsMenuOpen[pn] then return end
+
+    if event.GameButton == "Back" then
+        local List = OptionsListActors[pn]
+        if List and List.Close then
+            List:Close()
+        else
+            -- Engine build without a Close binding: fall back to the Select behavior
+            SCREENMAN:SystemMessage("OptionsList:Close() not available on this build")
+        end
+        return true
+    end
+end
+
 local t = Def.ActorFrame {
+    OnCommand=function(self)
+        SCREENMAN:GetTopScreen():AddInputCallback(InputHandler)
+    end,
+
     Def.Sound {
         File=THEME:GetPathS("", "OpenCommandWindow"),
         OptionsListPlaySoundMessageCommand=function(self, params) self:play() end
@@ -44,6 +77,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 
         OnCommand=function(self)
             OptionsListActor = self:GetChild("OptionsList" .. pname(pn))
+            OptionsListActors[pn] = OptionsListActor
         end,
 
         -- Move the list around when opened/closed
@@ -61,7 +95,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 self:queuecommand("ClosedMenu")
             end
         end,
-        
+
         ClosedMenuCommand=function(self)
             IsMenuOpen[CurrentClosingPlayer] = false
         end,
@@ -70,6 +104,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         OptionsMenuChangedMessageCommand=function(self, params)
             if params.Player == pn then
                 OptionsListMenu = params.Menu
+                CurrentMenu[pn] = params.Menu
 
                 self:playcommand("Adjust", params)
             end
@@ -109,7 +144,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         Def.Quad {
             InitCommand=function(self) self:setsize(206, 268):xy(0, 296):MaskSource() end,
         },
-        
+
         Def.OptionsList {
             Name="OptionsList" .. pname(pn),
             Player=pn,
@@ -120,6 +155,79 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                     MESSAGEMAN:Broadcast("OptionsListPlaySound")
                 end
             end
+        },
+
+        -- Live noteskin preview: follows the cursor inside the Noteskins menu,
+        -- so skins can be browsed without selecting each one. It reuses the
+        -- hidden "NS<skin>" actors preloaded by the decorations layer.
+        Def.ActorFrame {
+            Name="SkinPreview",
+            InitCommand=function(self)
+                self:x(pn == PLAYER_1 and 170 or -170):y(-20):visible(false)
+            end,
+
+            OptionsMenuChangedMessageCommand=function(self, params)
+                if params.Player ~= pn then return end
+                if params.Menu == "Noteskins" then
+                    self:visible(true):playcommand("ShowSkin", { Name = GetPlayerSkin(pn) })
+                else
+                    self:visible(false)
+                end
+            end,
+
+            OptionsListClosedMessageCommand=function(self, params)
+                if params.Player == pn then self:visible(false) end
+            end,
+
+            OptionsListLeftMessageCommand=function(self, params) self:playcommand("Browse", params) end,
+            OptionsListRightMessageCommand=function(self, params) self:playcommand("Browse", params) end,
+            OptionsListQuickChangeMessageCommand=function(self, params) self:playcommand("Browse", params) end,
+            OptionsListStartMessageCommand=function(self, params) self:playcommand("Browse", params) end,
+
+            BrowseCommand=function(self, params)
+                if params.Player ~= pn or CurrentMenu[pn] ~= "Noteskins" then return end
+                local Index = params.Selection
+                local Name
+                if Index ~= nil and Index >= 0 and Index < #SkinNames then
+                    Name = SkinNames[Index + 1]
+                else
+                    -- Cursor is on the Exit row: show what is currently applied
+                    Name = GetPlayerSkin(pn)
+                end
+                self:playcommand("ShowSkin", { Name = Name })
+            end,
+
+            ShowSkinCommand=function(self, params)
+                local Name = params.Name or "default"
+                local Screen = SCREENMAN:GetTopScreen()
+                local Target = Screen and Screen:GetChild("NS" .. string.lower(Name))
+                local Proxy = self:GetChild("Proxy")
+                if Target then
+                    Proxy:SetTarget(Target):visible(true)
+                else
+                    Proxy:visible(false)
+                end
+                self:GetChild("Label"):settext(Name)
+            end,
+
+            Def.Quad {
+                InitCommand=function(self)
+                    self:zoomto(140, 150):diffuse(0, 0, 0, 0.75)
+                end
+            },
+
+            Def.ActorProxy {
+                Name="Proxy",
+                InitCommand=function(self) self:y(-12):zoom(1.5) end
+            },
+
+            Def.BitmapText {
+                Name="Label",
+                Font="Montserrat semibold 40px",
+                InitCommand=function(self)
+                    self:y(55):zoom(0.4):maxwidth(320):shadowlength(1)
+                end
+            }
         }
     }
 end
