@@ -103,6 +103,11 @@ local function InputHandler(event)
 				MESSAGEMAN:Broadcast("Scroll", { Direction = 1 })
 				
 			elseif button == "Start" or button == "MenuStart" or button == "Center" then
+				-- Only the initial press chooses a song. Key repeats of the Center
+				-- press that confirmed a group (the wheel stalls loading banners)
+				-- must not choose the first song of the new group.
+				if event.type ~= "InputEventType_FirstPress" then return end
+
 				-- Save this for later
 				LastSongIndex = SongIndex
 				LoadModule("Config.Save.lua")("SongIndex", LastSongIndex, CheckIfUserOrMachineProfile(string.sub(pn,-1)-1).."/OutFoxPrefs.ini")
