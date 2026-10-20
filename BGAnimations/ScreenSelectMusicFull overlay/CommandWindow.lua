@@ -92,6 +92,12 @@ local function AnyOpen()
     return false
 end
 
+-- The engine reports the pad panels either by their pump names or by the
+-- menu buttons they map to, depending on the input path; accept both.
+local LowerDir = { DownLeft = -1, DownRight = 1, MenuLeft = -1, MenuRight = 1, Left = -1, Right = 1 }
+local UpperButtons = { UpLeft = true, UpRight = true, MenuUp = true, MenuDown = true, Up = true, Back = true }
+local CenterButtons = { Center = true, Start = true, MenuStart = true }
+
 local function InputHandler(event)
     local pn = event.PlayerNumber
     if not pn then return end
@@ -100,14 +106,16 @@ local function InputHandler(event)
 
     local Frame = S.Frame
     local button = event.GameButton
+    local menu = event.button
     local Press = event.type == "InputEventType_FirstPress"
     local Repeat = event.type == "InputEventType_Repeat"
+    local Dir = LowerDir[button] or LowerDir[menu]
 
-    if (button == "DownLeft" or button == "DownRight") and (Press or Repeat) then
-        if S:Move(button == "DownLeft" and -1 or 1) then
+    if Dir and (Press or Repeat) then
+        if S:Move(Dir) then
             Frame:playcommand("Moved")
         end
-    elseif (button == "Center" or button == "Start" or button == "MenuStart") and Press then
+    elseif (CenterButtons[button] or CenterButtons[menu]) and Press then
         local Result = S:Enter()
         if Result == "apply" then
             local Item = S:CurrentItem()
@@ -121,7 +129,7 @@ local function InputHandler(event)
         elseif Result == "close" then
             Frame:playcommand("CloseWindow")
         end
-    elseif (button == "UpLeft" or button == "UpRight" or button == "Back") and Press then
+    elseif (UpperButtons[button] or UpperButtons[menu]) and Press then
         if S:Back() == "close" then
             Frame:playcommand("CloseWindow")
         else
@@ -197,25 +205,11 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             self:playcommand("Redraw")
         end,
 
-        -- Frame
+        -- Frame: the XSanity panel already carries the "COMMAND WINDOW"
+        -- header and the BACK/SHIFT corner markers.
         Def.Sprite {
-            Texture=G("CW/BACKGROUND02.PNG"),
+            Texture=G("bg/bg_1.png"),
             InitCommand=function(self) self:zoomto(FrameW, FrameH) end
-        },
-        Def.BitmapText {
-            Font="Montserrat extrabold 40px",
-            Text=Text("Header"),
-            InitCommand=function(self) self:y(-186):zoom(0.42):shadowlength(1) end
-        },
-        Def.Sprite { Texture=G("BackIcon.png"), InitCommand=function(self) self:xy(-125, -186):zoom(0.7) end },
-        Def.Sprite { Texture=G("BackIcon.png"), InitCommand=function(self) self:xy(125, -186):zoom(0.7):zoomx(-0.7) end },
-        Def.Sprite {
-            Texture=G("CW/ARRCW 1x2.png"),
-            InitCommand=function(self) self:animate(false):setstate(0):xy(-125, 186):zoom(0.6) end
-        },
-        Def.Sprite {
-            Texture=G("CW/ARRCW 1x2.png"),
-            InitCommand=function(self) self:animate(false):setstate(0):xy(125, 186):zoom(0.6):zoomx(-0.6) end
         },
 
         -- Category carousel arrows
