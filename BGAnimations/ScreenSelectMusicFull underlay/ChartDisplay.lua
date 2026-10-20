@@ -12,6 +12,25 @@ local ConfirmStart = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
 
 local ChartArray = nil
 local SongIsChosen = false
+-- When the song changes inside a level group ("Single 5", "Double 12", ...),
+-- preselect the chart of that level instead of keeping the previous index.
+local SnapToGroup = false
+
+local LevelGroupTypes = { ["Single"] = "Single", ["Double"] = "Double", ["Half-Double"] = "Halfdouble" }
+
+local function FindGroupLevelChart(Charts, GroupName)
+    if not GroupName then return nil end
+    local TypeName, Level = string.match(GroupName, "^(.-) (%d+)$")
+    if not TypeName or not LevelGroupTypes[TypeName] then return nil end
+    Level = tonumber(Level)
+    for i, Chart in ipairs(Charts) do
+        if ToEnumShortString(ToEnumShortString(Chart:GetStepsType())) == LevelGroupTypes[TypeName]
+        and Chart:GetMeter() == Level then
+            return i
+        end
+    end
+    return nil
+end
 local PreviewDelay = THEME:GetMetric("ScreenSelectMusic", "SampleMusicDelay")
 local CenterList = LoadModule("Config.Load.lua")("CenterChartList", "Save/OutFoxPrefs.ini")
 local CanWrap = LoadModule("Config.Load.lua")("WrapChartScroll", "Save/OutFoxPrefs.ini")
@@ -139,7 +158,9 @@ local t = Def.ActorFrame {
 
     -- Update chart list
     UpdateChartDisplayMessageCommand=function(self) self:playcommand("Refresh") end,
-    CurrentSongChangedMessageCommand=function(self) self:playcommand("Refresh") end,
+    CurrentSongChangedMessageCommand=function(self) SnapToGroup = true self:playcommand("Refresh") end,
+    -- Group changed without the song changing (same first song): snap as well
+    ForceUpdateMessageCommand=function(self) SnapToGroup = true self:playcommand("Refresh") end,
 
     -- These are to control the visibility of the chart highlight.
     SongChosenMessageCommand=function(self) SongIsChosen = true self:playcommand("Refresh") end,
@@ -199,7 +220,17 @@ local t = Def.ActorFrame {
             -- If no charts are left, load all of them again in an attempt to avoid other crashes
             if #ChartArray == 0 then ChartArray = SongUtil.GetPlayableSteps(CurrentSong) end
             table.sort(ChartArray, SortCharts)
+
+            -- Level groups: land on the chart of the group's level
+            if SnapToGroup then
+                local LevelIndex = FindGroupLevelChart(ChartArray, CurGroupName)
+                if LevelIndex then
+                    ChartIndex[PLAYER_1] = LevelIndex
+                    ChartIndex[PLAYER_2] = LevelIndex
+                end
+            end
         end
+        SnapToGroup = false
 
         if ChartArray then
             -- Correct player chart indexes to ensure they're not off limits
