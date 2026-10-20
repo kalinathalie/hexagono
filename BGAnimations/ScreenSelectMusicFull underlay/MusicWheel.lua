@@ -85,6 +85,9 @@ local function InputHandler(event)
 		if pn == PLAYER_1 and not GAMESTATE:IsPlayerEnabled(PLAYER_1) then return end
 		if pn == PLAYER_2 and not GAMESTATE:IsPlayerEnabled(PLAYER_2) then return end
 
+		-- This player's command window owns their input while it is open
+		if OptionsOpen[pn] then return end
+
 		if not IsBusy then
 			if button == "Left" or button == "MenuLeft" or button == "DownLeft" then
 				SongIndex = SongIndex - 1

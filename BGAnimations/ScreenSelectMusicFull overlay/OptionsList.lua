@@ -75,6 +75,7 @@ local t = Def.ActorFrame {
     Def.Sound {
         File=THEME:GetPathS("", "CloseCommandWindow"),
         OptionsListClosedMessageCommand=function(self, params)
+            if params.XSWindow then return end
             if not Reopening[params.Player] then self:play() end
         end
     },
@@ -115,6 +116,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 
         -- Move the list around when opened/closed
         OptionsListOpenedMessageCommand=function(self, params)
+            -- Messages from the graphical command window are not ours
+            if params.XSWindow then return end
             if params.Player == pn then
                 IsMenuOpen[pn] = true
                 PendingBack[pn] = false
@@ -127,6 +130,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         end,
 
         OptionsListClosedMessageCommand=function(self, params)
+            if params.XSWindow then return end
             if params.Player == pn then
                 PendingBack[pn] = false
                 if Reopening[pn] then return end
@@ -236,8 +240,9 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                     return
                 end
 
-                if ((params.Name == "OpenOpList" and not MenuButtonsOnly) or
-                    params.Name == "OpenOpListButton") and not IsMenuOpen[pn] then
+                -- The pad code now opens the graphical command window; the
+                -- engine list stays reachable through the Select button only.
+                if params.Name == "OpenOpListButton" and not IsMenuOpen[pn] then
                     self:Open()
                     MESSAGEMAN:Broadcast("OptionsListPlaySound")
                 end

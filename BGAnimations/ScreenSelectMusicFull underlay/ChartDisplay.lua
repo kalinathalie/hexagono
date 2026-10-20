@@ -111,6 +111,8 @@ local function InputHandler(event)
             ConfirmStart[pn] = false
             
         elseif button == "Start" or button == "MenuStart" or button == "Center" then
+            -- No song start while any command window is open
+            if not (PlayerCanMove[PLAYER_1] and PlayerCanMove[PLAYER_2]) then return end
             if ConfirmStart[pn] then
                 SongIsChosen = false
                 

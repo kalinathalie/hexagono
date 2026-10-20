@@ -76,6 +76,9 @@ t[#t+1] = Def.ActorFrame {
     
     LoadActor("OptionsList"),
 
+    -- XSanity-style graphical command window (opened by the pad code)
+    LoadActor("CommandWindow"),
+
     Def.Sound {
         File=THEME:GetPathS("Common", "start"),
         IsAction=true,
