@@ -203,7 +203,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 local Target = Screen and Screen:GetChild("NS" .. string.lower(Name))
                 local Proxy = self:GetChild("Proxy")
                 if Target then
-                    Proxy:SetTarget(Target):visible(true)
+                    Proxy:SetTarget(Target)
+                    Proxy:visible(true)
                 else
                     Proxy:visible(false)
                 end
