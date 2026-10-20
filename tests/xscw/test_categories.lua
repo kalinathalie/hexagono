@@ -11,7 +11,10 @@ local function FakeDeps(Overrides)
         Mods = { [P1] = {} },
         Skin = { [P1] = "nx2" },
         NoteSkinNames = { "default", "nx2", "Infinity" },
+        Prefs = { [P1] = {} },
     }
+    function D.GetPref(pn, key) return D.Prefs[pn][key] end
+    function D.SetPref(pn, key, value) D.Prefs[pn][key] = value end
     function D.GetAV(pn) return D.AV[pn] end
     function D.SetAV(pn, n) D.AV[pn] = n end
     function D.GetAVType(pn) return D.AVType[pn] end
@@ -30,16 +33,70 @@ Test("Four categories in order with their kinds", function()
     CheckEq(#C, 4, "count")
     CheckEq(C[1].Name, "Speed", "1")
     CheckEq(C[2].Name, "AutoVelocity", "2")
-    CheckEq(C[3].Name, "NoteSkin", "3")
-    CheckEq(C[4].Name, "Exit", "4")
+    CheckEq(C[3].Name, "Display", "3")
+    CheckEq(C[4].Name, "NoteSkin", "4")
     CheckEq(C[1].Kind, "items", "Speed kind")
     CheckEq(C[2].Kind, "items", "AV kind")
-    CheckEq(C[3].Kind, "noteskin", "NoteSkin kind")
-    CheckEq(C[4].Kind, "exit", "Exit kind")
+    CheckEq(C[3].Kind, "items", "Display kind")
+    CheckEq(C[4].Kind, "noteskin", "NoteSkin kind")
     CheckEq(C[1].Title, "01_title", "Speed title")
     CheckEq(C[2].Title, "11_title", "AV title")
-    CheckEq(C[3].Title, "03_title", "NoteSkin title")
-    CheckEq(C[4].Title, nil, "Exit has no title image")
+    CheckEq(C[3].Title, "02_title", "Display title")
+    CheckEq(C[4].Title, "03_title", "NoteSkin title")
+end)
+
+Test("Display items: 8 badges from the Icons03 sheet", function()
+    local Display = BuildCategories(FakeDeps())[3]
+    local Labels = {}
+    for i, Item in ipairs(Display.Items) do Labels[i] = Item.Label end
+    CheckEq(table.concat(Labels, ","), "V,AP,NS,FD,MI,BGA OFF,BGA DARK,BGA PARTIAL", "labels")
+    CheckEq(Display.Items[1].Sheet, "Icons03 6x3", "sheet")
+    CheckEq(Display.Items[1].Frame, 0, "V frame")
+    CheckEq(Display.Items[4].Frame, 3, "FD frame")
+    CheckEq(Display.Items[5].Frame, 6, "MI frame")
+    CheckEq(Display.Items[6].Frame, 7, "BGA OFF frame")
+    CheckEq(Display.Items[6].InactiveFrame, 8, "BGA OFF inactive frame")
+    CheckEq(Display.Items[7].Frame, 9, "BGA DARK frame")
+    CheckEq(Display.Items[7].InactiveFrame, 10, "BGA DARK inactive frame")
+    CheckEq(Display.Items[8].Frame, 11, "BGA PARTIAL frame")
+    CheckEq(Display.Items[8].InactiveFrame, 12, "BGA PARTIAL inactive frame")
+end)
+
+Test("Display appearance badges toggle their mods", function()
+    local D = FakeDeps()
+    local Display = BuildCategories(D)[3]
+    Display.Items[1].Apply(P1)
+    CheckEq(D.Mods[P1].hidden, true, "V -> hidden")
+    CheckEq(Display.Items[1].IsActive(P1), true, "V active")
+    Display.Items[1].Apply(P1)
+    CheckEq(D.Mods[P1].hidden, false, "V off")
+    Display.Items[2].Apply(P1)
+    CheckEq(D.Mods[P1].sudden, true, "AP -> sudden")
+    Display.Items[3].Apply(P1)
+    CheckEq(D.Mods[P1].stealth, true, "NS -> stealth")
+    Display.Items[4].Apply(P1)
+    CheckEq(D.Mods[P1].dark, true, "FD -> dark")
+    Display.Items[5].Apply(P1)
+    CheckEq(D.Mods[P1].mini, true, "MI -> mini")
+end)
+
+Test("Display BGA badges set the screen filter, exclusive, and toggle off", function()
+    local D = FakeDeps()
+    local Display = BuildCategories(D)[3]
+    Display.Items[7].Apply(P1)
+    CheckEq(D.Prefs[P1].ScreenFilter, 0.6, "BGA DARK -> 0.6")
+    CheckEq(D.Prefs[P1].ScreenFilterSize, "Full", "full-screen filter")
+    CheckEq(Display.Items[7].IsActive(P1), true, "DARK active")
+    CheckEq(Display.Items[6].IsActive(P1), false, "OFF inactive")
+    Display.Items[6].Apply(P1)
+    CheckEq(D.Prefs[P1].ScreenFilter, 1, "BGA OFF -> 1")
+    CheckEq(Display.Items[7].IsActive(P1), false, "DARK now inactive")
+    Display.Items[8].Apply(P1)
+    CheckEq(D.Prefs[P1].ScreenFilter, 0.3, "BGA PARTIAL -> 0.3")
+    Display.Items[8].Apply(P1)
+    CheckEq(D.Prefs[P1].ScreenFilter, 0, "applying the active badge again turns the filter off")
+    D.Prefs[P1].ScreenFilter = "0.6"
+    CheckEq(Display.Items[7].IsActive(P1), true, "string value from the prefs file still matches")
 end)
 
 Test("Speed items: 13 badges from the Icons02 sheet", function()
@@ -152,7 +209,7 @@ end)
 
 Test("NoteSkin items follow NoteSkinNames and apply the skin", function()
     local D = FakeDeps()
-    local NS = BuildCategories(D)[3]
+    local NS = BuildCategories(D)[4]
     CheckEq(#NS.Items, 3, "count")
     CheckEq(NS.Items[1].Label, "default", "1")
     CheckEq(NS.Items[3].Label, "Infinity", "3")
@@ -165,7 +222,7 @@ end)
 
 Test("NoteSkin DefaultItem is the current skin, case-insensitive, else 1", function()
     local D = FakeDeps({ Skin = { [P1] = "INFINITY" } })
-    local NS = BuildCategories(D)[3]
+    local NS = BuildCategories(D)[4]
     CheckEq(NS.DefaultItem(P1), 3, "current skin")
     D.Skin[P1] = "missing"
     CheckEq(NS.DefaultItem(P1), 1, "fallback")
@@ -176,6 +233,7 @@ Test("Descriptions come from Text keys", function()
     CheckEq(C[1].Description, "Speed_Desc", "Speed")
     CheckEq(C[2].Description, "AutoVelocity_Desc", "AV")
     CheckEq(C[1].Items[9].Description, "Speed_EW", "EW item")
-    CheckEq(C[3].Items[1].Description, "NoteSkin_Desc", "noteskin items share the category description")
-    CheckEq(C[4].Label, "Exit", "Exit label")
+    CheckEq(C[3].Description, "Display_Desc", "Display")
+    CheckEq(C[3].Items[7].Description, "Display_BGADark", "BGA DARK item")
+    CheckEq(C[4].Items[1].Description, "NoteSkin_Desc", "noteskin items share the category description")
 end)

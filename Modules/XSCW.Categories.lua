@@ -10,10 +10,13 @@
 --   NoteSkinNames -> list of strings
 --   Text(key) -> string               (strings from [XSCommandWindow])
 --
+--   GetPref(pn, key) -> value          SetPref(pn, key, value)   (Infinitesimal prefs)
+--
 -- Returns a list of categories:
---   { Name, Kind ("items"|"noteskin"|"exit"), Title (png base name or nil),
---     Label, Description, Items = { { Label, Sheet, Frame, Apply(pn),
---     IsActive(pn), Description } }, DefaultItem(pn), Value(pn) (AV only) }
+--   { Name, Kind ("items"|"noteskin"), Title (png base name),
+--     Label, Description, Items = { { Label, Sheet, Frame, InactiveFrame?,
+--     Apply(pn), IsActive(pn), Description } }, DefaultItem(pn),
+--     Value(pn) (AV only) }
 
 local AV_MIN, AV_MAX, AV_DEFAULT = 100, 999, 200
 
@@ -99,6 +102,45 @@ return function(Deps)
     end
     AutoVelocity.DefaultItem = function(pn) return 1 end
 
+    -- ==================== DISPLAY ====================
+    -- Frames follow the XSanity sheet order: V, AP, NS, FD, FL, RandomNote,
+    -- MI, BGA OFF (on/off), BGA DARK (on/off), BGA PARTIAL (on/off).
+    local DisplaySheet = "Icons03 6x3"
+    local Display = {
+        Name = "Display", Kind = "items", Title = "02_title",
+        Label = Deps.Text("Display"), Description = Deps.Text("Display_Desc"),
+        Items = {},
+    }
+    Display.Items[#Display.Items + 1] = ModItem("V", 0, DisplaySheet, "hidden", "Display_V")
+    Display.Items[#Display.Items + 1] = ModItem("AP", 1, DisplaySheet, "sudden", "Display_AP")
+    Display.Items[#Display.Items + 1] = ModItem("NS", 2, DisplaySheet, "stealth", "Display_NS")
+    Display.Items[#Display.Items + 1] = ModItem("FD", 3, DisplaySheet, "dark", "Display_FD")
+    Display.Items[#Display.Items + 1] = ModItem("MI", 6, DisplaySheet, "mini", "Display_MI")
+
+    -- Screen filter levels (Infinitesimal preference, 0 = off); exclusive,
+    -- applying the active one again turns the filter off.
+    local function CurrentFilter(pn)
+        return tonumber(Deps.GetPref(pn, "ScreenFilter")) or 0
+    end
+    for _, BGA in ipairs({
+        { "BGA OFF", 7, 8, 1, "Display_BGAOff" },
+        { "BGA DARK", 9, 10, 0.6, "Display_BGADark" },
+        { "BGA PARTIAL", 11, 12, 0.3, "Display_BGAPartial" },
+    }) do
+        local Level = BGA[4]
+        Display.Items[#Display.Items + 1] = {
+            Label = BGA[1], Sheet = DisplaySheet, Frame = BGA[2], InactiveFrame = BGA[3],
+            Description = Deps.Text(BGA[5]),
+            Apply = function(pn)
+                local NewLevel = CurrentFilter(pn) == Level and 0 or Level
+                Deps.SetPref(pn, "ScreenFilter", NewLevel)
+                Deps.SetPref(pn, "ScreenFilterSize", "Full")
+            end,
+            IsActive = function(pn) return CurrentFilter(pn) == Level end,
+        }
+    end
+    Display.DefaultItem = function(pn) return 1 end
+
     -- =================== NOTE SKIN ===================
     local NoteSkin = {
         Name = "NoteSkin", Kind = "noteskin", Title = "03_title",
@@ -123,11 +165,7 @@ return function(Deps)
         return 1
     end
 
-    -- ====================== EXIT =====================
-    local Exit = {
-        Name = "Exit", Kind = "exit", Title = nil,
-        Label = Deps.Text("Exit"), Description = Deps.Text("Exit_Desc"),
-    }
-
-    return { Speed, AutoVelocity, NoteSkin, Exit }
+    -- Order follows the XSanity command window. Closing is done with the
+    -- upper pad panels, so there is no Exit category.
+    return { Speed, AutoVelocity, Display, NoteSkin }
 end

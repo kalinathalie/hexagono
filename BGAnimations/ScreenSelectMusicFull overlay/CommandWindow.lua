@@ -21,8 +21,11 @@ local function PlayerOpts(pn)
     return GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
 end
 
--- PlayerOptions accessor per mod name used by the Speed category
-local ModMethod = { expand = "Expand", randomspeed = "RandomSpeed", boost = "Boost", brake = "Brake" }
+-- PlayerOptions accessor per mod name used by the categories
+local ModMethod = {
+    expand = "Expand", randomspeed = "RandomSpeed", boost = "Boost", brake = "Brake",
+    hidden = "Hidden", sudden = "Sudden", stealth = "Stealth", dark = "Dark", mini = "Mini",
+}
 
 local Deps = {
     GetAV = function(pn)
@@ -53,6 +56,9 @@ local Deps = {
     GetNoteSkin = function(pn) return PlayerOpts(pn):NoteSkin() end,
     SetNoteSkin = function(pn, name) PlayerOpts(pn):NoteSkin(name) end,
     NoteSkinNames = NOTESKIN:GetNoteSkinNames(),
+    -- Infinitesimal per-player preferences (screen filter etc.)
+    GetPref = function(pn, key) return LoadModule("Config.Load.lua")(key, PrefsFile(pn)) end,
+    SetPref = function(pn, key, value) LoadModule("Config.Save.lua")(key, value, PrefsFile(pn)) end,
     Text = Text,
 }
 
@@ -339,11 +345,17 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             if Visible then
                 local Generic = Slot:GetChild("Generic")
                 local Label = Slot:GetChild("GenericLabel")
+                local Active = Item.IsActive(pn)
                 for _, Sheet in ipairs(Sheets) do
                     local Sprite = Slot:GetChild(Sheet)
                     if Item.Sheet == Sheet then
-                        Sprite:visible(true):setstate(Item.Frame)
-                        Sprite:diffuse(Item.IsActive(pn) and 1 or 0.45, Item.IsActive(pn) and 1 or 0.45, Item.IsActive(pn) and 1 or 0.45, 1)
+                        -- Badges with a dedicated "off" frame use it; the others are dimmed
+                        if Item.InactiveFrame and not Active then
+                            Sprite:visible(true):setstate(Item.InactiveFrame):diffuse(1, 1, 1, 1)
+                        else
+                            Sprite:visible(true):setstate(Item.Frame)
+                            Sprite:diffuse(Active and 1 or 0.45, Active and 1 or 0.45, Active and 1 or 0.45, 1)
+                        end
                     else
                         Sprite:visible(false)
                     end
