@@ -57,10 +57,13 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             end
         },
 
+        -- Phoenix transition: chosen chart + best score panel while picking the difficulty
+        LoadActor("ChosenPanel", pn),
+
         -- READY tag: appears beside the wheel once the player confirms the difficulty
         Def.ActorFrame {
             InitCommand=function(self)
-                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and 380 or -380), SCREEN_BOTTOM - 140):diffusealpha(0)
+                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and 380 or -380), SCREEN_BOTTOM - 225):diffusealpha(0)
             end,
             OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):diffusealpha(0) end,
             StepsChosenMessageCommand=function(self, params)

@@ -1,12 +1,15 @@
--- Phoenix-style jacket wheel: 7 items in a row, the selected one larger in the
--- center with a position counter. Input, busy state and messages are the same
--- as before; images come only from the engine image cache.
+-- Phoenix-style jacket wheel: 7 visible jackets in a row (plus one hidden slot
+-- on each side so every visible item slides), the selected one larger in the
+-- center with a position counter. When a song is chosen the wheel slides away
+-- (the difficulty row takes its place). Input, busy state and messages are the
+-- same as before; images come only from the engine image cache.
 local Wheel = LoadModule("Select.Wheel.lua")
 
-local WheelSize = 7
-local WheelCenter = 4
-local FrameW, FrameH = 190, 140   -- center item size (tg_wheelitem_music is 328x240)
-local ImageW, ImageH = 176, 100   -- image area inside the frame, above the label notch
+local WheelSize = 9            -- 7 visible + 2 off-screen slots
+local WheelCenter = 5
+local Spacing = 200
+local ImageW, ImageH = 180, 101  -- 16:9 jacket/banner area
+local BandH = 22                 -- title band at the bottom of the jacket
 local WheelY = SCREEN_CENTER_Y + 95
 
 local Songs = {}
@@ -171,9 +174,14 @@ local t = Def.ActorFrame {
     MusicWheelStartMessageCommand=function(self) self:sleep(0.01):queuecommand("Confirm") end,
     ConfirmCommand=function(self) MESSAGEMAN:Broadcast("SongChosen") end,
 
-    -- The wheel stays on screen while the difficulty is chosen (Phoenix layout)
-    SongChosenMessageCommand=function(self) self:playcommand("Busy") end,
-    SongUnchosenMessageCommand=function(self) self:playcommand("NotBusy") end,
+    -- Phoenix transition: the wheel slides down out of view while the
+    -- difficulty is chosen, and comes back when the song is unchosen
+    SongChosenMessageCommand=function(self)
+        self:playcommand("Busy"):stoptweening():easeoutexpo(0.4):y(SCREEN_HEIGHT - WheelY + 40):diffusealpha(0)
+    end,
+    SongUnchosenMessageCommand=function(self)
+        self:playcommand("NotBusy"):stoptweening():easeoutexpo(0.4):y(0):diffusealpha(1)
+    end,
 
     OptionsListOpenedMessageCommand=function(self, params) OptionsOpen[params.Player] = true end,
     OptionsListClosedMessageCommand=function(self, params) OptionsOpen[params.Player] = false end,
@@ -230,10 +238,18 @@ local t = Def.ActorFrame {
         IsAction=true,
         MusicWheelStartMessageCommand=function(self) self:play() end
     },
+
+    -- Pointer: small yellow marks above and below the centered jacket
+    Def.ActorFrame {
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X, WheelY) end,
+        Def.Quad { InitCommand=function(self) self:y(-(ImageH * 1.15) / 2 - 14):zoomto(16, 8):diffuse(color("#ffe15a")):rotationz(180):bounce():effectmagnitude(0, -3, 0):effectclock("bgm") end },
+        Def.Quad { InitCommand=function(self) self:y((ImageH * 1.15) / 2 + 14):zoomto(16, 8):diffuse(color("#ffe15a")):bounce():effectmagnitude(0, 3, 0):effectclock("bgm") end },
+    },
 }
 
--- Wheel items. Item i draws the song at Targets[i]; the frame index is rotated
--- on every scroll like the previous wheel, so items slide instead of reloading.
+-- Wheel items. Slot i draws the song at Targets[i]; the slot index is rotated on
+-- every scroll, so every item slides to its neighbour position. Only the hidden
+-- slots at both ends take new songs, so the visible row never pops.
 for i = 1, WheelSize do
     t[#t+1] = Def.ActorFrame{
         OnCommand=function(self)
@@ -248,55 +264,53 @@ for i = 1, WheelSize do
 
         ScrollMessageCommand=function(self, param)
             self:stoptweening()
-
-            local Layout = Wheel.Layout(WheelSize, SCREEN_CENTER_X, WheelCenter)
-            local Slot = Layout[i]
-            local displace = -param.Direction * 150
             local tween = param and param.Direction and math.abs(param.Direction) > 0
+            local Previous = i
 
-            -- Adjust and wrap actor index
+            -- Adjust and wrap slot index
             i = i - param.Direction
             while i > WheelSize do i = i - WheelSize end
             while i < 1 do i = i + WheelSize end
 
-            -- Edge items get the new song and never tween
-            if i == 1 or i == WheelSize then
+            -- The slot that wrapped around (both positions off-screen) and the
+            -- hidden end slots take the new song and jump; everything else slides.
+            local Wrapped = math.abs(i - Previous) > 1
+            if i == 1 or i == WheelSize or Wrapped then
                 UpdateImage(self, Songs[Targets[i]])
             elseif tween then
                 self:easeoutexpo(0.3)
             end
 
-            local Target = Layout[i]
-            self:xy(Target.X, WheelY):zoom(Target.Zoom):diffusealpha(Target.Alpha)
-            self:GetChild("Pointer"):visible(i == WheelCenter)
-            self:GetChild("Counter"):visible(i == WheelCenter)
-            if i == WheelCenter then
-                self:GetChild("Counter"):settext(Wheel.Counter(Targets[i], #Songs))
-            end
+            local Center = (i == WheelCenter)
+            self:xy(SCREEN_CENTER_X + (i - WheelCenter) * Spacing, WheelY)
+            :zoom(Center and 1.15 or 1):diffusealpha(Center and 1 or 0.9)
+            self:GetChild("Border"):diffuse(Center and color("#3cff5c") or color("#ffffff")):diffusealpha(Center and 1 or 0.5)
+            self:GetChild("Counter"):visible(Center)
+            if Center then self:GetChild("Counter"):settext(Wheel.Counter(Targets[i], #Songs)) end
         end,
 
-        Def.Sprite {
-            Name="Image",
-            InitCommand=function(self) self:y(-12) end,
+        Def.Quad {
+            Name="Border",
+            InitCommand=function(self) self:zoomto(ImageW + 6, ImageH + 6):diffuse(Color.White):diffusealpha(0.5) end,
+        },
+        Def.Quad {
+            InitCommand=function(self) self:zoomto(ImageW, ImageH):diffuse(color("#0b1220")) end,
         },
         Def.Sprite {
-            Texture=THEME:GetPathG("", "MusicWheel/tg_wheelitem_music"),
-            InitCommand=function(self) self:zoomto(FrameW, FrameH) end,
+            Name="Image",
+        },
+        Def.Quad {
+            InitCommand=function(self) self:y(ImageH / 2 - BandH / 2):zoomto(ImageW, BandH):diffuse(Color.Black):diffusealpha(0.7) end,
         },
         Def.BitmapText {
             Name="Title",
             Font="Montserrat semibold 20px",
-            InitCommand=function(self) self:y(FrameH / 2 - 12):zoom(0.75):maxwidth((FrameW - 20) / 0.75):shadowlength(1) end,
-        },
-        Def.Sprite {
-            Name="Pointer",
-            Texture=THEME:GetPathG("", "MusicWheel/tg_pointerwheel_music"),
-            InitCommand=function(self) self:zoomto(FrameW + 16, FrameH + 16):diffuse(color("#3cff5c")):visible(false) end,
+            InitCommand=function(self) self:y(ImageH / 2 - BandH / 2):zoom(0.7):maxwidth((ImageW - 10) / 0.7):shadowlength(1) end,
         },
         Def.BitmapText {
             Name="Counter",
             Font="Montserrat semibold 20px",
-            InitCommand=function(self) self:y(FrameH / 2 + 20):zoom(0.8):diffuse(color("#ffe15a")):shadowlength(1):visible(false) end,
+            InitCommand=function(self) self:y(ImageH / 2 + 22):zoom(0.8):diffuse(color("#ffe15a")):shadowlength(1):visible(false) end,
         },
     }
 end

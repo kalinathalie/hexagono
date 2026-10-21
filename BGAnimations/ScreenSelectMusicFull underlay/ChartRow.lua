@@ -30,6 +30,16 @@ local t = Def.ActorFrame {
     InitCommand=function(self) self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM + 80) end,
     OnCommand=function(self) self:easeoutexpo(1):y(SCREEN_BOTTOM - 62) end,
     OffCommand=function(self) self:stoptweening():easeoutexpo(1):y(SCREEN_BOTTOM + 80) end,
+    -- Phoenix transition: while the difficulty is chosen the row takes the wheel's
+    -- place, larger; the mode label stays at the bottom and hides meanwhile
+    SongChosenMessageCommand=function(self)
+        self:stoptweening():easeoutexpo(0.4):y(SCREEN_CENTER_Y + 95):zoom(1.3)
+        self:GetChild("Mode"):visible(false)
+    end,
+    SongUnchosenMessageCommand=function(self)
+        self:stoptweening():easeoutexpo(0.4):y(SCREEN_BOTTOM - 62):zoom(1)
+        self:GetChild("Mode"):visible(true)
+    end,
 
     ChartRowChangedMessageCommand=function(self, params)
         local Charts = params.Charts
@@ -83,6 +93,7 @@ local t = Def.ActorFrame {
 
     -- Footer
     Def.BitmapText {
+        Name="Mode",
         Font="Montserrat semibold 20px",
         Text=THEME:GetString("ScreenSelectMusicFull", "ModeLabel"),
         InitCommand=function(self) self:y(52):zoom(0.7):diffuse(color("#dddddd")):diffusealpha(0.9) end,

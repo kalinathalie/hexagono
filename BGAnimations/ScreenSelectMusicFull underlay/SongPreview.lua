@@ -61,7 +61,7 @@ local t = Def.ActorFrame {
         LoadAnimatedCommand=function(self)
             local Song = GAMESTATE:GetCurrentSong()
             local Path = Song and Song:GetPreviewVidPath()
-            if Path and Path ~= "" then
+            if Path and Path ~= "" and FILEMAN:DoesFileExist(Path) then
                 self:Load(Path)
                 Cover(self)
                 self:linear(PreviewDelay):diffusealpha(1)

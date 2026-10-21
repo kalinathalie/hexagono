@@ -1,16 +1,18 @@
--- Group select in the Phoenix layout: one row of five hexagonal cards. The two
--- levels (sorting category -> subgroup) are kept: the green title shows the
--- current category, the cards show its subgroups; the top pad panels move the
--- focus to the categories, which are then shown as cards themselves.
--- Input handling, busy state, saved indexes and messages are unchanged.
+-- Group select in the Phoenix layout: one row of five hexagonal cards (plus one
+-- hidden slot on each side so every visible card slides). The two levels
+-- (sorting category -> subgroup) are kept: the green title shows the current
+-- category, the cards show its subgroups; the top pad panels move the focus to
+-- the categories, which are then shown as cards themselves. Input handling,
+-- busy state, saved indexes and messages are unchanged.
 local Cards = LoadModule("Select.GroupCards.lua")
 local Info = LoadModule("GroupInfo.lua")(function(key) return THEME:GetString("GroupInfo", key) end)
 
-local CardCount = 5
-local CardCenter = 3
+local CardCount = 7           -- 5 visible + 2 off-screen slots
+local CardCenter = 4
 local CardSpacing = 230
 local CardSize = 200          -- hexagon box of a normal card
 local CenterZoom = 1.35
+local CardY = SCREEN_CENTER_Y + 20
 
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 
@@ -109,8 +111,10 @@ local function CategoryLabel(Name)
     return ToUpper(s)
 end
 
+local ThemeDir = "/Themes/" .. THEME:GetCurThemeName() .. "/"
+local function HasThemeFile(RelPath) return FILEMAN:DoesFileExist(ThemeDir .. RelPath) end
+
 -- XSanity card art (local only, never in the public repo): level and special cards
-local XS = "Graphics/XSanity/ChanGraph/"
 local SpecialArt = { ["All Tunes"] = "ALLTUNES", ["Shortcut"] = "SHORTCUT", ["Remix"] = "REMIX", ["Full Song"] = "FULLSONGS" }
 local function CardArt(Data)
     local Kind = Cards.Kind(Data.Category, Data.Name)
@@ -119,12 +123,12 @@ local function CardArt(Data)
         return Cards.Image(Data.Category, Data.Name, Data.Banner), "banner"
     elseif Kind == "level" then
         local Meter = tonumber(Data.Name:match("(%d+)$") or 0)
-        File = XS .. string.format("LEVEL_%02d.png", Meter)
+        File = string.format("ChanGraph/LEVEL_%02d", Meter)
     elseif Kind == "special" and SpecialArt[Data.Name] then
-        File = XS .. SpecialArt[Data.Name] .. ".png"
+        File = "ChanGraph/" .. SpecialArt[Data.Name]
     end
-    if File and FILEMAN:DoesFileExist("/Themes/" .. THEME:GetCurThemeName() .. "/" .. File) then
-        return THEME:GetPathG("", "XSanity/" .. File:sub(#"Graphics/XSanity/" + 1):gsub("%.png$", "")), "theme"
+    if File and HasThemeFile("Graphics/XSanity/" .. File .. ".png") then
+        return THEME:GetPathG("", "XSanity/" .. File), "card"
     end
     return nil, "text"
 end
@@ -230,6 +234,28 @@ local function InputHandler(event)
     end
 end
 
+-- Side arrows: XSanity art when present, text otherwise (the art is not in the repo)
+local function SideArrow(Dir)
+    local X = SCREEN_CENTER_X + Dir * 360
+    if HasThemeFile("Graphics/XSanity/SSM-FULLARROWS 2x1.png") then
+        return Def.Sprite {
+            Texture=THEME:GetPathG("", "XSanity/SSM-FULLARROWS 2x1"),
+            InitCommand=function(self)
+                self:xy(X, CardY):animate(false):setstate(Dir < 0 and 0 or 1):zoom(1.2):diffuse(color("#3cff5c"))
+                :bounce():effectmagnitude(Dir * 8, 0, 0):effectclock("bgm")
+            end,
+        }
+    end
+    return Def.BitmapText {
+        Font="Montserrat extrabold 40px",
+        Text=Dir < 0 and "<" or ">",
+        InitCommand=function(self)
+            self:xy(X, CardY):zoom(1.4):diffuse(color("#3cff5c")):shadowlength(2)
+            :bounce():effectmagnitude(Dir * 8, 0, 0):effectclock("bgm")
+        end,
+    }
+end
+
 local t = Def.ActorFrame {
     InitCommand=function(self)
         self:diffusealpha(0)
@@ -305,9 +331,9 @@ local t = Def.ActorFrame {
     -- Green title: the current category, or "CATEGORIES" while choosing one
     Def.BitmapText {
         Name="Title",
-        Font="Montserrat semibold 40px",
+        Font="Montserrat extrabold 40px",
         InitCommand=function(self)
-            self:xy(SCREEN_CENTER_X, 118):zoom(0.9):diffuse(color("#3cff5c")):shadowlength(2):maxwidth(900 / 0.9)
+            self:xy(SCREEN_CENTER_X, 118):zoom(1):diffuse(color("#3cff5c")):shadowlength(2):maxwidth(900)
         end,
         OnCommand=function(self) self:playcommand("Refresh") end,
         RefreshHighlightMessageCommand=function(self) self:playcommand("Refresh") end,
@@ -334,19 +360,13 @@ local t = Def.ActorFrame {
         end,
     },
 
-    -- Side arrows (XSanity)
-    Def.Sprite {
-        Texture=THEME:GetPathG("", "XSanity/SSM-FULLARROWS 2x1"),
-        InitCommand=function(self) self:xy(SCREEN_CENTER_X - 360, SCREEN_CENTER_Y + 20):animate(false):setstate(0):zoom(1.2):diffuse(color("#3cff5c")):bounce():effectmagnitude(-8, 0, 0):effectclock("bgm") end,
-    },
-    Def.Sprite {
-        Texture=THEME:GetPathG("", "XSanity/SSM-FULLARROWS 2x1"),
-        InitCommand=function(self) self:xy(SCREEN_CENTER_X + 360, SCREEN_CENTER_Y + 20):animate(false):setstate(1):zoom(1.2):diffuse(color("#3cff5c")):bounce():effectmagnitude(8, 0, 0):effectclock("bgm") end,
-    },
+    SideArrow(-1),
+    SideArrow(1),
 }
 
--- The five cards. Slot i is rotated on every scroll like the old wheels, so the
--- cards slide; edge slots take the new content.
+-- The cards. Slot i is rotated on every scroll like the old wheels, so the
+-- cards slide; only the hidden end slots (and the slot that wrapped around,
+-- which is off-screen on both sides) take new content without animating.
 for i = 1, CardCount do
     t[#t+1] = Def.ActorFrame{
         OnCommand=function(self)
@@ -367,21 +387,22 @@ for i = 1, CardCount do
         PlaceCommand=function(self, params)
             self:stoptweening()
             local tween = params and params.Direction and math.abs(params.Direction) > 0
+            local Previous = i
 
             -- Adjust and wrap slot index
             i = i - params.Direction
             while i > CardCount do i = i - CardCount end
             while i < 1 do i = i + CardCount end
 
-            -- Edge slots show the new content and never tween
-            if i == 1 or i == CardCount then
+            local Wrapped = math.abs(i - Previous) > 1
+            if i == 1 or i == CardCount or Wrapped then
                 self:playcommand("Rebuild")
             elseif tween then
                 self:easeoutexpo(0.3)
             end
 
             local Dist = math.abs(i - CardCenter)
-            self:xy(SCREEN_CENTER_X + (i - CardCenter) * CardSpacing, SCREEN_CENTER_Y + 20)
+            self:xy(SCREEN_CENTER_X + (i - CardCenter) * CardSpacing, CardY)
             :zoom(i == CardCenter and CenterZoom or (Dist == 1 and 1 or 0.8))
             :diffusealpha(i == CardCenter and 1 or (Dist == 1 and 0.85 or 0.45))
             self:GetChild("Ring"):playcommand("Refresh", { Center = i == CardCenter })
@@ -391,13 +412,14 @@ for i = 1, CardCount do
             local Data = CardData(i)
             local Kind = Cards.Kind(Data.Category, Data.Name)
             local Path, Source = CardArt(Data)
-            local Image, Label, Big = self:GetChild("Image"), self:GetChild("Label"), self:GetChild("Big")
+            local Image, Card, Label, Big = self:GetChild("Image"), self:GetChild("Card"), self:GetChild("Label"), self:GetChild("Big")
+            Image:visible(false); Card:visible(false)
             if Path and Source == "banner" then
-                Image:visible(true):LoadFromCached("Banner", Path):scaletocover(-CardSize / 2, -CardSize / 2, CardSize / 2, CardSize / 2)
-            elseif Path then
+                -- the 17 version banners are small files: full resolution, cached by the texture manager
                 Image:visible(true):Load(Path):scaletocover(-CardSize / 2, -CardSize / 2, CardSize / 2, CardSize / 2)
-            else
-                Image:visible(false)
+            elseif Path then
+                -- XSanity card art is already hexagon-shaped: fit it whole inside the card
+                Card:visible(true):Load(Path):scaletofit(-CardSize / 2, -CardSize / 2, CardSize / 2, CardSize / 2)
             end
             local Title = Cards.Title(Data.Category, Data.Name)
             if Kind == "category" then Title = CategoryLabel(Data.Name) end
@@ -405,7 +427,7 @@ for i = 1, CardCount do
             Label:visible(Path ~= nil):settext(Title)
         end,
 
-        -- Hexagon clip for the art
+        -- Hexagon clip for the banner art
         Def.Sprite {
             Texture=THEME:GetPathG("", "Select/hex_mask"),
             InitCommand=function(self) self:zoomto(CardSize, CardSize):MaskSource() end,
@@ -418,7 +440,10 @@ for i = 1, CardCount do
             Name="Image",
             InitCommand=function(self) self:MaskDest():ztestmode("ZTestMode_WriteOnFail") end,
         },
-        -- Ring: white on normal cards, cycling rainbow on the centered one
+        Def.Sprite {
+            Name="Card",
+        },
+        -- Ring: white on normal cards, cycling colors on the centered one
         Def.Sprite {
             Name="Ring",
             Texture=THEME:GetPathG("", "Select/hex_frame"),
@@ -434,14 +459,14 @@ for i = 1, CardCount do
         -- Text inside the hexagon when there is no art (categories, letters, co-op)
         Def.BitmapText {
             Name="Big",
-            Font="Montserrat semibold 40px",
-            InitCommand=function(self) self:zoom(0.8):maxwidth((CardSize - 30) / 0.8):shadowlength(2) end,
+            Font="Montserrat extrabold 40px",
+            InitCommand=function(self) self:zoom(0.85):maxwidth((CardSize - 24) / 0.85):wrapwidthpixels((CardSize - 24) / 0.85):vertspacing(-10):shadowlength(2) end,
         },
         -- Label under the card when there is art
         Def.BitmapText {
             Name="Label",
-            Font="Montserrat semibold 40px",
-            InitCommand=function(self) self:y(CardSize / 2 + 28):zoom(0.6):maxwidth((CardSpacing - 10) / 0.6):shadowlength(2) end,
+            Font="Montserrat extrabold 40px",
+            InitCommand=function(self) self:y(CardSize / 2 + 30):zoom(0.6):maxwidth((CardSpacing + 20) / 0.6):shadowlength(2) end,
         },
     }
 end
