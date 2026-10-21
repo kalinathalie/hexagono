@@ -11,9 +11,9 @@ local function ProfileLevel(pn)
     return lvl
 end
 
+-- Every joined player gets a bar (a guest shows "No Profile" and level 0), as in Phoenix.
 local function HasProfile(pn)
     return GAMESTATE:IsHumanPlayer(pn) and PROFILEMAN:GetProfile(pn) ~= nil
-        and (PROFILEMAN:IsPersistentProfile(pn) or PROFILEMAN:ProfileWasLoadedFromMemoryCard(pn))
 end
 
 local function Bar(pn)
@@ -40,7 +40,8 @@ local function Bar(pn)
         -- Avatar
         Def.Sprite {
             Texture=LoadModule("Options.GetProfileData.lua")(pn)["Image"],
-            InitCommand=function(self) self:x(-W / 2 + 28):scaletocover(-22, -22, 22, 22) end,
+            -- scaletocover also positions the sprite, so the x offset comes after it
+            InitCommand=function(self) self:scaletocover(-22, -22, 22, 22):x(-W / 2 + 28) end,
         },
 
         -- Level title and name
@@ -72,14 +73,9 @@ local function Bar(pn)
             end,
         },
 
-        -- Green level box
+        -- Green box: background for the engine's menu timer, which metrics.ini places here
+        -- ([ScreenSelectMusicFull] TimerOnCommand), as in the Phoenix layout.
         Def.Quad { InitCommand=function(self) self:x(W / 2 - 34):zoomto(54, 40):diffuse(color("#19e04a")) end },
-        Def.BitmapText {
-            Font="Montserrat semibold 40px",
-            InitCommand=function(self)
-                self:x(W / 2 - 34):zoom(0.6):diffuse(Color.Black):settext(ProfileLevel(pn))
-            end,
-        },
     }
     local Hearts = t[6] -- the lives frame (sixth child above)
     for i = 1, 6 do
