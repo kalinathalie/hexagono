@@ -31,3 +31,12 @@ end)
 Test("Wheel.ImageKind prefers jacket, then banner, then nothing", function()
     CheckEq(Wheel.ImageKind(true, true), "jacket", "j"); CheckEq(Wheel.ImageKind(false, true), "banner", "b"); CheckEq(Wheel.ImageKind(false, false), "none", "n")
 end)
+
+Test("Wheel.ThumbPath maps a song folder to its thumbnail in the theme's Thumbs folder", function()
+    CheckEq(Wheel.ThumbPath("/Songs/17 - PHOENIX 2/19040 - Digitalis/", "Infinitesimal"),
+        "/Themes/Infinitesimal/Thumbs/17 - PHOENIX 2/19040 - Digitalis.jpg", "songs folder")
+    CheckEq(Wheel.ThumbPath("/AdditionalSongs/Pack/Song", "Infinitesimal"),
+        "/Themes/Infinitesimal/Thumbs/Pack/Song.jpg", "additional folder, no trailing slash")
+    CheckEq(Wheel.ThumbPath("", "Infinitesimal"), nil, "empty dir")
+    CheckEq(Wheel.ThumbPath(nil, "Infinitesimal"), nil, "no dir")
+end)

@@ -434,11 +434,20 @@ for i = 1, CardCount do
             local PhoenixCard = self:GetChild("Phoenix")
             Image:visible(false); Card:visible(false); PhoenixCard:visible(false)
             local IsPhoenix = (Path ~= nil and Source == "phoenix")
+            if Path and Source == "banner" and PickArt then
+                -- a square folder banner is card art in the Phoenix style (PHOENIX 2 has no
+                -- channel card, its banner.png is one): show it like the channel cards, no hexagon
+                PhoenixCard:Load(Path)
+                local Tex = PhoenixCard:GetTexture()
+                local W, H = Tex and Tex:GetSourceWidth() or 0, Tex and Tex:GetSourceHeight() or 0
+                IsPhoenix = H > 0 and math.abs(W / H - 1) < 0.1
+            end
             self:GetChild("HexBack"):visible(not IsPhoenix)
             self:GetChild("Ring"):visible(not IsPhoenix)
             if IsPhoenix then
                 -- the card art already has its frame and the group name
-                PhoenixCard:visible(true):Load(Path):zoomto(CardSize * 1.12, CardSize * 1.12 * 318 / 320)
+                if Source == "phoenix" then PhoenixCard:Load(Path) end
+                PhoenixCard:visible(true):zoomto(CardSize * 1.12, CardSize * 1.12 * 318 / 320)
                 Big:visible(false); Label:visible(false)
                 return
             end

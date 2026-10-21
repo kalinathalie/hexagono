@@ -138,13 +138,15 @@ local function InputHandler(event)
     end
 end
 
--- Loads the song image into a wheel item through the image cache (never a full PNG decode)
+-- Loads the song image into a wheel item through the image cache (never a full PNG
+-- decode) and returns the sharp thumbnail to swap in once the wheel rests, if any
+local ThemeName = THEME:GetCurThemeName()
 local function UpdateImage(self, Song)
     local Image = self:GetChild("Image")
     local Title = self:GetChild("Title")
     if not Song then
         Image:visible(false); Title:settext("")
-        return
+        return nil
     end
     local Kind = Wheel.ImageKind(Song:HasJacket(), Song:HasBanner())
     if Kind == "jacket" then
@@ -155,7 +157,15 @@ local function UpdateImage(self, Song)
         Image:visible(false)
     end
     Title:settext(Song:GetDisplayMainTitle())
+    local Thumb = Wheel.ThumbPath(Song:GetSongDir(), ThemeName)
+    if Thumb and FILEMAN:DoesFileExist(Thumb) then return Thumb end
+    return nil
 end
+
+-- The cached images are at most 160 px wide; the 400x300 thumbnails (tools/make_thumbs.py)
+-- are loaded only after the wheel rests, nearest the center first, one per few frames,
+-- so scrolling never waits for a decode and only the songs you stop on take memory
+local SharpenDelay, SharpenStagger = 0.2, 0.04
 
 local t = Def.ActorFrame {
     InitCommand=function(self)
@@ -248,14 +258,15 @@ local t = Def.ActorFrame {
 -- slots at both ends (and the one that wrapped around, off-screen on both sides)
 -- take new songs, so the visible row never pops.
 for i = 1, WheelSize do
+    local Pending = nil   -- sharp thumbnail waiting to replace this slot's cached image
     t[#t+1] = Def.ActorFrame{
         OnCommand=function(self)
-            UpdateImage(self, Songs[Targets[i]])
+            Pending = UpdateImage(self, Songs[Targets[i]])
             self:playcommand("Scroll", {Direction = 0})
         end,
 
         ForceUpdateMessageCommand=function(self)
-            UpdateImage(self, Songs[Targets[i]])
+            Pending = UpdateImage(self, Songs[Targets[i]])
             self:playcommand("Scroll", {Direction = 0})
         end,
 
@@ -271,7 +282,7 @@ for i = 1, WheelSize do
 
             local Wrapped = math.abs(i - Previous) > 1
             if i == 1 or i == WheelSize or Wrapped then
-                UpdateImage(self, Songs[Targets[i]])
+                Pending = UpdateImage(self, Songs[Targets[i]])
             elseif tween then
                 self:easeoutexpo(0.3)
             end
@@ -288,8 +299,20 @@ for i = 1, WheelSize do
             self:GetChild("Counter"):visible(Center)
             if Center then self:GetChild("Counter"):settext(Wheel.Counter(Targets[i], #Songs)) end
             if PickArt then self:GetChild("Pick"):visible(Center) end
+            if Pending and math.abs(Offset) <= 3 then
+                self:GetChild("Sharpen"):playcommand("Start", { Delay = SharpenDelay + math.abs(Offset) * SharpenStagger })
+            end
         end,
 
+        Def.Actor {
+            Name="Sharpen",
+            StartCommand=function(self, params) self:stoptweening():sleep(params.Delay):queuecommand("Swap") end,
+            SwapCommand=function(self)
+                if not Pending then return end
+                self:GetParent():GetChild("Image"):visible(true):Load(Pending):scaletoclipped(ImageW, ImageH)
+                Pending = nil
+            end,
+        },
         Def.Quad {
             Name="Glow",
             InitCommand=function(self) self:zoomto(ImageW + 22, ImageH + 22):diffuse(Green):diffusealpha(0.25) end,

@@ -8,6 +8,8 @@
 --       false for slots that would repeat a song when the list is shorter than the wheel
 --   Counter(Index, Total) -> "036/139"
 --   ImageKind(HasJacket, HasBanner) -> "jacket" | "banner" | "none"
+--   ThumbPath(SongDir, ThemeName) -> "/Themes/<theme>/Thumbs/<pack>/<song>.jpg" | nil
+--       sharp 400x300 thumbnail made by tools/make_thumbs.py from the song's background
 
 local Wheel = {}
 
@@ -37,6 +39,14 @@ function Wheel.ImageKind(HasJacket, HasBanner)
     if HasJacket then return "jacket" end
     if HasBanner then return "banner" end
     return "none"
+end
+
+-- "/Songs/<pack>/<song>/" (any top folder) -> "/Themes/<theme>/Thumbs/<pack>/<song>.jpg"
+function Wheel.ThumbPath(SongDir, ThemeName)
+    if not SongDir or SongDir == "" then return nil end
+    local Rest = SongDir:gsub("/+$", ""):gsub("^/?[^/]+", "")
+    if Rest == "" then return nil end
+    return "/Themes/" .. ThemeName .. "/Thumbs" .. Rest .. ".jpg"
 end
 
 return Wheel
