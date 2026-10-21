@@ -1,13 +1,16 @@
-local MainWheelSize = 15
-local MainWheelCenter = math.ceil( MainWheelSize * 0.5 )
-local MainWheelSpacing = 180
+-- Group select in the Phoenix layout: one row of five hexagonal cards. The two
+-- levels (sorting category -> subgroup) are kept: the green title shows the
+-- current category, the cards show its subgroups; the top pad panels move the
+-- focus to the categories, which are then shown as cards themselves.
+-- Input handling, busy state, saved indexes and messages are unchanged.
+local Cards = LoadModule("Select.GroupCards.lua")
+local Info = LoadModule("GroupInfo.lua")(function(key) return THEME:GetString("GroupInfo", key) end)
 
-local SubWheelSize = 13
-local SubWheelCenter = math.ceil( SubWheelSize * 0.5 )
-local SubWheelSpacing = 250
-
-local WheelItem = { Width = 212, Height = 120 }
-local WheelRotation = 0.1
+local CardCount = 5
+local CardCenter = 3
+local CardSpacing = 230
+local CardSize = 200          -- hexagon box of a normal card
+local CenterZoom = 1.35
 
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 
@@ -15,7 +18,7 @@ local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 if next(GroupsList) == nil then
     AssembleGroupSorting()
     UpdateGroupSorting()
-    
+
     if next(GroupsList) == nil then
         Warn("Groups list is currently inaccessible, halting music wheel!")
         return Def.Actor {}
@@ -50,7 +53,7 @@ if GroupsList[LastGroupMainIndex].SubGroups[LastGroupSubIndex] == nil then
     LastSongIndex = 1
     Warn("ScreenSelectMusicFull overlay / GroupSelect.lua: LastGroupSubIndex no longer present, reset performed")
 end
-if GroupsList[LastGroupMainIndex].SubGroups[LastGroupSubIndex].Songs == nil then 
+if GroupsList[LastGroupMainIndex].SubGroups[LastGroupSubIndex].Songs == nil then
     LastSongIndex = 1
     Warn("ScreenSelectMusicFull overlay / GroupSelect.lua: LastSongIndex no longer, reset performed")
 end
@@ -60,10 +63,6 @@ local CurMainIndex = LastGroupMainIndex > 0 and LastGroupMainIndex or 1
 local CurSubIndex = LastGroupSubIndex > 0 and LastGroupSubIndex or 1
 local MainTargets = {}
 local SubTargets = {}
-
--- This is to determine where are the original groups located
--- TODO: Not hardcode this
-local OrigGroupIndex = 2
 
 local function BlockScreenInput(State)
     --SCREENMAN:set_input_redirected(PLAYER_1, State)
@@ -77,126 +76,155 @@ else
 
 -- Update Group item targets
 local function UpdateMainItemTargets(val)
-    for i = 1, MainWheelSize do
-        MainTargets[i] = val + i - MainWheelCenter
-        -- Wrap to fit to Songs list size
+    for i = 1, CardCount do
+        MainTargets[i] = val + i - CardCenter
+        -- Wrap to fit to list size
         while MainTargets[i] > #GroupsList do MainTargets[i] = MainTargets[i] - #GroupsList end
         while MainTargets[i] < 1 do MainTargets[i] = MainTargets[i] + #GroupsList end
     end
 end
 
 local function UpdateSubItemTargets(val)
-    for i = 1, SubWheelSize do
-        SubTargets[i] = val + i - SubWheelCenter
-        -- Wrap to fit to Songs list size
+    for i = 1, CardCount do
+        SubTargets[i] = val + i - CardCenter
+        -- Wrap to fit to list size
         while SubTargets[i] > #GroupsList[CurMainIndex].SubGroups do SubTargets[i] = SubTargets[i] - #GroupsList[CurMainIndex].SubGroups end
         while SubTargets[i] < 1 do SubTargets[i] = SubTargets[i] + #GroupsList[CurMainIndex].SubGroups end
     end
 end
 
--- Manages banner on sprite
-function UpdateBanner(self, Banner)
-    if Banner == "" then Banner = THEME:GetPathG("Common fallback", "banner") end
-    self:Load(Banner):scaletofit(-WheelItem.Width / 2, -WheelItem.Height / 2, WheelItem.Width / 2, WheelItem.Height / 2)
+-- What card slot i shows right now: category or subgroup of the current category
+local function CardData(i)
+    if IsFocusedMain then
+        local Name = GroupsList[MainTargets[i]].Name
+        return { Category = nil, Name = Name, Banner = "" }
+    end
+    local Sub = GroupsList[CurMainIndex].SubGroups[SubTargets[i]]
+    return { Category = GroupsList[CurMainIndex].Name, Name = Sub.Name, Banner = Sub.Banner or "" }
+end
+
+local function CategoryLabel(Name)
+    local s = THEME:GetString("GroupSelect", "Name_" .. Name)
+    if s == "" then s = Name end
+    return ToUpper(s)
+end
+
+-- XSanity card art (local only, never in the public repo): level and special cards
+local XS = "Graphics/XSanity/ChanGraph/"
+local SpecialArt = { ["All Tunes"] = "ALLTUNES", ["Shortcut"] = "SHORTCUT", ["Remix"] = "REMIX", ["Full Song"] = "FULLSONGS" }
+local function CardArt(Data)
+    local Kind = Cards.Kind(Data.Category, Data.Name)
+    local File
+    if Kind == "version" then
+        return Cards.Image(Data.Category, Data.Name, Data.Banner), "banner"
+    elseif Kind == "level" then
+        local Meter = tonumber(Data.Name:match("(%d+)$") or 0)
+        File = XS .. string.format("LEVEL_%02d.png", Meter)
+    elseif Kind == "special" and SpecialArt[Data.Name] then
+        File = XS .. SpecialArt[Data.Name] .. ".png"
+    end
+    if File and FILEMAN:DoesFileExist("/Themes/" .. THEME:GetCurThemeName() .. "/" .. File) then
+        return THEME:GetPathG("", "XSanity/" .. File:sub(#"Graphics/XSanity/" + 1):gsub("%.png$", "")), "theme"
+    end
+    return nil, "text"
 end
 
 local function InputHandler(event)
-	local pn = event.PlayerNumber
+    local pn = event.PlayerNumber
     if not pn then return end
-    
+
     -- Don't want to move when releasing the button
-    if event.type == "InputEventType_Release" then 
-        TickCount = 0 
+    if event.type == "InputEventType_Release" then
+        TickCount = 0
         MESSAGEMAN:Broadcast("ExitTickDown")
         return
     end
-    
+
     local button = event.GameButton
-	-- SCREENMAN:SystemMessage(button)
-    
+
     -- To avoid control from a player that has not joined, filter the inputs out
     if pn == PLAYER_1 and not GAMESTATE:IsPlayerEnabled(PLAYER_1) then return end
     if pn == PLAYER_2 and not GAMESTATE:IsPlayerEnabled(PLAYER_2) then return end
-    
+
     if IsSelectingGroup then
         if button == "Left" or button == "MenuLeft" or button == "DownLeft" then
             if IsFocusedMain then
                 CurMainIndex = CurMainIndex - 1
                 if CurMainIndex < 1 then CurMainIndex = #GroupsList end
                 UpdateMainItemTargets(CurMainIndex)
-                
+
                 CurSubIndex = 1
                 UpdateSubItemTargets(CurSubIndex)
-                
+
                 MESSAGEMAN:Broadcast("ScrollMain", { Direction = -1 })
                 MESSAGEMAN:Broadcast("RefreshSub")
             else
                 CurSubIndex = CurSubIndex - 1
                 if CurSubIndex < 1 then CurSubIndex = #GroupsList[CurMainIndex].SubGroups end
-                
+
                 UpdateSubItemTargets(CurSubIndex)
-                
+
                 MESSAGEMAN:Broadcast("ScrollSub", { Direction = -1 })
             end
-            
+
         elseif button == "Right" or button == "MenuRight" or button == "DownRight" then
             if IsFocusedMain then
                 CurMainIndex = CurMainIndex + 1
                 if CurMainIndex > #GroupsList then CurMainIndex = 1 end
                 UpdateMainItemTargets(CurMainIndex)
-                
+
                 CurSubIndex = 1
                 UpdateSubItemTargets(CurSubIndex)
-                
+
                 MESSAGEMAN:Broadcast("ScrollMain", { Direction = 1 })
                 MESSAGEMAN:Broadcast("RefreshSub")
             else
                 CurSubIndex = CurSubIndex + 1
                 if CurSubIndex > #GroupsList[CurMainIndex].SubGroups then CurSubIndex = 1 end
-                
+
                 UpdateSubItemTargets(CurSubIndex)
-                
+
                 MESSAGEMAN:Broadcast("ScrollSub", { Direction = 1 })
             end
         elseif button == "Start" or button == "MenuStart" or button == "Center" then
-            if IsFocusedMain then 
+            if IsFocusedMain then
                 IsFocusedMain = false
                 if CurSubIndex > #GroupsList[CurMainIndex].SubGroups then CurSubIndex = 1 end
                 UpdateSubItemTargets(CurSubIndex)
-                MESSAGEMAN:Broadcast("RefreshHighlight") 
+                MESSAGEMAN:Broadcast("RefreshHighlight")
             else
                 if CurMainIndex == LastGroupMainIndex and CurSubIndex == LastGroupSubIndex then
                     MESSAGEMAN:Broadcast("CloseGroupWheel", { Silent = true })
                 else
                     GroupIndex = CurMainIndex
                     SubGroupIndex = CurSubIndex
-                    
+
                     -- Save this for later
                     LastGroupMainIndex = CurMainIndex
                     LastGroupSubIndex = CurSubIndex
-                    
+
                     LoadModule("Config.Save.lua")("GroupMainIndex", LastGroupMainIndex, CheckIfUserOrMachineProfile(string.sub(pn,-1)-1).."/OutFoxPrefs.ini")
                     LoadModule("Config.Save.lua")("GroupSubIndex", LastGroupSubIndex, CheckIfUserOrMachineProfile(string.sub(pn,-1)-1).."/OutFoxPrefs.ini")
-                    
+
                     MESSAGEMAN:Broadcast("CloseGroupWheel", { Silent = false })
                 end
             end
-            
+
         elseif button == "UpRight" or button == "UpLeft" or button == "Up" or button == "MenuUp" or button == "MenuDown" then
-            if not IsFocusedMain then 
+            if not IsFocusedMain then
                 IsFocusedMain = true
                 MESSAGEMAN:Broadcast("RefreshHighlight")
-            elseif IsHome or IsEvent then 
-				if event.type == "InputEventType_Repeat" then
-					TickCount = TickCount + 1
+            elseif IsHome or IsEvent then
+                if event.type == "InputEventType_Repeat" then
+                    TickCount = TickCount + 1
                     MESSAGEMAN:Broadcast("ExitTickUp")
                     if TickCount == 15 then
                         BlockScreenInput(false)
                         SCREENMAN:GetTopScreen():Cancel()
                     end
-				else
-					MESSAGEMAN:Broadcast("ExitPressed")
-				end
+                else
+                    MESSAGEMAN:Broadcast("ExitPressed")
+                end
             end
         end
     end
@@ -204,8 +232,7 @@ end
 
 local t = Def.ActorFrame {
     InitCommand=function(self)
-        self:fov(90):SetDrawByZPosition(true)
-        :vanishpoint(SCREEN_CENTER_X, SCREEN_CENTER_Y + 40):diffusealpha(0)
+        self:diffusealpha(0)
         UpdateMainItemTargets(CurMainIndex)
         UpdateSubItemTargets(CurSubIndex)
     end,
@@ -215,17 +242,17 @@ local t = Def.ActorFrame {
         ScreenSelectMusic = SCREENMAN:GetTopScreen()
         ScreenSelectMusic:AddInputCallback(InputHandler)
     end,
-    
+
     OffCommand=function(self) BlockScreenInput(false) end,
-    
+
     SongChosenMessageCommand=function(self) self:queuecommand("Busy") end,
     SongUnchosenMessageCommand=function(self) self:sleep(0.01):queuecommand("NotBusy") end,
-    
+
     OptionsListOpenedMessageCommand=function(self, params) IsOptionsList[params.Player] = true end,
     OptionsListClosedMessageCommand=function(self, params) IsOptionsList[params.Player] = false end,
 
     CodeMessageCommand=function(self, params)
-        if params.Name == "GroupSelectPad1" or params.Name == "GroupSelectPad2" or 
+        if params.Name == "GroupSelectPad1" or params.Name == "GroupSelectPad2" or
         params.Name == "GroupSelectButton1" or params.Name == "GroupSelectButton2" then
             if not IsBusy and not IsOptionsList[PLAYER_1] and not IsOptionsList[PLAYER_2] then
                 -- Prevent the song list from moving when transitioning
@@ -235,19 +262,25 @@ local t = Def.ActorFrame {
             end
         end
     end,
-    
+
     BusyCommand=function(self) IsBusy = true end,
     NotBusyCommand=function(self) IsBusy = false end,
-    
-    OpenGroupCommand=function(self) IsSelectingGroup = true end,
+
+    OpenGroupCommand=function(self)
+        IsSelectingGroup = true
+        -- the wheel opens on the subgroups of the current category
+        IsFocusedMain = false
+        UpdateSubItemTargets(CurSubIndex)
+        MESSAGEMAN:Broadcast("RefreshHighlight")
+    end,
     CloseGroupCommand=function(self) IsSelectingGroup = false end,
-    
+
     CloseGroupWheelMessageCommand=function(self, params)
         self:stoptweening():easeoutexpo(0.25):diffusealpha(0)
-        
+
         BlockScreenInput(false)
         IsSelectingGroup = false
-        
+
         if params.Silent == false then
             -- The built in wheel needs to be told the group has been changed
             ScreenSelectMusic:PostScreenMessage("SM_SongChanged", 0 )
@@ -267,203 +300,148 @@ local t = Def.ActorFrame {
         IsAction=true,
         CloseGroupWheelMessageCommand=function(self) self:play() end
     },
+
+    -- Green title: the current category, or "CATEGORIES" while choosing one
+    Def.BitmapText {
+        Name="Title",
+        Font="Montserrat semibold 40px",
+        InitCommand=function(self)
+            self:xy(SCREEN_CENTER_X, 118):zoom(0.9):diffuse(color("#3cff5c")):shadowlength(2):maxwidth(900 / 0.9)
+        end,
+        OnCommand=function(self) self:playcommand("Refresh") end,
+        RefreshHighlightMessageCommand=function(self) self:playcommand("Refresh") end,
+        ScrollMainMessageCommand=function(self) self:playcommand("Refresh") end,
+        RefreshCommand=function(self)
+            self:settext(IsFocusedMain and ToUpper(THEME:GetString("GroupSelect", "Categories")) or CategoryLabel(GroupsList[CurMainIndex].Name))
+        end,
+    },
+
+    -- Description of the centered card
+    Def.BitmapText {
+        Name="Description",
+        Font="Montserrat semibold 20px",
+        InitCommand=function(self)
+            self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 150):zoom(0.9):shadowlength(1):maxwidth(900 / 0.9)
+        end,
+        OnCommand=function(self) self:playcommand("Refresh") end,
+        RefreshHighlightMessageCommand=function(self) self:playcommand("Refresh") end,
+        ScrollMainMessageCommand=function(self) self:playcommand("Refresh") end,
+        ScrollSubMessageCommand=function(self) self:playcommand("Refresh") end,
+        RefreshCommand=function(self)
+            local Data = CardData(CardCenter)
+            self:settext(Info.Describe(Data.Category, Data.Name))
+        end,
+    },
+
+    -- Side arrows (XSanity)
+    Def.Sprite {
+        Texture=THEME:GetPathG("", "XSanity/SSM-FULLARROWS 2x1"),
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X - 360, SCREEN_CENTER_Y + 20):animate(false):setstate(0):zoom(1.2):diffuse(color("#3cff5c")):bounce():effectmagnitude(-8, 0, 0):effectclock("bgm") end,
+    },
+    Def.Sprite {
+        Texture=THEME:GetPathG("", "XSanity/SSM-FULLARROWS 2x1"),
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X + 360, SCREEN_CENTER_Y + 20):animate(false):setstate(1):zoom(1.2):diffuse(color("#3cff5c")):bounce():effectmagnitude(8, 0, 0):effectclock("bgm") end,
+    },
 }
 
--- The Wheel: originally made by Luizsan
--- First wheel will be responsible for the main sort options
-for i = 1, MainWheelSize do
+-- The five cards. Slot i is rotated on every scroll like the old wheels, so the
+-- cards slide; edge slots take the new content.
+for i = 1, CardCount do
     t[#t+1] = Def.ActorFrame{
         OnCommand=function(self)
-            -- Update sort text
-            self:GetChild("Text"):settext(GroupsList[MainTargets[i]].Name)
-            
-            -- Set initial position, Direction = 0 means it won't tween
-            self:playcommand("ScrollMain", {Direction = 0})
+            self:playcommand("Rebuild")
+            self:playcommand("Place", { Direction = 0 })
         end,
 
-        ScrollMainMessageCommand=function(self, params)
-            self:stoptweening()
-
-            -- Calculate position
-            local xpos = SCREEN_CENTER_X + (i - MainWheelCenter) * MainWheelSpacing
-
-            -- Calculate displacement based on input
-            local displace = -params.Direction * MainWheelSpacing
-
-            -- Only tween if a direction was specified
-            local tween = params and params.Direction and math.abs(params.Direction) > 0
-            
-            -- Adjust and wrap actor index
-            i = i - params.Direction
-            while i > MainWheelSize do i = i - MainWheelSize end
-            while i < 1 do i = i + MainWheelSize end
-
-            -- If it's an edge item, update text. Edge items should never tween
-            if i == 2 or i == MainWheelSize - 1 then
-				self:GetChild("Text"):settext(GroupsList[MainTargets[i]].Name)
-            elseif tween then
-                self:easeoutexpo(0.4)
-            end
-			
-			self:GetChild("Text"):playcommand("Refresh")
-
-            -- Animate!
-            self:xy(xpos + displace, SCREEN_CENTER_Y - 60)
-        end,
-        
-        Def.Quad {
-            InitCommand=function(self)
-                self:zoomto(MainWheelSpacing, 40)
-                :diffuse(color("#1d1d1d")):diffusebottomedge(color("#7b7b7b"))
-            end,
-            
-            OnCommand=function(self) self:playcommand("Refresh") end,
-            RefreshHighlightMessageCommand=function(self) self:playcommand("Refresh") end,
-            
-            RefreshCommand=function(self)
-                self:finishtweening():easeoutexpo(0.4):diffusealpha(IsFocusedMain and 1 or 0.5)
-            end,
-        },
-        
-        Def.BitmapText {
-            Name="Text",
-            Font="Montserrat semibold 40px",
-            InitCommand=function(self)
-                self:zoom(0.75):skewx(-0.1):diffusetopedge(0.95,0.95,0.95,0.8):shadowlength(1.5)
-                :maxwidth(MainWheelSpacing / self:GetZoom())
-            end,
-            
-            OnCommand=function(self) self:playcommand("Refresh") end,
-            RefreshHighlightMessageCommand=function(self) self:playcommand("Refresh") end,
-            
-            RefreshCommand=function(self)
-                self:finishtweening():easeoutexpo(0.4):diffusealpha(i == MainWheelCenter and 1 or 0.5)
-            end,
-        }
-    }
-end
-
--- Second wheel will be responsible for the sub groups
-for i = 1, SubWheelSize do
-    t[#t+1] = Def.ActorFrame{
-        OnCommand=function(self)
-            if CurMainIndex == OrigGroupIndex then
-                self:GetChild("Banner"):visible(true)
-                UpdateBanner(self:GetChild("Banner"), GroupsList[CurMainIndex].SubGroups[SubTargets[i]].Banner)
-            else
-                self:GetChild("Banner"):visible(false)
-            end
-            
-            self:GetChild("GroupInfo"):playcommand("Refresh")
-            self:GetChild(""):GetChild("Index"):playcommand("Refresh")
-            
-            -- Ensure the wheel is highlighted or not at the beginning
-            self:diffusealpha(IsFocusedMain and 0.5 or 1)
-            
-            -- Set initial position, Direction = 0 means it won't tween
-            self:playcommand("ScrollSub", {Direction = 0})
-        end,
-        
-        -- This is so that whenever the main wheel scrolls all the bottom items can update as well.
-        RefreshSubMessageCommand=function(self, params) self:playcommand("On") end,
-        
+        -- Category scrolled (subgroup list changed) or focus switched: new content, no slide
+        RefreshSubMessageCommand=function(self) if not IsFocusedMain then self:playcommand("Rebuild") end end,
         RefreshHighlightMessageCommand=function(self)
-            self:finishtweening():easeoutexpo(0.4):diffusealpha(IsFocusedMain and 0.5 or 1)
+            self:playcommand("Rebuild")
+            self:playcommand("Place", { Direction = 0 })
         end,
 
-        ScrollSubMessageCommand=function(self, params)
+        ScrollMainMessageCommand=function(self, params) if IsFocusedMain then self:playcommand("Place", params) end end,
+        ScrollSubMessageCommand=function(self, params) if not IsFocusedMain then self:playcommand("Place", params) end end,
+
+        PlaceCommand=function(self, params)
             self:stoptweening()
-
-            -- Calculate position
-            local xpos = SCREEN_CENTER_X + (i - SubWheelCenter) * SubWheelSpacing
-
-            -- Calculate displacement based on input
-            local displace = -params.Direction * SubWheelSpacing
-
-            -- Only tween if a direction was specified
             local tween = params and params.Direction and math.abs(params.Direction) > 0
-            
-            -- Adjust and wrap actor index
+
+            -- Adjust and wrap slot index
             i = i - params.Direction
-            while i > SubWheelSize do i = i - SubWheelSize end
-            while i < 1 do i = i + SubWheelSize end
+            while i > CardCount do i = i - CardCount end
+            while i < 1 do i = i + CardCount end
 
-            -- Update edge items with new info, they should also never tween
-            if i == 2 or i == SubWheelSize - 1 then
-				-- Force update banners because of how the sub wheel is now refreshed
-                if CurMainIndex == OrigGroupIndex then
-                    self:GetChild("Banner"):visible(true)
-                    UpdateBanner(self:GetChild("Banner"), GroupsList[CurMainIndex].SubGroups[SubTargets[i]].Banner)
-                else
-                    self:GetChild("Banner"):visible(false)
-                end
-                
-                self:GetChild("GroupInfo"):playcommand("Refresh")
-                self:GetChild(""):GetChild("Index"):playcommand("Refresh")
+            -- Edge slots show the new content and never tween
+            if i == 1 or i == CardCount then
+                self:playcommand("Rebuild")
             elseif tween then
-                self:easeoutexpo(0.4)
+                self:easeoutexpo(0.3)
             end
-            
-            self:GetChild("Highlight"):playcommand("Refresh")
 
-            -- Animate!
-            self:xy(xpos + displace, SCREEN_CENTER_Y + 40)
-            self:rotationy((SCREEN_CENTER_X - xpos - displace) * -WheelRotation)
-            self:z(-math.abs(SCREEN_CENTER_X - xpos - displace) * 0.25)
+            local Dist = math.abs(i - CardCenter)
+            self:xy(SCREEN_CENTER_X + (i - CardCenter) * CardSpacing, SCREEN_CENTER_Y + 20)
+            :zoom(i == CardCenter and CenterZoom or (Dist == 1 and 1 or 0.8))
+            :diffusealpha(i == CardCenter and 1 or (Dist == 1 and 0.85 or 0.45))
+            self:GetChild("Ring"):playcommand("Refresh", { Center = i == CardCenter })
         end,
-        
-        Def.Sprite {
-            Name="Highlight",
-            Texture=THEME:GetPathG("", "MusicWheel/FrameHighlight"),
-            RefreshCommand=function(self)
-                self:stoptweening():easeoutexpo(0.4):diffusealpha(i == SubWheelCenter and 1 or 0)
-            end
-        },
-        
-        Def.Sprite {
-            Texture=THEME:GetPathG("", "MusicWheel/GradientBanner"),
-            InitCommand=function(self) self:scaletoclipped(WheelItem.Width, WheelItem.Height) end
-        },
-        
-        Def.Banner {
-            Name="Banner",
-        },
 
+        RebuildCommand=function(self)
+            local Data = CardData(i)
+            local Kind = Cards.Kind(Data.Category, Data.Name)
+            local Path, Source = CardArt(Data)
+            local Image, Label, Big = self:GetChild("Image"), self:GetChild("Label"), self:GetChild("Big")
+            if Path and Source == "banner" then
+                Image:visible(true):LoadFromCached("Banner", Path):scaletocover(-CardSize / 2, -CardSize / 2, CardSize / 2, CardSize / 2)
+            elseif Path then
+                Image:visible(true):Load(Path):scaletocover(-CardSize / 2, -CardSize / 2, CardSize / 2, CardSize / 2)
+            else
+                Image:visible(false)
+            end
+            local Title = Cards.Title(Data.Category, Data.Name)
+            if Kind == "category" then Title = CategoryLabel(Data.Name) end
+            Big:visible(not Path):settext(Title)
+            Label:visible(Path ~= nil):settext(Title)
+        end,
+
+        -- Hexagon clip for the art
         Def.Sprite {
-            Texture=THEME:GetPathG("", "MusicWheel/GroupFrame"),
+            Texture=THEME:GetPathG("", "Select/hex_mask"),
+            InitCommand=function(self) self:zoomto(CardSize, CardSize):MaskSource() end,
         },
-        
-        Def.ActorFrame {
-            Def.Quad {
-                InitCommand=function(self)
-                    self:zoomto(60, 18):addy(-50)
-                    :diffuse(0,0,0,0.6)
-                    :fadeleft(0.3):faderight(0.3)
+        Def.Sprite {
+            Texture=THEME:GetPathG("", "Select/hex_mask"),
+            InitCommand=function(self) self:zoomto(CardSize, CardSize):diffuse(color("#0b1220")) end,
+        },
+        Def.Sprite {
+            Name="Image",
+            InitCommand=function(self) self:MaskDest():ztestmode("ZTestMode_WriteOnFail") end,
+        },
+        -- Ring: white on normal cards, cycling rainbow on the centered one
+        Def.Sprite {
+            Name="Ring",
+            Texture=THEME:GetPathG("", "Select/hex_frame"),
+            InitCommand=function(self) self:zoomto(CardSize + 12, CardSize + 12) end,
+            RefreshCommand=function(self, params)
+                if params.Center then
+                    self:diffuseshift():effectcolor1(color("#ff2d9a")):effectcolor2(color("#3cff5c")):effectperiod(1.2)
+                else
+                    self:stopeffect():diffuse(Color.White):diffusealpha(0.7)
                 end
-            },
-
-            Def.BitmapText {
-                Name="Index",
-                Font="Montserrat semibold 40px",
-                InitCommand=function(self)
-                    self:addy(-50):zoom(0.4):skewx(-0.1):diffusetopedge(0.95,0.95,0.95,0.8):shadowlength(1.5)
-                end,
-                RefreshCommand=function(self, params) self:settext(SubTargets[i]) end
-            }
-        },
-        
-        Def.BitmapText {
-            Name="GroupInfo",
-            Font="Montserrat semibold 40px",
-            InitCommand=function(self)
-                self:y(CurMainIndex == OrigGroupIndex and 64 or -8):zoom(0.5):skewx(-0.1):diffusetopedge(0.95,0.95,0.95,0.8):shadowlength(1.5)
-                :maxwidth(420):vertalign(0):wrapwidthpixels(420):vertspacing(-16)
             end,
-            RefreshCommand=function(self, params) 
-                self:settext(GroupsList[CurMainIndex].SubGroups[SubTargets[i]].Name) 
-                :y(CurMainIndex == OrigGroupIndex and 64 or -8)
-            end
-        }
+        },
+        -- Text inside the hexagon when there is no art (categories, letters, co-op)
+        Def.BitmapText {
+            Name="Big",
+            Font="Montserrat semibold 40px",
+            InitCommand=function(self) self:zoom(0.8):maxwidth((CardSize - 30) / 0.8):shadowlength(2) end,
+        },
+        -- Label under the card when there is art
+        Def.BitmapText {
+            Name="Label",
+            Font="Montserrat semibold 40px",
+            InitCommand=function(self) self:y(CardSize / 2 + 28):zoom(0.6):maxwidth((CardSpacing - 10) / 0.6):shadowlength(2) end,
+        },
     }
 end
 
@@ -474,7 +452,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand=function(self)
             self:diffusealpha(0)
             :xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - 125)
-            :settext("Exiting...")
+            :settext(THEME:GetString("GroupSelect", "Exiting"))
         end,
         ExitPressedMessageCommand=function(self)
             self:stoptweening():sleep(0.1)
