@@ -64,11 +64,11 @@ local t = Def.ActorFrame {
 
         if AV then
             table.remove(PlayerModsArray, 1)
-            -- PIU wording: AV = constant speed, AUTO = BPM-adjusted
+            -- PIU wording: AV = auto velocity (BPM-relative, gimmicks kept); CMOD = engine constant speed
             if not AVType then
                 table.insert(PlayerModsArray, 1, (AV / 100) .. "X")
             else
-                table.insert(PlayerModsArray, 1, (AVType == "Auto" and "AUTO " or "AV ") .. AV)
+                table.insert(PlayerModsArray, 1, (AVType == "Auto" and "AV " or "CMOD ") .. AV)
             end
         end
 

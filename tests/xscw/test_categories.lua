@@ -143,12 +143,14 @@ Test("Speed EW/RV/AC/DC toggle their mods", function()
     CheckEq(D.Mods[P1].brake, true, "DC")
 end)
 
-Test("Speed AV badge switches to Constant", function()
+Test("Speed AV badge switches to Auto (PIU auto velocity keeps BPM gimmicks)", function()
     local D = FakeDeps()
     local Speed = BuildCategories(D)[1]
     Speed.Items[11].Apply(P1)
-    CheckEq(D.AVType[P1], "Constant", "type")
+    CheckEq(D.AVType[P1], "Auto", "type")
     CheckEq(Speed.Items[11].IsActive(P1), true, "active")
+    D.AVType[P1] = "Constant"
+    CheckEq(Speed.Items[11].IsActive(P1), false, "Constant is not AV")
 end)
 
 Test("Speed Nx is active only with Multiply and matching AV", function()
@@ -197,15 +199,15 @@ Test("AutoVelocity type badges: Auto and Constant only", function()
     CheckEq(AV.Items[8].IsActive(P1), true, "Constant active")
 end)
 
-Test("AutoVelocity steps mean constant speed: Multiply switches to Constant, Auto is kept", function()
+Test("AutoVelocity steps mean auto velocity: Multiply switches to Auto, an explicit Constant is kept", function()
     local D = FakeDeps({ AV = { [P1] = 200 }, AVType = { [P1] = false } })
     local AV = BuildCategories(D)[2]
     AV.Items[2].Apply(P1)
     CheckEq(D.AV[P1], 210, "+10")
-    CheckEq(D.AVType[P1], "Constant", "Multiply -> Constant")
-    D.AVType[P1] = "Auto"
+    CheckEq(D.AVType[P1], "Auto", "Multiply -> Auto")
+    D.AVType[P1] = "Constant"
     AV.Items[2].Apply(P1)
-    CheckEq(D.AVType[P1], "Auto", "Auto kept")
+    CheckEq(D.AVType[P1], "Constant", "Constant kept")
 end)
 
 Test("AutoVelocity Value shows the AV, defaulting to 200", function()

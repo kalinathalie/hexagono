@@ -66,11 +66,13 @@ return function(Deps)
     end
     Speed.Items[#Speed.Items + 1] = ModItem("EW", 8, SpeedSheet, "expand", "Speed_EW")
     Speed.Items[#Speed.Items + 1] = ModItem("RV", 9, SpeedSheet, "randomspeed", "Speed_RV")
+    -- PIU auto velocity: speed relative to the song BPM, so BPM/scroll gimmicks still show.
+    -- The engine's constant mode (CMod) flattens them; it stays available as an explicit choice.
     Speed.Items[#Speed.Items + 1] = {
         Label = "AV", Sheet = SpeedSheet, Frame = 10,
         Description = Deps.Text("Speed_AV"),
-        Apply = function(pn) Deps.SetAVType(pn, "Constant") end,
-        IsActive = function(pn) return Deps.GetAVType(pn) == "Constant" end,
+        Apply = function(pn) Deps.SetAVType(pn, "Auto") end,
+        IsActive = function(pn) return Deps.GetAVType(pn) == "Auto" end,
     }
     Speed.Items[#Speed.Items + 1] = ModItem("AC", 11, SpeedSheet, "boost", "Speed_AC")
     Speed.Items[#Speed.Items + 1] = ModItem("DC", 12, SpeedSheet, "brake", "Speed_DC")
@@ -90,8 +92,8 @@ return function(Deps)
             Description = Deps.Text("AutoVelocity_Step"),
             Apply = function(pn)
                 Deps.SetAV(pn, Clamp(CurrentAV(pn) + Step))
-                -- AV is a constant speed (PIU meaning); only Speed's Nx badges use a multiplier
-                if Deps.GetAVType(pn) == false then Deps.SetAVType(pn, "Constant") end
+                -- AV steps leave the multiplier mode; an explicit Constant choice is kept
+                if Deps.GetAVType(pn) == false then Deps.SetAVType(pn, "Auto") end
             end,
             IsActive = function(pn) return false end,
         }
