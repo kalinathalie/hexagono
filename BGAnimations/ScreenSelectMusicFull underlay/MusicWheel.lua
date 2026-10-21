@@ -6,7 +6,7 @@
 -- come only from the engine image cache.
 local Wheel = LoadModule("Select.Wheel.lua")
 local Art = LoadModule("Select.Art.lua")
-local PickArt = Art("SM-WHEELPICK")
+local PickArt = Art("XSanity/SM-WHEELPICK")
 
 local WheelSize = 9            -- 7 visible + 2 off-screen slots
 local WheelCenter = 5

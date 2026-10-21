@@ -72,38 +72,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 
         -- Phoenix transition: chosen chart + best score panel while picking the difficulty
         LoadActor("ChosenPanel", pn),
-
-        -- READY tag: appears beside the wheel once the player confirms the difficulty
-        Def.ActorFrame {
-            InitCommand=function(self)
-                -- stamped over the big ball of the chosen-chart panel (ChosenPanel.lua)
-                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and 144 or -144), 618):diffusealpha(0)
-            end,
-            OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):diffusealpha(0) end,
-            StepsChosenMessageCommand=function(self, params)
-                if params.Player == pn then self:stoptweening():easeoutexpo(0.3):diffusealpha(1) end
-            end,
-            CurrentChartChangedMessageCommand=function(self, params)
-                if params.Player == pn then self:stoptweening():easeoutexpo(0.3):diffusealpha(0) end
-            end,
-            StepsUnchosenMessageCommand=function(self) self:stoptweening():easeoutexpo(0.3):diffusealpha(0) end,
-            SongUnchosenMessageCommand=function(self) self:stoptweening():easeoutexpo(0.3):diffusealpha(0) end,
-
-            Def.Quad {
-                InitCommand=function(self)
-                    self:zoomto(128, 32):diffuse(Color.White)
-                    if pn == PLAYER_2 then
-                        self:diffuserightedge(Color.Invisible)
-                    else
-                        self:diffuseleftedge(Color.Invisible)
-                    end
-                end
-            },
-            Def.Sprite {
-                Texture=THEME:GetPathG("", "UI/Ready" .. ToEnumShortString(pn)),
-                InitCommand=function(self) self:y(1) end
-            }
-        }
+        -- the READY stamp lives in ChosenPanel.lua, over the big ball
     }
 end
 

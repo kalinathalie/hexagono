@@ -1,13 +1,14 @@
--- Select.Art: XSanity graphics the select screens use when they are present in
--- Graphics/XSanity (copied locally from the user's XSanity install; that folder
--- is git-ignored and never published). Callers always keep a fallback.
+-- Select.Art: optional art for the select screens, copied locally into the theme
+-- and never published (Graphics/Phoenix: Phoenix 2024 graphics; Graphics/XSanity:
+-- XSanity graphics; both folders are git-ignored). Callers always keep a fallback.
 --
---   Art(Name) -> THEME path of Graphics/XSanity/<Name>.png, or nil when missing
-local Dir = "/Themes/" .. THEME:GetCurThemeName() .. "/Graphics/XSanity/"
+--   Art("Phoenix/fullbar balls 7x1") -> full path of Graphics/Phoenix/fullbar balls 7x1.png,
+--   or nil when the file is missing. The full path avoids theme name lookups, where
+--   "R_S" would also match "R_SS".
+local Dir = "/Themes/" .. THEME:GetCurThemeName() .. "/Graphics/"
 
 return function(Name)
-    if FILEMAN:DoesFileExist(Dir .. Name .. ".png") then
-        return THEME:GetPathG("", "XSanity/" .. Name)
-    end
+    local Path = Dir .. Name .. ".png"
+    if FILEMAN:DoesFileExist(Path) then return Path end
     return nil
 end

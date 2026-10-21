@@ -31,6 +31,25 @@ return function(Deps)
         return GRADE_FRAMES[Grade:gsub("^Pass", ""):gsub("^Fail", "")]
     end
 
+    -- Phoenix record icons: R_<grade> (passed) / B_<grade> (failed, "broken"), and the plates
+    local GRADE_NAMES = {
+        ["3PS"] = "SSS+", ["3S"] = "SSS", ["2PS"] = "SS+", ["2S"] = "SS", ["PS"] = "S+", ["S"] = "S",
+        ["3PA"] = "AAA+", ["3A"] = "AAA", ["2PA"] = "AA+", ["2A"] = "AA", ["PA"] = "A+", ["A"] = "A",
+        ["B"] = "B", ["C"] = "C", ["D"] = "D", ["F"] = "F",
+    }
+    function R.GradeName(Grade)
+        if type(Grade) ~= "string" then return nil end
+        local Failed = Grade:find("^Fail") ~= nil
+        local Name = GRADE_NAMES[Grade:gsub("^Pass", ""):gsub("^Fail", "")]
+        if not Name then return nil end
+        return (Failed and "B_" or "R_") .. Name
+    end
+    local PLATE_NAMES = {
+        PerfectGame = "PG", UltimateGame = "UG", ExtremeGame = "EG", SuperbGame = "SG",
+        MarvelousGame = "MG", TalentedGame = "TG", FairGame = "FG", RoughGame = "RG",
+    }
+    function R.PlateName(Plate) return PLATE_NAMES[Plate] end
+
     function R.LabelsFor(song, stepsList)
         local Out = {}
         for i, Steps in ipairs(stepsList) do

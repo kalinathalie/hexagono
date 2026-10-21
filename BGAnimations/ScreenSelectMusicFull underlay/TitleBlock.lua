@@ -1,7 +1,7 @@
 -- Song title, artist and BPM on a dark band right under the preview strip
 -- (Phoenix layout), so the text never covers the video.
 local Art = LoadModule("Select.Art.lua")
-local BandArt = Art("SM-BACKTITLE")
+local BandArt = Art("XSanity/SM-BACKTITLE")
 local BandY = 378
 
 local function BpmText(Song)

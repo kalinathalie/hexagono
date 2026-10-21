@@ -31,12 +31,12 @@ end
 -- type name printed on them).
 Row.EmptyBall = 7
 local STYLES = {
-    single  = { Ball = 0, Big = 0 },
-    singlep = { Ball = 2, Big = 1 },
-    half    = { Ball = 5, Big = 2 },
-    double  = { Ball = 1, Big = 3 },
-    doublep = { Ball = 3, Big = 4 },
-    coop    = { Ball = 4, Big = 5 },
+    single  = { Name = "single",  Ball = 0, Big = 0 },
+    singlep = { Name = "singlep", Ball = 2, Big = 1 },
+    half    = { Name = "half",    Ball = 5, Big = 2 },
+    double  = { Name = "double",  Ball = 1, Big = 3 },
+    doublep = { Name = "doublep", Ball = 3, Big = 4 },
+    coop    = { Name = "coop",    Ball = 4, Big = 5 },
 }
 
 function Row.Style(Chart)

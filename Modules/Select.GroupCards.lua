@@ -8,6 +8,8 @@
 --   Kind(Category, SubName)  -> "version" | "level" | "letter" | "special" | "category"
 --   Title(Category, SubName) -> text drawn on the card ("XX", "S17", "D22", "HD10", "A", "Co-op", "Group")
 --   Image(Category, SubName, BannerPath) -> BannerPath for version cards (nil when empty), nil otherwise
+--   PhoenixCard(Category, SubName) -> base name of the Phoenix channel card for that group
+--       (Graphics/Phoenix/Channels/<name>.png, copied locally), or nil when Phoenix has none
 
 local Cards = {}
 
@@ -39,6 +41,31 @@ function Cards.Image(Category, SubName, BannerPath)
     if Cards.Kind(Category, SubName) ~= "version" then return nil end
     if BannerPath == nil or BannerPath == "" then return nil end
     return BannerPath
+end
+
+local VERSION_CARDS = {
+    ["01 - 1ST~3RD"] = "C_LOGO1", ["02 - S.E.~EXTRA"] = "C_LOGO2", ["03 - REBIRTH~PREX 3"] = "C_LOGO3",
+    ["04 - EXCEED~ZERO"] = "C_LOGO4", ["05 - NX~NX2"] = "C_LOGO5", ["06 - NX ABSOLUTE"] = "C_NXA",
+    ["07 - PRO~PRO2"] = "C_PRO", ["08 - FIESTA"] = "C_FIESTA", ["09 - FIESTA EX"] = "C_FIESTAEX",
+    ["10 - FIESTA 2"] = "C_FIESTA2", ["11 - INFINITY"] = "C_INFINITY", ["12 - PRIME"] = "C_PR",
+    ["13 - PRIME 2"] = "C_PR2", ["14 - XX"] = "C_XX", ["15 - MOBILE EDITION"] = "C_ME", ["16 - PHOENIX"] = "C_PHOENIX",
+}
+local SPECIAL_CARDS = { ["All Tunes"] = "C_ATUNES", ["Full Song"] = "C_FSONG", ["Shortcut"] = "C_SC", ["Remix"] = "C_RMX", ["Co-op"] = "C_COOP" }
+
+function Cards.PhoenixCard(Category, SubName)
+    local Kind = Cards.Kind(Category, SubName)
+    if Kind == "version" then return VERSION_CARDS[SubName] end
+    if Kind == "special" then return SPECIAL_CARDS[SubName] end
+    if Kind == "level" then
+        local Meter = tonumber(SubName:match("(%d+)$") or "")
+        if not Meter or Meter == 99 then return nil end
+        if Category == "Single" and Meter >= 1 then
+            return Meter >= 24 and "C_LV_24O" or string.format("C_LV_%02d", Meter)
+        elseif Category == "Double" and Meter >= 5 then
+            return Meter >= 26 and "C_DLV_26O" or string.format("C_DLV_%02d", Meter)
+        end
+    end
+    return nil
 end
 
 return Cards

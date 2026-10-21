@@ -10,9 +10,9 @@ local Info = LoadModule("GroupInfo.lua")(function(key) return THEME:GetString("G
 
 local CardCount = 7           -- 5 visible + 2 off-screen slots
 local CardCenter = 4
-local CardSpacing = 230
+local CardSpacing = 230   -- also the label width; positions follow the Phoenix layout in Place
 local CardSize = 200          -- hexagon box of a normal card
-local CenterZoom = 1.35
+local CenterZoom = 1.4
 local CardY = SCREEN_CENTER_Y + 20
 
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
@@ -118,8 +118,15 @@ local function HasThemeFile(RelPath) return FILEMAN:DoesFileExist(ThemeDir .. Re
 -- XSanity card art (local only, never in the public repo): level and special cards
 -- LEVEL_25 is XSanity's "CO-OP PLAY" card
 local SpecialArt = { ["All Tunes"] = "ALLTUNES", ["Shortcut"] = "SHORTCUT", ["Remix"] = "REMIX", ["Full Song"] = "FULLSONGS", ["Co-op"] = "LEVEL_25" }
+local Art = LoadModule("Select.Art.lua")
+local PickArt = Art("Phoenix/groupwheel_br")    -- yellow pixel ring around the selected Phoenix card
+
 local function CardArt(Data)
     local Kind = Cards.Kind(Data.Category, Data.Name)
+    -- Phoenix channel cards (local Graphics/Phoenix/Channels) when there is one for the group
+    local Card = Cards.PhoenixCard(Data.Category, Data.Name)
+    local CardPath = Card and Art("Phoenix/Channels/" .. Card)
+    if CardPath then return CardPath, "phoenix" end
     local File
     if Kind == "version" then
         return Cards.Image(Data.Category, Data.Name, Data.Banner), "banner"
@@ -239,7 +246,7 @@ end
 
 -- Side arrows: XSanity art when present, text otherwise (the art is not in the repo)
 local function SideArrow(Dir)
-    local X = SCREEN_CENTER_X + Dir * 360
+    local X = SCREEN_CENTER_X + Dir * 470
     if HasThemeFile("Graphics/XSanity/SSM-FULLARROWS 2x1.png") then
         return Def.Sprite {
             Texture=THEME:GetPathG("", "XSanity/SSM-FULLARROWS 2x1"),
@@ -408,11 +415,15 @@ for i = 1, CardCount do
             local Count = IsFocusedMain and #GroupsList or #GroupsList[CurMainIndex].SubGroups
             self:visible(Wheel.SlotVisible(i - CardCenter, Count))
 
-            local Dist = math.abs(i - CardCenter)
-            self:xy(SCREEN_CENTER_X + (i - CardCenter) * CardSpacing, CardY)
-            :zoom(i == CardCenter and CenterZoom or (Dist == 1 and 1 or 0.8))
-            :diffusealpha(i == CardCenter and 1 or (Dist == 1 and 0.85 or 0.45))
-            self:GetChild("Ring"):playcommand("Refresh", { Center = i == CardCenter })
+            -- Phoenix print: center card 280 px, neighbours 160 px at +-330, the next ones at +-560
+            local Offset = i - CardCenter
+            local Dist = math.abs(Offset)
+            local X = (Dist == 0) and 0 or ((Offset < 0 and -1 or 1) * (330 + (Dist - 1) * 230))
+            self:xy(SCREEN_CENTER_X + X, CardY)
+            :zoom(Dist == 0 and CenterZoom or (Dist == 1 and 0.8 or 0.7))
+            :diffusealpha(Dist == 0 and 1 or (Dist == 1 and 0.95 or 0.7))
+            self:GetChild("Ring"):playcommand("Refresh", { Center = Dist == 0 })
+            if PickArt then self:GetChild("Pick"):visible(Dist == 0 and self:GetChild("Phoenix"):GetVisible()) end
         end,
 
         RebuildCommand=function(self)
@@ -420,7 +431,17 @@ for i = 1, CardCount do
             local Kind = Cards.Kind(Data.Category, Data.Name)
             local Path, Source = CardArt(Data)
             local Image, Card, Label, Big = self:GetChild("Image"), self:GetChild("Card"), self:GetChild("Label"), self:GetChild("Big")
-            Image:visible(false); Card:visible(false)
+            local PhoenixCard = self:GetChild("Phoenix")
+            Image:visible(false); Card:visible(false); PhoenixCard:visible(false)
+            local IsPhoenix = (Path ~= nil and Source == "phoenix")
+            self:GetChild("HexBack"):visible(not IsPhoenix)
+            self:GetChild("Ring"):visible(not IsPhoenix)
+            if IsPhoenix then
+                -- the card art already has its frame and the group name
+                PhoenixCard:visible(true):Load(Path):zoomto(CardSize * 1.12, CardSize * 1.12 * 318 / 320)
+                Big:visible(false); Label:visible(false)
+                return
+            end
             if Path and Source == "banner" then
                 -- the 17 version banners are small files: full resolution, cached by the texture manager
                 Image:visible(true):Load(Path):scaletocover(-CardSize / 2, -CardSize / 2, CardSize / 2, CardSize / 2)
@@ -440,6 +461,7 @@ for i = 1, CardCount do
             InitCommand=function(self) self:zoomto(CardSize, CardSize):MaskSource() end,
         },
         Def.Sprite {
+            Name="HexBack",
             Texture=THEME:GetPathG("", "Select/hex_mask"),
             InitCommand=function(self) self:zoomto(CardSize, CardSize):diffuse(color("#0b1220")) end,
         },
@@ -449,6 +471,9 @@ for i = 1, CardCount do
         },
         Def.Sprite {
             Name="Card",
+        },
+        Def.Sprite {
+            Name="Phoenix",
         },
         -- Ring: white on normal cards, cycling colors on the centered one
         Def.Sprite {
@@ -476,6 +501,15 @@ for i = 1, CardCount do
             InitCommand=function(self) self:y(CardSize / 2 + 30):zoom(0.6):maxwidth((CardSpacing + 20) / 0.6):shadowlength(2) end,
         },
     }
+    if PickArt then
+        t[#t][#t[#t] + 1] = Def.Sprite {
+            Name="Pick", Texture=PickArt,
+            InitCommand=function(self)
+                self:zoomto(CardSize * 1.3, CardSize * 1.3 * 600 / 650):visible(false):blend("BlendMode_Add")
+                :diffuseshift():effectcolor1(color("1,1,1,1")):effectcolor2(color("1,1,1,0.5")):effectperiod(0.9)
+            end,
+        }
+    end
 end
 
 t[#t+1] = Def.ActorFrame {

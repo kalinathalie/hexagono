@@ -24,6 +24,8 @@ Test("ChartRow.Style picks the XSanity ball frames by chart type", function()
     CheckEq(S(C("Double", 99, "COOP x2")), "4/5", "co-op yellow / CO-OP")
     CheckEq(S(C("Double", 99, "DP")), "4/5", "DP at 99 is the co-op chart")
     CheckEq(Row.EmptyBall, 7, "empty slot is the black ball")
+    CheckEq(Row.Style(C("Single", 5)).Name, "single", "name single"); CheckEq(Row.Style(C("Double", 9, "DP")).Name, "doublep", "name DP")
+    CheckEq(Row.Style(C("Halfdouble", 9)).Name, "half", "name HD"); CheckEq(Row.Style(C("Double", 99, "COOP")).Name, "coop", "name co-op")
 end)
 
 Test("ChartRow.MainIndex follows the enabled player who moved last, so the cursor stays visible", function()

@@ -4,7 +4,7 @@
 -- and the lives next to the timer. A side without a player shows a dim bar with
 -- "PRESS CENTER STEP" (or "INSERT CREDIT" when credits are needed).
 local Art = LoadModule("Select.Art.lua")
-local HeartArt = Art("SM-HEARTS 2x1")
+local HeartArt = Art("XSanity/SM-HEARTS 2x1")
 
 local BarW, BarH = 440, 50
 local Gap = 52              -- half of the timer box plus a margin
