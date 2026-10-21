@@ -16,7 +16,7 @@
 --   { Name, Kind ("items"|"noteskin"), Title (png base name),
 --     Label, Description, Items = { { Label, Sheet, Frame, InactiveFrame?,
 --     Apply(pn), IsActive(pn), Description } }, DefaultItem(pn),
---     Value(pn) (AV only) }
+--     Value(pn) (AV only), PhoenixTitle, and PhoenixFrame per item (Phoenix skin) }
 
 local AV_MIN, AV_MAX, AV_DEFAULT = 100, 999, 200
 
@@ -175,5 +175,24 @@ return function(Deps)
 
     -- Order follows the XSanity command window. Closing is done with the
     -- upper pad panels, so there is no Exit category.
-    return { Speed, AutoVelocity, Display, NoteSkin }
+    local List = { Speed, AutoVelocity, Display, NoteSkin }
+
+    -- Phoenix skin (phyrebird OptionList art, local only): PhoenixTitle is the frame of
+    -- "MenuIcons 1x9", PhoenixFrame the frame of "icons 11x11"; items without one are
+    -- drawn as a text badge
+    local PhoenixTitle = { Speed = 0, AutoVelocity = 8, Display = 1, NoteSkin = 2 }
+    local PhoenixFrame = {
+        Speed = { ["1x"] = 0, ["2x"] = 1, ["3x"] = 2, ["4x"] = 3, ["5x"] = 4, ["6x"] = 5,
+            ["+0.25"] = 87, ["+0.5"] = 6, EW = 7, RV = 8, AV = 116, AC = 10, DC = 11 },
+        AutoVelocity = { ["+100"] = 110, ["+10"] = 111, ["+1"] = 112, ["-1"] = 113, ["-10"] = 114, ["-100"] = 115 },
+        Display = { V = 12, AP = 13, NS = 14, FD = 15, ["BGA OFF"] = 18, ["BGA DARK"] = 117 },
+    }
+    for _, Category in ipairs(List) do
+        Category.PhoenixTitle = PhoenixTitle[Category.Name]
+        local Frames = PhoenixFrame[Category.Name]
+        if Frames then
+            for _, Item in ipairs(Category.Items) do Item.PhoenixFrame = Frames[Item.Label] end
+        end
+    end
+    return List
 end

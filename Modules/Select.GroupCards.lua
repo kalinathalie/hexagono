@@ -52,18 +52,28 @@ local VERSION_CARDS = {
 }
 local SPECIAL_CARDS = { ["All Tunes"] = "C_ATUNES", ["Full Song"] = "C_FSONG", ["Shortcut"] = "C_SC", ["Remix"] = "C_RMX", ["Co-op"] = "C_COOP" }
 
+-- Category cards and the Double 1-4 / Half-Double level cards are made locally by
+-- tools/make_phoenix_cards.py in the style of the Phoenix channel cards
+local CATEGORY_CARDS = {
+    ["Group"] = "CAT_VERSIONS", ["Single"] = "CAT_SINGLE", ["Double"] = "CAT_DOUBLE", ["Half-Double"] = "CAT_HALFDOUBLE",
+    ["Special"] = "CAT_SPECIAL", ["Title"] = "CAT_TITLE", ["Artist"] = "CAT_ARTIST",
+}
+local LEVEL_CARDS = {   -- prefix, first level with a card, card for that level and over
+    ["Single"] = { "C_LV_%02d", 24, "C_LV_24O" },
+    ["Double"] = { "C_DLV_%02d", 26, "C_DLV_26O" },
+    ["Half-Double"] = { "C_HDLV_%02d", 26, "C_HDLV_26O" },
+}
+
 function Cards.PhoenixCard(Category, SubName)
     local Kind = Cards.Kind(Category, SubName)
+    if Kind == "category" then return CATEGORY_CARDS[SubName] end
     if Kind == "version" then return VERSION_CARDS[SubName] end
     if Kind == "special" then return SPECIAL_CARDS[SubName] end
     if Kind == "level" then
         local Meter = tonumber(SubName:match("(%d+)$") or "")
-        if not Meter or Meter == 99 then return nil end
-        if Category == "Single" and Meter >= 1 then
-            return Meter >= 24 and "C_LV_24O" or string.format("C_LV_%02d", Meter)
-        elseif Category == "Double" and Meter >= 5 then
-            return Meter >= 26 and "C_DLV_26O" or string.format("C_DLV_%02d", Meter)
-        end
+        local Spec = LEVEL_CARDS[Category]
+        if not Meter or Meter == 99 or Meter < 1 or not Spec then return nil end
+        return Meter >= Spec[2] and Spec[3] or string.format(Spec[1], Meter)
     end
     return nil
 end

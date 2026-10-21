@@ -250,3 +250,30 @@ Test("Descriptions come from Text keys", function()
     CheckEq(C[3].Items[7].Description, "Display_BGADark", "BGA DARK item")
     CheckEq(C[4].Items[1].Description, "NoteSkin_Desc", "noteskin items share the category description")
 end)
+
+-- Phoenix skin (phyrebird OptionList art): category labels from "MenuIcons 1x9",
+-- badges from "icons 11x11"; nil means no Phoenix badge (drawn as a text badge)
+Test("Phoenix title frames: SPEED, AUTO VELOCITY, DISPLAY, NOTE SKIN", function()
+    local C = BuildCategories(FakeDeps())
+    CheckEq(C[1].PhoenixTitle, 0, "speed"); CheckEq(C[2].PhoenixTitle, 8, "auto velocity")
+    CheckEq(C[3].PhoenixTitle, 1, "display"); CheckEq(C[4].PhoenixTitle, 2, "noteskin")
+end)
+
+Test("Phoenix badge frames for Speed items", function()
+    local C = BuildCategories(FakeDeps())
+    local Want = { ["1x"] = 0, ["2x"] = 1, ["3x"] = 2, ["4x"] = 3, ["5x"] = 4, ["6x"] = 5, ["+0.25"] = 87, ["+0.5"] = 6,
+        EW = 7, RV = 8, AV = 116, AC = 10, DC = 11 }
+    for _, Item in ipairs(C[1].Items) do CheckEq(Item.PhoenixFrame, Want[Item.Label], "speed " .. Item.Label) end
+end)
+
+Test("Phoenix badge frames for Auto Velocity steps; Auto and Constant have none", function()
+    local C = BuildCategories(FakeDeps())
+    local Want = { ["+100"] = 110, ["+10"] = 111, ["+1"] = 112, ["-1"] = 113, ["-10"] = 114, ["-100"] = 115 }
+    for _, Item in ipairs(C[2].Items) do CheckEq(Item.PhoenixFrame, Want[Item.Label], "av " .. tostring(Item.Label)) end
+end)
+
+Test("Phoenix badge frames for Display items; MI and BGA PARTIAL have none", function()
+    local C = BuildCategories(FakeDeps())
+    local Want = { V = 12, AP = 13, NS = 14, FD = 15, ["BGA OFF"] = 18, ["BGA DARK"] = 117 }
+    for _, Item in ipairs(C[3].Items) do CheckEq(Item.PhoenixFrame, Want[Item.Label], "display " .. Item.Label) end
+end)
