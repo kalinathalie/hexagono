@@ -332,7 +332,7 @@ end
 
 -- Phoenix: yellow arrows on both sides of the selected jacket, pointing outward.
 -- Drawn after the jackets so they sit on top of the neighbours' edges.
-local Yellow = color("#ffe15a")
+local Yellow = color("#ffe600")
 local function SideArrow(Dir)
     local W, H = 20, 56
     local function Triangle(Grow, Color)
@@ -350,9 +350,9 @@ local function SideArrow(Dir)
     end
     return Def.ActorFrame {
         InitCommand=function(self)
-            self:x(Dir * (ImageW / 2 + 16)):bounce():effectmagnitude(Dir * 5, 0, 0):effectperiod(0.8)
+            self:x(Dir * (ImageW / 2 + 22)):bounce():effectmagnitude(Dir * 5, 0, 0):effectperiod(0.8)
         end,
-        Triangle(8, { Yellow[1], Yellow[2], Yellow[3], 0.3 }),
+        Triangle(8, { 1, 0.62, 0, 0.55 }),
         Triangle(0, Yellow),
     }
 end
