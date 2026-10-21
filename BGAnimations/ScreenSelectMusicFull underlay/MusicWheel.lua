@@ -239,11 +239,12 @@ local t = Def.ActorFrame {
         MusicWheelStartMessageCommand=function(self) self:play() end
     },
 
-    -- Pointer: small yellow marks above and below the centered jacket
-    Def.ActorFrame {
-        InitCommand=function(self) self:xy(SCREEN_CENTER_X, WheelY) end,
-        Def.Quad { InitCommand=function(self) self:y(-(ImageH * 1.15) / 2 - 14):zoomto(16, 8):diffuse(color("#ffe15a")):rotationz(180):bounce():effectmagnitude(0, -3, 0):effectclock("bgm") end },
-        Def.Quad { InitCommand=function(self) self:y((ImageH * 1.15) / 2 + 14):zoomto(16, 8):diffuse(color("#ffe15a")):bounce():effectmagnitude(0, 3, 0):effectclock("bgm") end },
+    -- Pointer: a small yellow mark under the centered jacket (above it the title block sits)
+    Def.Quad {
+        InitCommand=function(self)
+            self:xy(SCREEN_CENTER_X, WheelY + (ImageH * 1.15) / 2 + 36):zoomto(16, 8):diffuse(color("#ffe15a"))
+            :bounce():effectmagnitude(0, 3, 0):effectclock("bgm")
+        end
     },
 }
 

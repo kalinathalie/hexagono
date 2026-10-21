@@ -42,7 +42,10 @@ return Def.ActorFrame {
         local Meter = Steps:GetMeter()
         Level:settext(Meter == 99 and "??" or string.format("%02d", Meter))
         Type:settext(ToUpper(FullModeChartLabel(Steps)))
-        self:GetChild("Ball"):diffuse(ChartTypeToColor(Steps))
+        -- same colors as the bubbles: plain single red, plain double green, others from the theme
+        local Kind = LoadModule("Select.ChartRow.lua").Kind({ Type = ToEnumShortString(ToEnumShortString(Steps:GetStepsType())), Meter = Meter, Description = Steps:GetDescription() })
+        local KindColor = { single = color("#ff2d2d"), double = color("#1fbf3a") }
+        self:GetChild("Ball"):diffuse(KindColor[Kind] or ChartTypeToColor(Steps))
         local Best = BestScore(Song, Steps)
         if Best and Best:GetScore() > 0 then
             Score:settext(FormatScore(Best:GetScore()))

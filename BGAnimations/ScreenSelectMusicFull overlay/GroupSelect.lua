@@ -122,8 +122,9 @@ local function CardArt(Data)
     if Kind == "version" then
         return Cards.Image(Data.Category, Data.Name, Data.Banner), "banner"
     elseif Kind == "level" then
+        -- LEVEL_01..LEVEL_24 are level cards; LEVEL_25 is XSanity's co-op card, so 25+ fall back to text
         local Meter = tonumber(Data.Name:match("(%d+)$") or 0)
-        File = string.format("ChanGraph/LEVEL_%02d", Meter)
+        if Meter >= 1 and Meter <= 24 then File = string.format("ChanGraph/LEVEL_%02d", Meter) end
     elseif Kind == "special" and SpecialArt[Data.Name] then
         File = "ChanGraph/" .. SpecialArt[Data.Name]
     end
