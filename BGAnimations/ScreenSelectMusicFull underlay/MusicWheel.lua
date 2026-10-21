@@ -330,4 +330,37 @@ for i = 1, WheelSize do
     end
 end
 
+-- Phoenix: yellow arrows on both sides of the selected jacket, pointing outward.
+-- Drawn after the jackets so they sit on top of the neighbours' edges.
+local Yellow = color("#ffe15a")
+local function SideArrow(Dir)
+    local W, H = 20, 56
+    local function Triangle(Grow, Color)
+        local w, h = W + Grow, H + Grow * 2
+        return Def.ActorMultiVertex {
+            InitCommand=function(self)
+                self:SetDrawState{ Mode="DrawMode_Triangles" }
+                self:SetVertices({
+                    { { -Dir * w / 2, -h / 2, 0 }, Color },
+                    { { Dir * w / 2, 0, 0 }, Color },
+                    { { -Dir * w / 2, h / 2, 0 }, Color },
+                })
+            end,
+        }
+    end
+    return Def.ActorFrame {
+        InitCommand=function(self)
+            self:x(Dir * (ImageW / 2 + 16)):bounce():effectmagnitude(Dir * 5, 0, 0):effectperiod(0.8)
+        end,
+        Triangle(8, { Yellow[1], Yellow[2], Yellow[3], 0.3 }),
+        Triangle(0, Yellow),
+    }
+end
+t[#t+1] = Def.ActorFrame {
+    Name="CenterArrows",
+    InitCommand=function(self) self:xy(SCREEN_CENTER_X, WheelY) end,
+    SideArrow(-1),
+    SideArrow(1),
+}
+
 return t
