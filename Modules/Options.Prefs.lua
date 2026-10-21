@@ -161,7 +161,7 @@ return {
     },
     ShowBigBall =
     {
-        Default = false,
+        Default = true,  -- the Phoenix chosen panel shows the big ball
         Choices = { OptionNameString('Off'), OptionNameString('On') },
         Values = {false, true}
     },

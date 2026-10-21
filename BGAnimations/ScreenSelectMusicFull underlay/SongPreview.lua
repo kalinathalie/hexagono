@@ -64,7 +64,8 @@ local t = Def.ActorFrame {
 
     CurrentSongChangedMessageCommand=function(self)
         for _, Name in ipairs({ "Center", "Left", "Right" }) do self:GetChild(Name):stoptweening():Load(nil) end
-        self:stoptweening():sleep(PreviewDelay):queuecommand("Refresh")
+        -- the wait runs on its own actor: stopping this frame's tweens would freeze its fade-in at alpha 0
+        self:GetChild("Delay"):playcommand("Start")
     end,
     RefreshCommand=function(self)
         local Kind, Path = MediaFor(GAMESTATE:GetCurrentSong())
@@ -72,6 +73,12 @@ local t = Def.ActorFrame {
             self:GetChild(Name):playcommand("Show", { Kind = Kind, Path = Path })
         end
     end,
+
+    Def.Actor {
+        Name="Delay",
+        StartCommand=function(self) self:stoptweening():sleep(PreviewDelay):queuecommand("Fire") end,
+        FireCommand=function(self) self:GetParent():playcommand("Refresh") end,
+    },
 
     -- Dark stage behind the copies while they load
     Def.Quad { InitCommand=function(self) self:zoomto(SCREEN_WIDTH, StripH):diffuse(color("#05070d")) end },

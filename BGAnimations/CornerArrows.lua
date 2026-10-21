@@ -1,36 +1,21 @@
 -- Corner arrows in the Phoenix layout: red BACK arrows at the top corners (they
 -- open the group wheel), blue SHIFT arrows at the bottom corners (they move the
--- wheel). With the local Phoenix art (Graphics/Phoenix) the arrows are the
--- animated Phoenix ones with their glow; otherwise the InfiniteWorlds arrows
--- (Graphics/CornerArrows/red.lua and blue.lua) are used. The slide-in runs on
--- the outer frame and the pulse on an inner frame, so a pulse never interrupts
--- the slide.
-local Art = LoadModule("Select.Art.lua")
-local Phoenix = {
-    Up = Art("Phoenix/UpLeft 4x2"), Down = Art("Phoenix/DownLeft 4x2"),
-    GlowUp = { Left = Art("Phoenix/left_pink"), Right = Art("Phoenix/right_pink") },
-    GlowDown = { Left = Art("Phoenix/left_blue"), Right = Art("Phoenix/right_blue") },
-}
-local UsePhoenix = Phoenix.Up and Phoenix.Down
-
--- distance of each arrow's center from the two screen edges: the art touches the corner
-local Edge = UsePhoenix and 67 or 44
+-- wheel). The art is the InfiniteWorlds arrows (Graphics/CornerArrows/red.lua
+-- and blue.lua), the same flat chevrons with the BACK/SHIFT label that Phoenix
+-- shows. The slide-in runs on the outer frame and the pulse on an inner frame,
+-- so a pulse never interrupts the slide.
+local Zoom = 0.55
+-- Rotated toward its corner, the art reaches 73.5 px (at zoom 1) from its
+-- center toward the corner and about 117 px the other way. With the center
+-- 44 px from both edges the tip sits about 4 px from the corner, like Phoenix,
+-- and the arrow ends near x 109, clear of the player bars that start at x 148.
+local Edge = 44
 
 local function ArrowArt(IsTop, IsRight)
-    if UsePhoenix then
-        local Glow = (IsTop and Phoenix.GlowUp or Phoenix.GlowDown)[IsRight and "Right" or "Left"]
-        return Def.ActorFrame {
-            Glow and Def.Sprite { Texture=Glow, InitCommand=function(self) self:y(IsTop and -6 or 6):blend("BlendMode_Add") end } or Def.Actor {},
-            Def.Sprite {
-                Texture=IsTop and Phoenix.Up or Phoenix.Down,
-                InitCommand=function(self) self:zoom(0.67):rotationy(IsRight and 180 or 0) end,
-            },
-        }
-    end
     -- InfiniteWorlds art points down: rotate it toward its own corner
     local Rotation = IsTop and (IsRight and -135 or 135) or (IsRight and -45 or 45)
     return Def.ActorFrame {
-        InitCommand=function(self) self:zoom(0.5):rotationz(Rotation) end,
+        InitCommand=function(self) self:zoom(Zoom):rotationz(Rotation) end,
         LoadActor(THEME:GetPathG("", "CornerArrows/" .. (IsTop and "red" or "blue"))),
     }
 end
