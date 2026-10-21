@@ -34,7 +34,9 @@ local t = Def.ActorFrame {
     ChartRowChangedMessageCommand=function(self, params)
         local Charts = params.Charts
         local Index = params.Index
-        local MainIndex = math.max(Index[PLAYER_1], Index[PLAYER_2])
+        -- the row scrolls after the enabled player who moved last, so the cursor stays visible
+        local Enabled = { [PLAYER_1] = GAMESTATE:IsPlayerEnabled(PLAYER_1), [PLAYER_2] = GAMESTATE:IsPlayerEnabled(PLAYER_2) }
+        local MainIndex = Row.MainIndex(Index, Enabled, params.Mover)
         local Slots = Row.Slots(Charts, MainIndex, Visible)
         local Labels = Records.LabelsFor(params.Song, Charts)
 

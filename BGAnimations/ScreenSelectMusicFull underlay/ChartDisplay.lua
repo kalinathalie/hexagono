@@ -11,6 +11,7 @@ local ConfirmStart = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
 
 local ChartArray = nil
 local SongIsChosen = false
+local LastMover = nil -- player who moved the chart cursor last (nil after a song change)
 -- When the song changes inside a level group ("Single 5", "Double 12", ...),
 -- preselect the chart of that level instead of keeping the previous index.
 local SnapToGroup = false
@@ -144,11 +145,11 @@ local t = Def.ActorFrame {
         end
     end,
 
-    -- Update chart list
-    UpdateChartDisplayMessageCommand=function(self) self:playcommand("Refresh") end,
-    CurrentSongChangedMessageCommand=function(self) SnapToGroup = true self:playcommand("Refresh") end,
+    -- Update chart list; remember who moved the cursor so the row scrolls after that player
+    UpdateChartDisplayMessageCommand=function(self, params) LastMover = params and params.Player or nil self:playcommand("Refresh") end,
+    CurrentSongChangedMessageCommand=function(self) SnapToGroup = true LastMover = nil self:playcommand("Refresh") end,
     -- Group changed without the song changing (same first song): snap as well
-    ForceUpdateMessageCommand=function(self) SnapToGroup = true self:playcommand("Refresh") end,
+    ForceUpdateMessageCommand=function(self) SnapToGroup = true LastMover = nil self:playcommand("Refresh") end,
 
     -- These are to control the visibility of the chart highlight.
     SongChosenMessageCommand=function(self) SongIsChosen = true self:playcommand("Refresh") end,
@@ -251,6 +252,7 @@ local t = Def.ActorFrame {
             Index = { [PLAYER_1] = ChartIndex[PLAYER_1], [PLAYER_2] = ChartIndex[PLAYER_2] },
             Song = CurrentSong,
             Chosen = SongIsChosen,
+            Mover = LastMover,
         })
     end,
 

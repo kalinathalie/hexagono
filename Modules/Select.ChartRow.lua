@@ -15,11 +15,26 @@ function Row.MeterText(Meter)
     return string.format("%02d", Meter)
 end
 
+-- Plain singles and doubles get the Phoenix red/green; performance (SP/DP) and
+-- co-op charts, half-double and the rest keep the theme's own colors.
 function Row.Kind(Chart)
     local Type = tostring(Chart.Type)
-    if Type == "Single" then return "single" end
-    if Type == "Double" then return "double" end
+    local Desc = string.upper(tostring(Chart.Description or ""))
+    local Special = Desc:find("SP", 1, true) or Desc:find("DP", 1, true) or Desc:find("COOP", 1, true)
+    if Type == "Single" and not Special then return "single" end
+    if Type == "Double" and not Special then return "double" end
     return "other"
+end
+
+-- Which chart index drives the row scrolling: the enabled player who moved last;
+-- with no known mover, the farthest cursor among enabled players; 1 when nobody plays.
+function Row.MainIndex(Index, Enabled, LastMover)
+    if LastMover and Enabled[LastMover] and Index[LastMover] then return Index[LastMover] end
+    local Main = nil
+    for pn, On in pairs(Enabled) do
+        if On and Index[pn] and (Main == nil or Index[pn] > Main) then Main = Index[pn] end
+    end
+    return Main or 1
 end
 
 -- Same scrolling rule as the previous ChartDisplay: the list only scrolls once the
