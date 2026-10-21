@@ -56,11 +56,12 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
 
         LoadActor("../ModIcons", pn) .. {
             InitCommand=function(self)
-                self:xy(pn == PLAYER_2 and SCREEN_RIGHT + 40 * 2 or -40 * 2, 160)
-                :easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT - 40 or 40)
+                -- below the BACK corner arrow, as the AV badge sits in Phoenix
+                self:xy(pn == PLAYER_2 and SCREEN_RIGHT + 72 * 2 or -72 * 2, 170)
+                :easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT - 72 or 72)
             end,
             OffCommand=function(self)
-                self:stoptweening():easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT + 40 * 2 or -40 * 2)
+                self:stoptweening():easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT + 72 * 2 or -72 * 2)
             end
         },
 
