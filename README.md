@@ -1,90 +1,93 @@
-# Infinitesimal - an Infinity-inspired OutFox theme
-## **This branch is a work-in-progress and requires the latest test builds of OutFox Alpha V to function as intended.**
-### Make sure to drop by the Project OutFox Discord server and grab the appropriate tester roles to gain access to the latest builds, and remember to properly report bugs and issues while you're at it!
+# Hexágono: Infinitesimal no estilo Pump It Up Phoenix
 
-![logo](https://raw.githubusercontent.com/dj505/Infinitesimal/main/Graphics/Logo/Logo%20(doubleres).png)
+Tema de Project OutFox que reproduz as telas do **Pump It Up Phoenix** (e do Phoenix 2), feito a partir do [Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal). O Infinitesimal original é inspirado no Pump It Up Infinity. Este fork troca essa base pelo Phoenix: seleção de músicas, roda de grupos, transição ao escolher a música e janela de comandos foram refeitas no layout do Phoenix.
 
-## [Discord server is now available for more development insights and discussion!](https://discord.gg/ex6e4jNm6s)
+Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 
-## About Infinitesimal
-This theme is inspired by Pump It Up Infinity, an uncommon StepMania-based spin-off developed by Team Infinity and licensed by Andamiro. The current goals are to replicate the look and feel of Infinity while sprinkling in new additions and quality of life improvements, utilizing original assets when possible, bringing high performance + cross-platform support to the table with Project OutFox and widening the idea and accessibility of custom Pump It Up content.
+*An OutFox theme that recreates the Pump It Up Phoenix screens, forked from Infinitesimal (which follows Pump It Up Infinity).*
 
-## Requirements
-* [Project OutFox Alpha 0.5.0-pre042 or newer](https://projectoutfox.com/downloads)
+![Tela inicial](.github/readme/title.jpg)
 
-Older StepMania versions such as `5.0.12`, `5.1b2` and `5.1-new` are not supported due to the lack of maintenance to `pump/piu` and the engine in general. Support the developers from Team OutFox who are currently doing the heavy lifting!
+## O que muda em relação ao Infinitesimal
 
-## Installing
-Since this theme is currently on a rolling release, we highly recommend downloading the theme through GitHub Desktop (or `git` for Linux users) and pull subsequent updates that are pushed to the repository. If you're unable to do so, you can also download from the `Code > Download ZIP` button on the main page and extract the .zip file to your OutFox [Themes](https://outfox.wiki/user-guide/config/folders/#themes) folder.
+- **Seleção de músicas no layout do Phoenix:** faixa de preview com o BGA no centro e cópias espelhadas nas laterais, título com artista e BPM, roda de jaquetas 4:3 com setas amarelas na música selecionada e 13 bolinhas de dificuldade com a nota recorde de cada chart.
+- **Cronômetro no centro:** as barras de perfil do P1 e do P2 ficam dos lados do cronômetro, com nível, nome e vidas.
+- **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY.
+- **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single, Double e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
+- **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes) e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display e Note Skin, com prévia da nota.
+- **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
+- **Setas BACK e SHIFT nos cantos**, vindas do InfiniteWorlds.
+- **Miniaturas nítidas na roda**, geradas a partir do fundo de cada música.
+- **Fundo estático** no lugar do vídeo animado, para não pesar na navegação.
 
-**If you are upgrading from a previous version by `Download ZIP`, fully delete the old folder first. Do not merge the new folder into the old.**
+## Capturas
 
-## Theme Features
-* Accurate asymmetrical timing windows scoring and lifebar mechanics to K-Pump
-* Additional timing windows available (StepMania, ITG, Infinity, Pro, Jump)
-* Announcer in the evaluation screen, including support for your own custom announcers
-* Basic Mode can be accessed by starting a game with no profiles present, or by using the "Guest" profile
-* Customizable appearance options and modifiers such as arrow size and rush
-* Exit to title screen in home/event mode (hold down any red arrow while selecting a folder)
-* Fully customizable background filters, choose to filter playfield only or the entire screen
-* Measures and song progress display
-* Multiply, Automatic and Constant scroll speeds
-* Visualize chart information while selecting a song, previews are currently WIP
+| | |
+|---|---|
+| ![Seleção de músicas](.github/readme/song-select.jpg) | ![Música escolhida](.github/readme/song-chosen.jpg) |
+| Seleção de músicas | Música escolhida, com MY BEST e bola grande |
+| ![Dois jogadores](.github/readme/two-players.jpg) | ![Dois jogadores, música escolhida](.github/readme/two-players-chosen.jpg) |
+| Dois jogadores, cronômetro no centro | Dois jogadores escolhendo a dificuldade |
+| ![Versões](.github/readme/versions.jpg) | ![Categorias](.github/readme/categories.jpg) |
+| Roda de grupos: versões | Roda de grupos: categorias |
+| ![Níveis de Double](.github/readme/double-levels.jpg) | ![Janela de comandos](.github/readme/command-window.jpg) |
+| Níveis de Double | Janela de comandos |
 
-## Theme-Specific Toggles
-The following features can be configured via the Infinitesimal Options submenu of the operator menu:
-* Center Chart List: if there are less charts than the maximum visible number, the charts will be centered to the display.
-* Chart Preview: preview the selected chart on the select music screen.
-* Image Preview Only: videos will not be displayed while selecting a song, helps with performance on low-end hardware and/or memory usage.
-* Pause With Select Button: use the button mapped to "Select" to open the pause menu during gameplay.
-* Use Video Background: use a pre-rendered video for the animated theme background, requires restart.
-* 3x Center to Exit Evaluation: press the center panel 3 times to exit the results screen like in official games, otherwise exit on one press.
-* Show Big Difficulty Icon: display a larger icon while selecting a difficulty, aspect ratios higher than 4:3 only.
-* Show UCS Charts: allow UCS charts to be selected, if a song has no standard charts disabling might not be effective to it.
-* Show Quest Charts: allow Quest charts to be selected, if a song has no standard charts disabling might not be effective to it.
-* Show Hidden Charts: allow Hidden charts to be selected, if a song has no standard charts disabling might not be effective to it.
-* Autogen Basic Mode: allow the game to auto generate the list of songs for Basic Mode, disable this if you plan to use a handpicked list.
-* Wrap Chart List Scrolling: when scrolling past the beginning or end of the chart list, wrap the current selection to the opposite end.
+As capturas usam a arte opcional descrita abaixo, que não vem no repositório.
 
-## Screenshots
-![Title](https://github.com/dj505/Infinitesimal/assets/12992355/ef053e35-70b2-466c-8244-162ae017b61a)
-![Profile](https://github.com/dj505/Infinitesimal/assets/12992355/25847cb5-3e9a-4b58-9177-71dec52e176f)
-![BasicMode](https://github.com/dj505/Infinitesimal/assets/12992355/12dbe987-f561-4f14-9770-124b512ca761)
-![SelectMusic](https://github.com/dj505/Infinitesimal/assets/12992355/67ed99c7-1ef0-4528-8bc2-18cc01daf765)
-![Command](https://github.com/dj505/Infinitesimal/assets/12992355/e241a569-811d-42f4-800f-ddb031978698)
-![Doubles](https://github.com/dj505/Infinitesimal/assets/12992355/9a28709c-28cf-4a53-9529-b01d58ac1904)
-![Eval](https://github.com/dj505/Infinitesimal/assets/7433694/69703018-961c-4546-9259-0ebd23229318)
+## Requisitos
 
+- [Project OutFox](https://projectoutfox.com/downloads) 0.5.0-pre043 ou mais novo, no modo `pump`.
+- Testado num Raspberry Pi 5 (Raspberry Pi OS, Wayland com Xwayland) a 60 Hz.
 
-## Languages:
-Currently, Infinitesimal supports the following languages:
-* English
-* Brazilian Portuguese
-* Polish
+## Instalação
 
-## Additional Resources
-If you're looking for assets such as more noteskins or folder icons from StepF2/P1, you can grab them [here](https://drive.google.com/drive/folders/1pO9rbaPUwTTDFuEo_4tX8S1BEwmfukeF?usp=sharing). Keep in mind these are independent from the theme and are only here for accessibility purposes to newcomers.
+Clone o repositório dentro da pasta [Themes](https://outfox.wiki/user-guide/config/folders/#themes) do OutFox, com o nome `Infinitesimal`:
 
-## Current Limitations and Issues
-The theme currently has a few limitations that are beyond our reach. Here is a list of known limitations and issues:
-* Some chart effects will be missing or broken from incomplete parsing
-* Chart previews are very experimental - some styles might not load/show properly and your game might crash on edge cases
-* Switching timing modes does not update the list of judgement graphics, simply reloading the current screen or changing screens will regenerate the list
-* Infinitesimal makes use of OutFox Alpha V exclusive features. It is NOT recommended to use it with Alpha 4 LTS
+```bash
+git clone https://github.com/kalinathalie/hexagono.git Infinitesimal
+```
 
-Hopefully all of these should be gone soon with future Project OutFox developments and improvements!
+Depois escolha o tema nas opções de aparência do OutFox.
 
-## Special thanks
-This theme wouldn't be here if it weren't for the help of the following people:
-* JoseVarelaP (loads of code optimization and refactoring, suggestions and development assistance)
-* Luizsan (creator of PIU Delta / member of Team Infinity and SSC, many notes and examples taken from his work)
-* Jousway and Squirrel (development assistance, pump bug squashing)
-* Accelerator/Rhythm Lunatic and Engine_Machiner (theme assistance)
-* Bedrock Solid (music, suggestions and playtesting)
-* Jehezukiel and Lintoast (music, sound effects and announcer)
-* 4199, daryen, djgrs, Enally, SHRMP0 and Sushi (suggestions and playtesting)
-* CrackItUp group (original home of the theme's development)
-* Team Infinity (setting a landmark in PIU's interface and graphics design)
-* RGAB Community
+## Arte opcional
 
-And at last, you for trying out our theme!
+A arte do Pump It Up e do XSanity pertence aos seus donos e **não está neste repositório**. O tema procura essas pastas localmente e, quando não encontra, usa os próprios gráficos ou texto:
+
+| Pasta | Conteúdo | Sem ela |
+|---|---|---|
+| `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos e logo do Phoenix 2 | gráficos do XSanity ou do próprio tema |
+| `Graphics/XSanity/` | bolinhas, rótulos de nota, faixa do título, corações e cartões de nível, tirados de uma instalação do XSanity | gráficos do próprio tema |
+| `Graphics/XSCommandWindow/` | a janela de comandos no estilo do XSanity | sem nenhuma das duas janelas, o código de painéis abre a lista de opções do OutFox |
+| `Thumbs/` | miniaturas de 400x300 da roda | banners do cache do OutFox |
+
+Todas essas pastas estão no `.gitignore`.
+
+## Ferramentas
+
+- `tools/make_thumbs.py`: gera as miniaturas da roda em `Thumbs/`. Rode no computador que tem as músicas e de novo quando adicionar músicas:
+
+  ```bash
+  python3 tools/make_thumbs.py
+  ```
+
+- `tools/make_phoenix_cards.py`: gera, a partir da arte local do Phoenix, os cartões de Double Lv. 1 a 4, de Half-Double e das categorias.
+
+## Herdado do Infinitesimal
+
+Continuam valendo as funções do tema original: janelas de julgamento e barra de vida no estilo K-Pump, outras janelas de timing (StepMania, ITG, Infinity, Pro, Jump), locutor na avaliação, Basic Mode, filtros de fundo, modificadores de aparência e as opções próprias do tema no menu do operador. Veja o [README do Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal) para a lista completa.
+
+## Idiomas
+
+Inglês, português do Brasil e polonês.
+
+## Créditos
+
+- **Infinitesimal:** dj505, SheepyChris e toda a equipe listada em `credits.txt`.
+- **InfiniteWorlds**, de tiny-goat (GPL-3.0): setas dos cantos e moldura da roda.
+- **Pump It Up Phoenix e Phoenix 2**, da Andamiro: referência de layout. Logos e arte do jogo pertencem à Andamiro.
+- **XSanity** e **phyrebird**: fontes da arte opcional usada localmente.
+
+## Licença
+
+GPL-3.0, a mesma do Infinitesimal. Veja `LICENSE`.
