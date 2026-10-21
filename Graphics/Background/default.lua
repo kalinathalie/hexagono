@@ -13,17 +13,8 @@ t[#t+1] = Def.Sprite {
     InitCommand=function(self) self:Center():scaletocover(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT) end
 }
 
-t[#t+1] = Def.Sprite {
-    Name="Grid",
-    Texture=THEME:GetPathG("", "Select/grid"),
-    InitCommand=function(self)
-        self:Center():zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
-        :customtexturerect(0, 0, SCREEN_WIDTH / 64, SCREEN_HEIGHT / 64)
-        :texcoordvelocity(0.02, 0.01)
-    end
-}
-
--- Glow bands drifting in opposite directions
+-- Glow bands drifting in opposite directions (a full-screen grid layer was measured
+-- at ~0.4 ms per frame on the Pi 5 and dropped)
 for i, Band in ipairs({ { Texture = "Background/Squiggles/1 (stretch)", Y = -120, Speed = 0.05 },
                         { Texture = "Background/Squiggles/3 (stretch)", Y = 120, Speed = -0.03 } }) do
     t[#t+1] = Def.Sprite {
@@ -32,7 +23,7 @@ for i, Band in ipairs({ { Texture = "Background/Squiggles/1 (stretch)", Y = -120
         InitCommand=function(self)
             self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y + Band.Y)
             :zoomto(SCREEN_WIDTH, 200)
-            :diffusealpha(0.18)
+            :diffuse(color("#3c8cff")):diffusealpha(0.12)
             :texcoordvelocity(Band.Speed, 0)
         end
     }
