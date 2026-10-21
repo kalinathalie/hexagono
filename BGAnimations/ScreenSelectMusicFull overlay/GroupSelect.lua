@@ -254,7 +254,8 @@ local t = Def.ActorFrame {
     CodeMessageCommand=function(self, params)
         if params.Name == "GroupSelectPad1" or params.Name == "GroupSelectPad2" or
         params.Name == "GroupSelectButton1" or params.Name == "GroupSelectButton2" then
-            if not IsBusy and not IsOptionsList[PLAYER_1] and not IsOptionsList[PLAYER_2] then
+            -- The same panels switch focus once the wheel is open (handled in InputHandler)
+            if not IsSelectingGroup and not IsBusy and not IsOptionsList[PLAYER_1] and not IsOptionsList[PLAYER_2] then
                 -- Prevent the song list from moving when transitioning
                 BlockScreenInput(true)
                 MESSAGEMAN:Broadcast("OpenGroupWheel")
@@ -321,7 +322,7 @@ local t = Def.ActorFrame {
         Name="Description",
         Font="Montserrat semibold 20px",
         InitCommand=function(self)
-            self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 150):zoom(0.9):shadowlength(1):maxwidth(900 / 0.9)
+            self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 92):zoom(0.9):shadowlength(1):maxwidth(900 / 0.9)
         end,
         OnCommand=function(self) self:playcommand("Refresh") end,
         RefreshHighlightMessageCommand=function(self) self:playcommand("Refresh") end,
