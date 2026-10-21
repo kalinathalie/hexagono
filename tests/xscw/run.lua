@@ -32,7 +32,10 @@ function Test(Name, Fn)
     end
 end
 
-local Files = { "tests/xscw/test_state.lua", "tests/xscw/test_categories.lua" }
+local Files = {
+    "tests/xscw/test_state.lua", "tests/xscw/test_categories.lua",
+    "tests/xscw/test_records.lua", "tests/xscw/test_chartrow.lua", "tests/xscw/test_wheel.lua", "tests/xscw/test_groups.lua",
+}
 for _, File in ipairs(Files) do
     local Fh = io.open(File, "r")
     if Fh then
