@@ -205,8 +205,9 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
     local S = NewState(Categories, pn)
     States[pn] = S
 
-    local OpenX = pn == PLAYER_1 and 200 or SCREEN_RIGHT - 200
-    local ClosedX = pn == PLAYER_1 and -260 or SCREEN_RIGHT + 260
+    -- clear of the mod icons at the screen edge (x 4..68)
+    local OpenX = pn == PLAYER_1 and 230 or SCREEN_RIGHT - 230
+    local ClosedX = pn == PLAYER_1 and -290 or SCREEN_RIGHT + 290
 
     local Window = Def.ActorFrame {
         InitCommand=function(self)
