@@ -41,4 +41,7 @@ Special thanks to Rhythm Lunatic, Tertu, Gio, JoseVarelaP, and others for advice
 ~= XSanity tweaks (song/group select, command window) =~
 - Corner arrows, music wheel frame/pointer: InfiniteWorlds by tiny-goat (GPL-3.0) - github.com/tiny-goat/InfiniteWorlds
 - Optional local art from the XSanity theme (balls, grade labels, cursors, panels, channel cards): read from Graphics/XSanity, not distributed
+- Optional local art from the XSanity command window: read from Graphics/XSCommandWindow, not distributed
+- Optional local Phoenix art (channel cards, balls, MY BEST panel, command window, Phoenix 2 logo) taken from the phyrebird theme and the game: read from Graphics/Phoenix, not distributed
+- tools/make_phoenix_cards.py and tools/make_thumbs.py build extra cards and wheel thumbnails from that local art
 - Layout reference: Pump It Up Phoenix (Andamiro)

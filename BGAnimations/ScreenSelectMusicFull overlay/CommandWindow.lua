@@ -76,6 +76,10 @@ local PX = {
     Glow = Art("Phoenix/CommandWindow/blue"),             -- cyan light behind the cursor
 }
 local UsePhoenix = PX.Bg and PX.Titles and PX.Icons and PX.Badge and true or false
+-- Without either art set (a fresh clone has neither: both are local only) the
+-- graphical window stays off and the pad code opens the engine list instead
+local HasXSanityArt = Art("XSCommandWindow/bg/bg_1") ~= nil
+if not UsePhoenix and not HasXSanityArt then return Def.ActorFrame {} end
 
 -- Phoenix layout, relative to the window center; the panel art is drawn at PZ
 local PZ = 1.15

@@ -1,3 +1,9 @@
+-- Same rule as CommandWindow.lua: is the graphical command window drawn (local art present)?
+local function HasArt(Name) return LoadModule("Select.Art.lua")(Name) ~= nil end
+local GraphicalWindow = (HasArt("Phoenix/CommandWindow/bg") and HasArt("Phoenix/CommandWindow/MenuIcons 1x9")
+    and HasArt("Phoenix/CommandWindow/icons 11x11") and HasArt("Phoenix/CommandWindow/frame"))
+    or HasArt("XSCommandWindow/bg/bg_1")
+
 local IsMenuOpen = { PlayerNumber_P1 = false, PlayerNumber_P2 = false}
 local CurrentMenu = { PlayerNumber_P1 = nil, PlayerNumber_P2 = nil }
 local OptionsListActors = {}
@@ -240,9 +246,10 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                     return
                 end
 
-                -- The pad code now opens the graphical command window; the
-                -- engine list stays reachable through the Select button only.
-                if params.Name == "OpenOpListButton" and not IsMenuOpen[pn] then
+                -- The pad code opens the graphical command window when its art is
+                -- present; the engine list stays reachable through the Select button.
+                local Code = params.Name == "OpenOpListButton" or (params.Name == "OpenOpList" and not GraphicalWindow)
+                if Code and not IsMenuOpen[pn] then
                     self:Open()
                     MESSAGEMAN:Broadcast("OptionsListPlaySound")
                 end

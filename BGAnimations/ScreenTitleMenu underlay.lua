@@ -1,3 +1,8 @@
+-- The Phoenix 2 logo (local Graphics/Phoenix/Logo, never in the public repo) takes the
+-- place of the Infinitesimal logo when present; K scales the logo animations to its size
+local PhoenixLogo = LoadModule("Select.Art.lua")("Phoenix/Logo/PhoenixLogo")
+local K = PhoenixLogo and 1.175 or 1
+
 local t = Def.ActorFrame {
     OnCommand=function(self)
         -- Reset machine profile mods
@@ -28,25 +33,29 @@ local t = Def.ActorFrame {
             :queuecommand("ZoomY")
         end,
 
-        LoadActor(THEME:GetPathG("", "Logo/Parts"))..{
+        PhoenixLogo and Def.Sprite {
+            Texture=PhoenixLogo,
+            InitCommand=function(self) self:zoom(0.8 * K) end
+        } or LoadActor(THEME:GetPathG("", "Logo/Parts"))..{
             InitCommand=function(self)
                 self:zoom(0.8)
             end
         },
 
         Def.Sprite {
-            Texture=THEME:GetPathG("", "Logo/Logo"),
+            Texture=PhoenixLogo or THEME:GetPathG("", "Logo/Logo"),
             OnCommand=function(self)
+                if PhoenixLogo then self:blend("BlendMode_Add") end
                 self:diffusealpha(0)
-                :zoom(0.8)
+                :zoom(0.8 * K)
                 :queuecommand("Pulse")
             end,
             PulseCommand=function(self)
                 self:sleep(3.4288)
                 :diffusealpha(0.5)
-                :zoom(0.8)
+                :zoom(0.8 * K)
                 :decelerate(1.7144)
-                :zoom(1)
+                :zoom(1 * K)
                 :diffusealpha(0)
                 :sleep(1.7144)
                 :queuecommand("Pulse")
@@ -54,15 +63,16 @@ local t = Def.ActorFrame {
         },
 
         Def.Sprite {
-            Texture=THEME:GetPathG("", "Logo/BlurLogo"),
+            Texture=PhoenixLogo or THEME:GetPathG("", "Logo/BlurLogo"),
             OnCommand=function(self)
-                self:zoom(0.83)
+                if PhoenixLogo then self:blend("BlendMode_Add") end
+                self:zoom(0.83 * K)
                 :diffusealpha(0)
                 :queuecommand("Flash")
             end,
             FlashCommand=function(self)
                 self:accelerate(3.4288)
-                :diffusealpha(0.8)
+                :diffusealpha(PhoenixLogo and 0.35 or 0.8)
                 :decelerate(3.4288)
                 :diffusealpha(0)
                 :queuecommand("Flash")
