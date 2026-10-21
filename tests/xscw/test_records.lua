@@ -11,6 +11,15 @@ Test("Records.Label formats the integer score and hides missing ones", function(
     CheckEq(L[1][1], "878123", "list P1"); CheckEq(L[1][2], "", "list P2"); CheckEq(L[2][1], "", "list none")
 end)
 
+Test("Records.GradeFrame maps the theme grade names to the XSanity grade label frames", function()
+    local R = LoadModule("Select.Records.lua")({ Players = { 1 }, GetHighScore = function() return nil end })
+    CheckEq(R.GradeFrame("Pass3PS"), 0, "SSS+"); CheckEq(R.GradeFrame("Pass3S"), 1, "SSS")
+    CheckEq(R.GradeFrame("Pass2PS"), 2, "SS+"); CheckEq(R.GradeFrame("Pass2S"), 3, "SS")
+    CheckEq(R.GradeFrame("PassS"), 5, "S"); CheckEq(R.GradeFrame("Pass2PA"), 8, "AA+")
+    CheckEq(R.GradeFrame("FailA"), 11, "failed A still shows A"); CheckEq(R.GradeFrame("PassF"), 15, "F")
+    CheckEq(R.GradeFrame("PassZ"), nil, "unknown"); CheckEq(R.GradeFrame(nil), nil, "nil")
+end)
+
 Test("Records.Label ignores non-numeric and zero scores", function()
     local R = LoadModule("Select.Records.lua")({ Players = { 1 },
         GetHighScore = function(pn, song, steps) return ({ [1] = "x", [2] = 0, [3] = 12.9 })[steps] end })

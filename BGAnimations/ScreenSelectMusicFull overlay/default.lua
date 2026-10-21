@@ -13,45 +13,7 @@ local t = Def.ActorFrame {
     end,
 }
 
-if GAMESTATE:GetNumSidesJoined() < 2 then
-    local PosX = SCREEN_CENTER_X + SCREEN_WIDTH * (GAMESTATE:IsSideJoined(PLAYER_1) and 0.35 or -0.35)
-    local PosY = (IsUsingWideScreen() and (SCREEN_HEIGHT * 0.4) or SCREEN_HEIGHT * 0.35)
-
-    t[#t+1] = Def.ActorFrame {
-        InitCommand=function(self)
-            self:xy((IsUsingWideScreen() and PosX or (PosX * 1.045)), PosY)
-            :playcommand('Refresh')
-        end,
-
-        SongChosenMessageCommand=function(self)
-            self:stoptweening():easeoutquad(0.25):y(PosY - 40)
-        end,
-        SongUnchosenMessageCommand=function(self)
-            self:stoptweening():easeoutquad(0.25):y(PosY)
-        end,
-
-        CoinInsertedMessageCommand=function(self) self:playcommand('Refresh') end,
-
-        RefreshCommand=function(self)
-            self:GetChild("CenterStep"):visible(NoSongs or GAMESTATE:GetCoins() >= GAMESTATE:GetCoinsNeededToJoin())
-            self:GetChild("InsertCredit"):visible(NoSongs or GAMESTATE:GetCoinsNeededToJoin() > GAMESTATE:GetCoins())
-        end,
-
-        OffCommand=function(self)
-            self:GetChild("CenterStep"):visible(true)
-            self:GetChild("InsertCredit"):visible(false)
-            self:stoptweening():easeoutexpo(0.25):zoom(2):diffusealpha(0)
-        end,
-
-        LoadActor(THEME:GetPathG("", "PressCenterStep")) .. {
-            Name="CenterStep",
-        },
-
-        LoadActor(THEME:GetPathG("", "InsertCredit")) .. {
-            Name="InsertCredit",
-        }
-    }
-end
+-- PRESS CENTER STEP / INSERT CREDIT are shown in the empty side of the top HUD (SelectHud.lua)
 
 t[#t+1] = Def.ActorFrame {
     -- Background for the group select wheel

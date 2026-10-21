@@ -26,6 +26,33 @@ function Row.Kind(Chart)
     return "other"
 end
 
+-- Frames of the XSanity ball sheets: StepList_Ballons 4x4 (small glossy balls,
+-- frame 7 is the black empty ball) and StepBall_Body 3x4 (big balls with the
+-- type name printed on them).
+Row.EmptyBall = 7
+local STYLES = {
+    single  = { Ball = 0, Big = 0 },
+    singlep = { Ball = 2, Big = 1 },
+    half    = { Ball = 5, Big = 2 },
+    double  = { Ball = 1, Big = 3 },
+    doublep = { Ball = 3, Big = 4 },
+    coop    = { Ball = 4, Big = 5 },
+}
+
+function Row.Style(Chart)
+    local Type = tostring(Chart.Type)
+    local Desc = string.upper(tostring(Chart.Description or ""))
+    if Type == "Single" then
+        return Desc:find("SP", 1, true) and STYLES.singlep or STYLES.single
+    elseif Type == "Halfdouble" then
+        return STYLES.half
+    elseif Type == "Double" then
+        if Desc:find("COOP", 1, true) or (Desc:find("DP", 1, true) and Chart.Meter == 99) then return STYLES.coop end
+        return Desc:find("DP", 1, true) and STYLES.doublep or STYLES.double
+    end
+    return STYLES.coop
+end
+
 -- Which chart index drives the row scrolling: the enabled player who moved last;
 -- with no known mover, the farthest cursor among enabled players; 1 when nobody plays.
 function Row.MainIndex(Index, Enabled, LastMover)

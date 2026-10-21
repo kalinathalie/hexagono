@@ -75,9 +75,7 @@ if __name__ == "__main__":
     for name, img in [
         ("hex_frame.png", hex_frame()),
         ("hex_mask.png", hex_mask()),
-        ("rainbow.png", rainbow()),
         ("gradient_bg.png", gradient_bg()),
-        ("grid.png", grid()),
     ]:
         img.save(os.path.join(OUT, name))
         print("wrote", name, img.size)

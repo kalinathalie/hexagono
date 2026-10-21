@@ -19,6 +19,18 @@ return function(Deps)
         return string.format("%d", math.floor(Score))
     end
 
+    -- Theme grade names ("Pass2S", "FailA", from PIU/Score.Grading.lua) to the
+    -- frames of the XSanity grade labels (sl_grade 1x17: SSS+ .. F)
+    local GRADE_FRAMES = {
+        ["3PS"] = 0, ["3S"] = 1, ["2PS"] = 2, ["2S"] = 3, ["PS"] = 4, ["S"] = 5,
+        ["3PA"] = 6, ["3A"] = 7, ["2PA"] = 8, ["2A"] = 9, ["PA"] = 10, ["A"] = 11,
+        ["B"] = 12, ["C"] = 13, ["D"] = 14, ["F"] = 15,
+    }
+    function R.GradeFrame(Grade)
+        if type(Grade) ~= "string" then return nil end
+        return GRADE_FRAMES[Grade:gsub("^Pass", ""):gsub("^Fail", "")]
+    end
+
     function R.LabelsFor(song, stepsList)
         local Out = {}
         for i, Steps in ipairs(stepsList) do

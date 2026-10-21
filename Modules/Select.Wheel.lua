@@ -1,31 +1,32 @@
--- Select.Wheel: geometry of the 7-item jacket wheel on the song select screen.
--- Pure Lua, no engine calls.
+-- Select.Wheel: geometry of the jacket wheel on the song select screen (and of
+-- the group cards, which reuse SlotVisible). Pure Lua, no engine calls.
 --
---   Layout(Count, Center, Index) -> { [i] = { Offset, X, Zoom, Alpha } }
---       Offset = i - Index (negative = left of the selected item); spacing 150 px;
---       zoom/alpha by distance: 0 -> 1/1, 1 -> 0.75/0.8, 2+ -> 0.6/0.55
+--   Position(Offset) -> X, Zoom
+--       Offset = slot distance from the selected item; Phoenix spacing: 222 px to
+--       the neighbours, then 205 px; the selected item at full size, the rest 80%
+--   SlotVisible(Offset, Count) -> bool
+--       false for slots that would repeat a song when the list is shorter than the wheel
 --   Counter(Index, Total) -> "036/139"
 --   ImageKind(HasJacket, HasBanner) -> "jacket" | "banner" | "none"
 
 local Wheel = {}
 
-local SPACING = 150
-local ZOOM = { [0] = 1, [1] = 0.75 }
-local ALPHA = { [0] = 1, [1] = 0.8 }
+local NEIGHBOR, STEP, SIDE_ZOOM = 222, 205, 0.8
 
-function Wheel.Layout(Count, Center, Index)
-    local Items = {}
-    for i = 1, Count do
-        local Offset = i - Index
-        local Dist = math.min(math.abs(Offset), 2)
-        Items[i] = {
-            Offset = Offset,
-            X = Center + Offset * SPACING,
-            Zoom = ZOOM[Dist] or 0.6,
-            Alpha = ALPHA[Dist] or 0.55,
-        }
-    end
-    return Items
+function Wheel.Position(Offset)
+    if Offset == 0 then return 0, 1 end
+    local Dist = math.abs(Offset)
+    local Sign = Offset < 0 and -1 or 1
+    return Sign * (NEIGHBOR + (Dist - 1) * STEP), SIDE_ZOOM
+end
+
+-- With N items and wrap-around, offsets -floor((N-1)/2) .. N-1-floor((N-1)/2)
+-- show every item exactly once; anything outside repeats an item.
+function Wheel.SlotVisible(Offset, Count)
+    if Count < 1 then return false end
+    local Left = math.floor((Count - 1) / 2)
+    local Right = Count - 1 - Left
+    return Offset >= -Left and Offset <= Right
 end
 
 function Wheel.Counter(Index, Total)

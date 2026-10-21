@@ -14,6 +14,18 @@ Test("ChartRow.Kind colors plain singles red and plain doubles green; SP, DP, co
     CheckEq(Row.Kind(C("Single", 10, "S10 NEW")), "single", "label without SP")
 end)
 
+Test("ChartRow.Style picks the XSanity ball frames by chart type", function()
+    local function S(c) local s = Row.Style(c) return s.Ball .. "/" .. s.Big end
+    CheckEq(S(C("Single", 17)), "0/0", "single red / SINGLE")
+    CheckEq(S(C("Single", 17, "SP")), "2/1", "single performance purple / SINGLE P")
+    CheckEq(S(C("Halfdouble", 12)), "5/2", "half-double cyan / HALF DOUBLE")
+    CheckEq(S(C("Double", 22)), "1/3", "double green / DOUBLE")
+    CheckEq(S(C("Double", 20, "DP")), "3/4", "double performance blue / DOUBLE P")
+    CheckEq(S(C("Double", 99, "COOP x2")), "4/5", "co-op yellow / CO-OP")
+    CheckEq(S(C("Double", 99, "DP")), "4/5", "DP at 99 is the co-op chart")
+    CheckEq(Row.EmptyBall, 7, "empty slot is the black ball")
+end)
+
 Test("ChartRow.MainIndex follows the enabled player who moved last, so the cursor stays visible", function()
     local Index = { P1 = 3, P2 = 14 }
     CheckEq(Row.MainIndex(Index, { P1 = true, P2 = false }, nil), 3, "P2 not playing is ignored")

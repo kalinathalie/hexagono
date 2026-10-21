@@ -16,6 +16,12 @@ Test("GroupCards classifies and titles subgroups", function()
     CheckEq(Cards.Image("Group", "14 - XX", ""), nil, "empty banner path")
 end)
 
+Test("GroupCards titles unrated and unnumbered level groups like the bubbles do", function()
+    CheckEq(Cards.Title("Single", "Single 99"), "S??", "99 is unrated, as on the bubble")
+    CheckEq(Cards.Title("Double", "Double ??"), "Double ??", "no digits: the name itself")
+    CheckEq(Cards.Title("Half-Double", "Half-Double 07"), "HD07", "keeps the digits")
+end)
+
 Test("GroupInfo describes known groups and falls back", function()
     local Known = { ["Group_14 - XX"] = "Músicas do XX", ["Category_Double"] = "Charts double", Letter = "Por letra",
         Fallback_Version = "Músicas da versão %s", Fallback_Level = "Todas as músicas com chart %s" }

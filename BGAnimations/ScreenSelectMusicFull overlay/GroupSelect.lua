@@ -5,6 +5,7 @@
 -- the categories, which are then shown as cards themselves. Input handling,
 -- busy state, saved indexes and messages are unchanged.
 local Cards = LoadModule("Select.GroupCards.lua")
+local Wheel = LoadModule("Select.Wheel.lua")
 local Info = LoadModule("GroupInfo.lua")(function(key) return THEME:GetString("GroupInfo", key) end)
 
 local CardCount = 7           -- 5 visible + 2 off-screen slots
@@ -115,7 +116,8 @@ local ThemeDir = "/Themes/" .. THEME:GetCurThemeName() .. "/"
 local function HasThemeFile(RelPath) return FILEMAN:DoesFileExist(ThemeDir .. RelPath) end
 
 -- XSanity card art (local only, never in the public repo): level and special cards
-local SpecialArt = { ["All Tunes"] = "ALLTUNES", ["Shortcut"] = "SHORTCUT", ["Remix"] = "REMIX", ["Full Song"] = "FULLSONGS" }
+-- LEVEL_25 is XSanity's "CO-OP PLAY" card
+local SpecialArt = { ["All Tunes"] = "ALLTUNES", ["Shortcut"] = "SHORTCUT", ["Remix"] = "REMIX", ["Full Song"] = "FULLSONGS", ["Co-op"] = "LEVEL_25" }
 local function CardArt(Data)
     local Kind = Cards.Kind(Data.Category, Data.Name)
     local File
@@ -401,6 +403,10 @@ for i = 1, CardCount do
             elseif tween then
                 self:easeoutexpo(0.3)
             end
+
+            -- short lists: hide the slots that would repeat a card
+            local Count = IsFocusedMain and #GroupsList or #GroupsList[CurMainIndex].SubGroups
+            self:visible(Wheel.SlotVisible(i - CardCenter, Count))
 
             local Dist = math.abs(i - CardCenter)
             self:xy(SCREEN_CENTER_X + (i - CardCenter) * CardSpacing, CardY)

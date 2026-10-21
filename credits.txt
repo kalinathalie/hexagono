@@ -37,3 +37,8 @@ Special thanks to Rhythm Lunatic, Tertu, Gio, JoseVarelaP, and others for advice
 - Bedrock Solid
 - dj505
 - Jehezukiel & Lintoast
+
+~= XSanity tweaks (song/group select, command window) =~
+- Corner arrows, music wheel frame/pointer: InfiniteWorlds by tiny-goat (GPL-3.0) - github.com/tiny-goat/InfiniteWorlds
+- Optional local art from the XSanity theme (balls, grade labels, cursors, panels, channel cards): read from Graphics/XSanity, not distributed
+- Layout reference: Pump It Up Phoenix (Andamiro)

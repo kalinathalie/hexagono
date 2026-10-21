@@ -4,6 +4,9 @@
 -- blue.lua: masked, continuously animated glow). The arrow art points down, so
 -- each corner rotates it toward its own corner. The slide-in runs on the outer
 -- frame and the pulse on an inner frame, so a pulse never interrupts the slide.
+-- distance of each arrow's center from the two screen edges: the art touches the corner, as in Phoenix
+local Edge = 44
+
 local function Arrow(Lua, X, Y, Rotation, Name)
     local OffX = X + (X < SCREEN_CENTER_X and -144 or 144)
     local OffY = Y + (Y < SCREEN_CENTER_Y and -144 or 144)
@@ -23,18 +26,18 @@ local function Arrow(Lua, X, Y, Rotation, Name)
 end
 
 return Def.ActorFrame {
-    Arrow("red", 72, 72, 135, "BackLeft") .. {
+    Arrow("red", Edge, Edge, 135, "BackLeft") .. {
         SongUnchosenMessageCommand=function(self) self:GetChild("Pulse"):playcommand("Pulse") end,
         OpenGroupWheelMessageCommand=function(self) self:GetChild("Pulse"):playcommand("Pulse") end,
     },
-    Arrow("red", SCREEN_RIGHT - 72, 72, -135, "BackRight") .. {
+    Arrow("red", SCREEN_RIGHT - Edge, Edge, -135, "BackRight") .. {
         SongUnchosenMessageCommand=function(self) self:GetChild("Pulse"):playcommand("Pulse") end,
         OpenGroupWheelMessageCommand=function(self) self:GetChild("Pulse"):playcommand("Pulse") end,
     },
-    Arrow("blue", 72, SCREEN_BOTTOM - 72, 45, "ShiftLeft") .. {
+    Arrow("blue", Edge, SCREEN_BOTTOM - Edge, 45, "ShiftLeft") .. {
         ScrollMessageCommand=function(self, params) if params.Direction == -1 then self:GetChild("Pulse"):playcommand("Pulse") end end,
     },
-    Arrow("blue", SCREEN_RIGHT - 72, SCREEN_BOTTOM - 72, -45, "ShiftRight") .. {
+    Arrow("blue", SCREEN_RIGHT - Edge, SCREEN_BOTTOM - Edge, -45, "ShiftRight") .. {
         ScrollMessageCommand=function(self, params) if params.Direction == 1 then self:GetChild("Pulse"):playcommand("Pulse") end end,
     },
 }

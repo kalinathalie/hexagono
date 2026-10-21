@@ -27,8 +27,10 @@ function Cards.Title(Category, SubName)
         -- "14 - XX" -> "XX"; names without the numeric prefix stay as they are
         return (SubName:gsub("^%d+%s*%-%s*", ""))
     elseif Kind == "level" then
-        local Meter = SubName:match("(%d+)$") or ""
-        return LEVEL_PREFIX[Category] .. Meter
+        local Meter = SubName:match("(%d+)$")
+        if not Meter then return SubName end
+        -- 99 is how unrated charts are stored; the bubbles show it as "??"
+        return LEVEL_PREFIX[Category] .. (tonumber(Meter) == 99 and "??" or Meter)
     end
     return SubName
 end

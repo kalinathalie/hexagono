@@ -1,7 +1,15 @@
--- Phoenix-style profile bar(s) at the top of the select screens: avatar, level,
--- name, lives and the level number box. One centered bar with one player, two
--- half-width bars side by side with two.
-local Green = color("#3cff5c")
+-- Phoenix-style top HUD of the select screens: the menu timer in a green box at
+-- the center (the engine timer is placed there by metrics.ini), each player's bar
+-- beside it (P1 left, P2 right) with the avatar at the outer end, level and name,
+-- and the lives next to the timer. A side without a player shows a dim bar with
+-- "PRESS CENTER STEP" (or "INSERT CREDIT" when credits are needed).
+local Art = LoadModule("Select.Art.lua")
+local HeartArt = Art("SM-HEARTS 2x1")
+
+local BarW, BarH = 440, 50
+local Gap = 52              -- half of the timer box plus a margin
+local Y = 33
+local PlayerColor = { [PLAYER_1] = color("#ff4a3c"), [PLAYER_2] = color("#ffd23c") }
 
 local function ProfileLevel(pn)
     local Profile = PROFILEMAN:GetProfile(pn)
@@ -11,84 +19,114 @@ local function ProfileLevel(pn)
     return lvl
 end
 
--- Every joined player gets a bar (a guest shows "No Profile" and level 0), as in Phoenix.
-local function HasProfile(pn)
-    return GAMESTATE:IsHumanPlayer(pn) and PROFILEMAN:GetProfile(pn) ~= nil
+local function Joined(pn) return GAMESTATE:IsHumanPlayer(pn) end
+
+local function Heart(Name, X)
+    if HeartArt then
+        return Def.Sprite {
+            Name=Name, Texture=HeartArt,
+            InitCommand=function(self) self:x(X):y(11):animate(false):setstate(0):zoom(0.5) end,
+        }
+    end
+    return Def.Sprite {
+        Name=Name, Texture=THEME:GetPathG("", "UI/Heart"),
+        InitCommand=function(self) self:x(X):y(11):zoom(0.2) end,
+    }
 end
 
 local function Bar(pn)
-    local W, H = 576, 50
-    local t = Def.ActorFrame {
-        Name="Bar" .. ToEnumShortString(pn),
-        InitCommand=function(self) self:y(-80):queuecommand("Place") end,
-        OnCommand=function(self) self:easeoutexpo(0.5):y(34) end,
-        OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(-80) end,
-        PlayerJoinedMessageCommand=function(self) self:queuecommand("Place") end,
-        PlaceCommand=function(self)
-            local Two = HasProfile(PLAYER_1) and HasProfile(PLAYER_2)
-            self:visible(HasProfile(pn))
-            if Two then
-                self:x(SCREEN_CENTER_X + (pn == PLAYER_2 and 300 or -300)):zoomx(560 / W)
-            else
-                self:x(SCREEN_CENTER_X):zoomx(1)
-            end
-        end,
+    local Side = (pn == PLAYER_2) and 1 or -1          -- side of the timer this bar sits on
+    local Outer = Side * BarW / 2                       -- local x of the outer end
+    local HAlign = (Side < 0) and 0 or 1                -- text grows away from the outer end
+    local TextX = Side * (BarW / 2 - 58)
 
-        Def.Quad { InitCommand=function(self) self:zoomto(W + 4, H + 4):diffuse(Green) end },
-        Def.Quad { InitCommand=function(self) self:zoomto(W, H):diffuse(color("#0b0f1a")) end },
-
-        -- Avatar
+    local PlayerFrame = Def.ActorFrame {
+        Name="Player",
+        Def.Quad { InitCommand=function(self) self:x(Side * (BarW / 2 - 26)):zoomto(48, 48):diffuse(PlayerColor[pn]) end },
         Def.Sprite {
             Texture=LoadModule("Options.GetProfileData.lua")(pn)["Image"],
             -- scaletocover also positions the sprite, so the x offset comes after it
-            InitCommand=function(self) self:scaletocover(-22, -22, 22, 22):x(-W / 2 + 28) end,
-        },
-
-        -- Level title and name
-        Def.BitmapText {
-            Font="Montserrat semibold 20px",
-            InitCommand=function(self)
-                self:xy(-W / 2 + 60, -11):halign(0):zoom(0.7):diffuse(color("#9fb3c8")):maxwidth(280 / 0.7)
-                :settext(ToUpper(THEME:GetString("ProfileStats", "Level") .. " " .. ProfileLevel(pn)))
-            end,
+            InitCommand=function(self) self:scaletocover(-22, -22, 22, 22):x(Side * (BarW / 2 - 26)) end,
         },
         Def.BitmapText {
-            Font="Montserrat semibold 20px",
-            InitCommand=function(self)
-                local Name = PROFILEMAN:GetProfile(pn) and PROFILEMAN:GetProfile(pn):GetDisplayName() or ""
-                if Name == "" then Name = THEME:GetString("ProfileStats", "No Profile") end
-                self:xy(-W / 2 + 60, 10):halign(0):zoom(0.9):maxwidth(280 / 0.9):shadowlength(1):settext(Name)
-            end,
+            Name="Level",
+            Font="Montserrat extrabold 20px",
+            InitCommand=function(self) self:xy(TextX, -12):halign(HAlign):zoom(0.7):maxwidth((BarW - 80) / 0.7):shadowlength(1) end,
         },
-
-        -- Lives (stages left), six hearts
-        Def.ActorFrame {
-            InitCommand=function(self) self:x(W / 2 - 200):queuecommand("Refresh") end,
-            CurrentSongChangedMessageCommand=function(self) self:queuecommand("Refresh") end,
-            RefreshCommand=function(self)
-                local Left = GAMESTATE:IsEventMode() and 6 or GAMESTATE:GetNumStagesLeft(pn)
-                for i = 1, 6 do
-                    self:GetChild("Heart" .. i):diffusealpha(i <= Left and 1 or 0.25)
-                end
-            end,
+        -- white name strip, as in Phoenix
+        Def.Quad { InitCommand=function(self) self:xy(Side * (BarW / 2 - 58 - 118), 11):zoomto(236, 22):diffuse(color("#e9edf2")) end },
+        Def.BitmapText {
+            Name="Name",
+            Font="Montserrat extrabold 20px",
+            InitCommand=function(self) self:xy(TextX - Side * 6, 11):halign(HAlign):zoom(0.75):maxwidth(224 / 0.75):diffuse(color("#10131c")) end,
         },
-
-        -- Green box: background for the engine's menu timer, which metrics.ini places here
-        -- ([ScreenSelectMusicFull] TimerOnCommand), as in the Phoenix layout.
-        Def.Quad { InitCommand=function(self) self:x(W / 2 - 34):zoomto(54, 40):diffuse(color("#19e04a")) end },
     }
-    local Hearts = t[6] -- the lives frame (sixth child above)
-    for i = 1, 6 do
-        Hearts[#Hearts + 1] = Def.Sprite {
-            Name="Heart" .. i,
-            Texture=THEME:GetPathG("", "UI/Heart"),
-            InitCommand=function(self) self:x((i - 1) * 22):zoom(0.22) end,
-        }
+    for k = 1, 6 do
+        -- lives next to the timer
+        PlayerFrame[#PlayerFrame + 1] = Heart("Heart" .. k, -Side * (BarW / 2 - 20 - (k - 1) * 20))
     end
-    return t
+
+    return Def.ActorFrame {
+        Name="Bar" .. ToEnumShortString(pn),
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X + Side * (Gap + BarW / 2), -80):queuecommand("Refresh") end,
+        OnCommand=function(self) self:easeoutexpo(0.5):y(Y) end,
+        OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(-80) end,
+        PlayerJoinedMessageCommand=function(self) self:queuecommand("Refresh") end,
+        CoinInsertedMessageCommand=function(self) self:queuecommand("Refresh") end,
+        CurrentSongChangedMessageCommand=function(self) self:queuecommand("Refresh") end,
+        RefreshCommand=function(self)
+            local On = Joined(pn)
+            self:GetChild("Player"):visible(On)
+            self:GetChild("Empty"):visible(not On)
+            if not On then
+                local Credit = GAMESTATE:GetCoins() >= GAMESTATE:GetCoinsNeededToJoin()
+                self:GetChild("Empty"):GetChild("Text"):settext(THEME:GetString("ScreenSelectMusicFull", Credit and "PressCenterStep" or "InsertCredit"))
+                return
+            end
+            local P = self:GetChild("Player")
+            local Profile = PROFILEMAN:GetProfile(pn)
+            local Name = Profile and Profile:GetDisplayName() or ""
+            if Name == "" then Name = THEME:GetString("ProfileStats", "No Profile") end
+            P:GetChild("Name"):settext(Name)
+            P:GetChild("Level"):settext(ToUpper(THEME:GetString("ProfileStats", "Level") .. " " .. ProfileLevel(pn)))
+            local Left = GAMESTATE:IsEventMode() and 6 or GAMESTATE:GetNumStagesLeft(pn)
+            for k = 1, 6 do
+                local H = P:GetChild("Heart" .. k)
+                if HeartArt then H:setstate(k <= Left and 0 or 1) else H:diffusealpha(k <= Left and 1 or 0.25) end
+            end
+        end,
+
+        -- Frame (shared by both states)
+        Def.Quad { InitCommand=function(self) self:zoomto(BarW + 4, BarH + 4):diffuse(PlayerColor[pn]) end },
+        Def.Quad { InitCommand=function(self) self:zoomto(BarW, BarH):diffuse(color("#0b0f1a")) end },
+
+        PlayerFrame,
+
+        -- Side without a player
+        Def.ActorFrame {
+            Name="Empty",
+            Def.Quad { InitCommand=function(self) self:zoomto(BarW, BarH):diffuse(Color.Black):diffusealpha(0.45) end },
+            Def.BitmapText {
+                Name="Text",
+                Font="Montserrat extrabold 20px",
+                InitCommand=function(self)
+                    self:zoom(0.85):shadowlength(1):diffuseshift():effectcolor1(color("#ffffff")):effectcolor2(color("#7a8ba6")):effectperiod(1.6)
+                end,
+            },
+        },
+    }
 end
 
-local t = Def.ActorFrame {}
-t[#t+1] = Bar(PLAYER_1)
-t[#t+1] = Bar(PLAYER_2)
-return t
+return Def.ActorFrame {
+    Bar(PLAYER_1),
+    Bar(PLAYER_2),
+
+    -- Green timer box at the center (the timer digits are drawn above it by the engine)
+    Def.ActorFrame {
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X, -80) end,
+        OnCommand=function(self) self:easeoutexpo(0.5):y(Y) end,
+        OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(-80) end,
+        Def.Quad { InitCommand=function(self) self:zoomto(96, 56):diffuse(color("#0d4f1d")) end },
+        Def.Quad { InitCommand=function(self) self:zoomto(90, 50):diffuse(color("#5dff6e")):diffusebottomedge(color("#14a83a")) end },
+    },
+}

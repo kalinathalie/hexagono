@@ -1,5 +1,5 @@
--- Static background for every menu screen: dark radial gradient, a faint grid
--- and two slow glow bands. Five small textures, no video, cheap on the Pi GPU.
+-- Static background for every menu screen: dark radial gradient and two slow
+-- glow bands. Three small textures, no video, cheap on the Pi GPU.
 local t = Def.ActorFrame {}
 
 t[#t+1] = Def.Quad {

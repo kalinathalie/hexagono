@@ -1,7 +1,8 @@
 setenv("IsBasicMode", false)
 -- Song select screen, Phoenix layout (top to bottom): profile bar (overlay),
 -- preview strip, title / artist / BPM, jacket wheel, difficulty row with
--- records, mode label. Picking the difficulty adds nothing but the cursor.
+-- records, footer. Picking a song slides the wheel away, moves the row up and
+-- shows each player's chosen-chart panel.
 local t = Def.ActorFrame {
     -- Add timer functionality
     InitCommand=function(self)
@@ -28,6 +29,18 @@ t[#t+1] = LoadActor("MusicWheel") .. { Name="MusicWheel" }
 t[#t+1] = LoadActor("ChartDisplay")
 t[#t+1] = LoadActor("ChartRow")
 
+-- Footer, as in Phoenix: FREE PLAY, or the credits in pay mode
+t[#t+1] = Def.BitmapText {
+    Font="Montserrat extrabold 20px",
+    InitCommand=function(self) self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 12):zoom(0.8):shadowlength(2):queuecommand("Refresh") end,
+    CoinInsertedMessageCommand=function(self) self:queuecommand("Refresh") end,
+    RefreshCommand=function(self)
+        local Free = GAMESTATE:IsEventMode() or GAMESTATE:GetCoinMode() ~= "CoinMode_Pay"
+        self:settext(Free and THEME:GetString("ScreenSelectMusicFull", "FreePlay")
+            or string.format(THEME:GetString("ScreenSelectMusicFull", "Credits"), GAMESTATE:GetCoins()))
+    end,
+}
+
 for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
     t[#t+1] = Def.ActorFrame {
         Def.Actor {
@@ -49,8 +62,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         LoadActor("../ModIcons", pn) .. {
             InitCommand=function(self)
                 -- below the BACK corner arrow, as the AV badge sits in Phoenix
-                self:xy(pn == PLAYER_2 and SCREEN_RIGHT + 72 * 2 or -72 * 2, 170)
-                :easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT - 72 or 72)
+                self:xy(pn == PLAYER_2 and SCREEN_RIGHT + 72 * 2 or -72 * 2, 150)
+                :easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT - 36 or 36)
             end,
             OffCommand=function(self)
                 self:stoptweening():easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT + 72 * 2 or -72 * 2)
@@ -63,7 +76,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         -- READY tag: appears beside the wheel once the player confirms the difficulty
         Def.ActorFrame {
             InitCommand=function(self)
-                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and 380 or -380), SCREEN_BOTTOM - 225):diffusealpha(0)
+                -- stamped over the big ball of the chosen-chart panel (ChosenPanel.lua)
+                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and 144 or -144), 618):diffusealpha(0)
             end,
             OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):diffusealpha(0) end,
             StepsChosenMessageCommand=function(self, params)
