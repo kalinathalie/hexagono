@@ -153,12 +153,6 @@ return {
         Choices = { OptionNameString('Off'), OptionNameString('On') },
         Values = {false, true}
     },
-    UseVideoBackground =
-    {
-        Default = true,
-        Choices = { OptionNameString('Off'), OptionNameString('On') },
-        Values = {false, true}
-    },
     EvalCenter3xExit =
     {
         Default = false,
