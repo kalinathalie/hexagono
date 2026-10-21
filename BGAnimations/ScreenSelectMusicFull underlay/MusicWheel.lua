@@ -242,7 +242,7 @@ local t = Def.ActorFrame {
     -- Pointer: a small yellow mark under the centered jacket (above it the title block sits)
     Def.Quad {
         InitCommand=function(self)
-            self:xy(SCREEN_CENTER_X, WheelY + (ImageH * 1.15) / 2 + 36):zoomto(16, 8):diffuse(color("#ffe15a"))
+            self:xy(SCREEN_CENTER_X, WheelY + (ImageH * 1.15) / 2 + 52):zoomto(16, 8):diffuse(color("#ffe15a"))
             :bounce():effectmagnitude(0, 3, 0):effectclock("bgm")
         end
     },
