@@ -9,6 +9,9 @@
 # like a crash), or when another OutFox is already running by then (someone
 # started it by hand, e.g. while debugging). After 5 crashes in 5 minutes it
 # gives up, to avoid a crash loop. Log: ~/.cache/outfox-run.log
+# started from a shell (over ssh, after outfox-stop): use the desktop session, as the autostart does
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}" DISPLAY="${DISPLAY:-:0}" XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"
 OUTFOX="${OUTFOX:-$(ls -d "$HOME"/ProjectOutFox/OutFox-*/OutFox 2>/dev/null | head -1)}"
 LOG="$HOME/.cache/outfox-run.log"
 DELAY=10
