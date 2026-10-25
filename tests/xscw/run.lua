@@ -35,6 +35,7 @@ end
 local Files = {
     "tests/xscw/test_state.lua", "tests/xscw/test_categories.lua",
     "tests/xscw/test_records.lua", "tests/xscw/test_chartrow.lua", "tests/xscw/test_wheel.lua", "tests/xscw/test_groups.lua",
+    "tests/xscw/test_title.lua", "tests/xscw/test_profiles.lua",
 }
 for _, File in ipairs(Files) do
     local Fh = io.open(File, "r")

@@ -1,3 +1,11 @@
+-- With the Phoenix title video the game opens straight on it (warning, logos and
+-- trailer are in the video): ScreenInit only shows black for a moment
+if PhoenixTitleVideo and PhoenixTitleVideo() then
+    return Def.ActorFrame {
+        Def.Quad { InitCommand=function(self) self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT):Center():diffuse(Color.Black) end },
+    }
+end
+
 return Def.ActorFrame {
     -- bro wake up it's 2008
     CodeMessageCommand=function(self, param)
