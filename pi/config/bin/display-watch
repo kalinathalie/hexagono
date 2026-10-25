@@ -36,11 +36,17 @@ INTERVAL = 2.0
 GENERIC = 1024 * 768   # largest of the kernel's modes for a screen without EDID
 
 
+VIRTUAL = ("NOOP", "HEADLESS")   # outputs the compositor makes up while no screen is there
+
+
 def real(head):
     """A screen that is really there: enabled and identified by its EDID. Without EDID
     (TV off but still plugged in) wlroots reports no or "Unknown" make and model and
-    only the kernel's generic modes."""
+    only the kernel's generic modes; while HDMI goes away (a TV being turned on) the
+    compositor shows a virtual NOOP output with 0 Hz modes."""
     if not head.get("enabled") or not head.get("modes"):
+        return False
+    if head.get("name", "").upper().startswith(VIRTUAL) or all(m["refresh"] <= 0 for m in head["modes"]):
         return False
     ids = [str(head.get(k) or "").strip() for k in ("make", "model")]
     if any(i and i.lower() != "unknown" for i in ids):
@@ -58,9 +64,13 @@ def screen_key(heads):
     return " | ".join(parts)
 
 
-def should_restart(started_on, now, game_running):
-    """Restart the game when it runs on a screen other than the current real one."""
-    return bool(game_running and started_on and now and started_on != now)
+def should_restart(started_on, now, game_running, lost=False):
+    """Restart the game when it runs on a screen other than the current real one, or
+    when the screen went away while it ran (its window went through the virtual
+    output, so its size can no longer be trusted)."""
+    if not (game_running and now):
+        return False
+    return lost or bool(started_on and started_on != now)
 
 
 def heads():
@@ -108,20 +118,26 @@ def wait():
 
 def watch():
     last = None
+    lost = False   # the screen went away while the game was running
     while True:
         key = screen_key(heads())
         if key != last:
             d60.log("screens now: " + (key or "none with EDID"))
-            if key:
+            running = game_running()
+            if not key:
+                lost = lost or (running and last is not None)
+            else:
                 key = settle()
                 try:
                     started_on = open(SCREEN_FILE).read().strip()
                 except OSError:
                     started_on = None
-                if should_restart(started_on, key, game_running()):
-                    d60.log("the game started on another screen (%s): restarting it" % started_on)
+                if should_restart(started_on, key, running, lost):
+                    d60.log("the screen came back after going away: restarting the game" if lost
+                            else "the game started on another screen (%s): restarting it" % started_on)
                     open(RESTART_FILE, "w").close()
                     stop_game()
+                lost = False
             last = key
         time.sleep(INTERVAL)
 

@@ -40,6 +40,11 @@ check(not watch.real(no_edid), "generic 1024x768 modes without EDID are not")
 check(not watch.real(unknown), "make and model 'Unknown' count as no EDID")
 check(watch.real(small_monitor), "a small monitor that reports its make is real")
 check(not watch.real(dict(tv, enabled=False)), "a disabled output is not a screen")
+# while HDMI goes away (the TV being turned on) the compositor shows a virtual output
+noop = {"name": "NOOP-1", "enabled": True, "make": "", "model": "", "serial": "",
+        "modes": [mode(1920, 1080, 0.0, False, True)]}
+check(not watch.real(noop), "the compositor's virtual NOOP output is not a screen")
+check(not watch.real(dict(noop, name="HEADLESS-1")), "nor a HEADLESS one")
 
 key_tv = watch.screen_key([tv])
 check(key_tv and "Samsung" in key_tv and "QCQ90" in key_tv, "the key names the screen")
@@ -55,6 +60,11 @@ check(not watch.should_restart("A 1920x1080", "A 1920x1080", True), "same screen
 check(not watch.should_restart("A 1920x1080", "", True), "no real screen now (TV off): no restart")
 check(not watch.should_restart("", "A 1920x1080", False), "game not running: no restart")
 check(not watch.should_restart(None, "A 1920x1080", True), "start screen unknown: no restart")
+# the screen went away while the game ran (TV turned off and on): its window went
+# through the virtual output, so it restarts even on the same screen
+check(watch.should_restart("A 1920x1080", "A 1920x1080", True, lost=True), "screen came back after going away: restart")
+check(not watch.should_restart("A 1920x1080", "A 1920x1080", False, lost=True), "came back but the game is not running: no restart")
+check(not watch.should_restart("A 1920x1080", "", True, lost=True), "still no screen: no restart yet")
 
 print("all passed" if failures == 0 else "%d failed" % failures, failures)
 sys.exit(1 if failures else 0)
