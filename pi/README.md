@@ -67,6 +67,7 @@ The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the 
 | `Graphics/Phoenix/StageBreak` | the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation shown when a player breaks the stage, from YouTube, by `assets/stagebreak.py` |
 | `Graphics/XSanity`, `Graphics/XSCommandWindow` | from XSanity 0.96.0, downloaded from [xsanity.net](https://xsanity.net/downloads.php) (`--xsanity PATH` uses an install or zip you already have; later versions changed the art and ship fewer noteskins) |
 | `~/.project-outfox/NoteSkins/pump` | XSanity's Pump noteskins: the download has 11; the reference Pi has 61, kept in `noteskins-xsanity.zip` (back it up with the songs and pass it with `--noteskins PATH`); XSanity's `default` skin becomes `xs_default` |
+| `~/.project-outfox/Appearance/Avatars` | the 165 Phoenix player icons from piugame.com (`PIU 001.png` ..), offered under EDIT PHOTO in profile select, by `assets/avatars.py` |
 | `Thumbs` | made from the songs' banners and backgrounds by `tools/make_thumbs.py`, when songs are installed |
 
 Options: `--no-video`, `--no-xsanity`, `--xsanity PATH`, `--noteskins PATH`, `--font TTF`. When a download fails the script carries on and lists what is missing; the theme falls back to its own graphics or text for anything absent.

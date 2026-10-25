@@ -12,6 +12,8 @@
 #                      have: --xsanity PATH); 0.97 changed the art
 #                      The XSanity download has 11 noteskins; --noteskins PATH installs a
 #                      bigger set kept separately (a zip or folder with a "pump" folder)
+#   Appearance/Avatars the Phoenix player icons from piugame.com, in OutFox's own folder
+#                      (~/.project-outfox), offered by profile select (pi/assets/avatars.py)
 #   Thumbs             the wheel thumbnails, when songs are already installed
 # Parts already in place are skipped: delete a folder to build it again.
 #
@@ -23,6 +25,7 @@ THEME="$(cd "$HERE/.." && pwd)"
 PX="$THEME/Graphics/Phoenix"
 NOTESKINS="${NOTESKINS:-$HOME/.project-outfox/NoteSkins}"
 SONGS="$HOME/.project-outfox/Songs"
+AVATARS="$HOME/.project-outfox/Appearance/Avatars"
 WORK="${XDG_CACHE_HOME:-$HOME/.cache}/hexagono-assets"
 VENV="$WORK/venv"
 # the Windows zip: the art and noteskins are the same on every system, and it is the
@@ -121,6 +124,9 @@ else
     fi
     rm -f "$WORK/xsanity.zip"
 fi
+
+say "Player icons"
+"$PY" "$HERE/assets/avatars.py" "$AVATARS" \n    || warn "some player icons could not be downloaded; run this again to fetch the rest"
 
 say "Wheel thumbnails"
 if ls -d "$SONGS"/*/ >/dev/null 2>&1; then
