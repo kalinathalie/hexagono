@@ -42,8 +42,8 @@ Os dois scripts podem ser rodados de novo a qualquer momento: eles pulam o que j
 |---|---|
 | Sistema (`sudo`) | login automático na área de trabalho, tela sem apagar; pacotes: git, curl, ffmpeg, Python com Pillow e numpy, nodejs, grim, wlr-randr, kanshi, fontes da Microsoft (opcional) |
 | Project OutFox | 0.5.0-pre043 para Raspberry Pi, em `~/ProjectOutFox` |
-| Tela | `~/.local/bin/display-60hz` escolhe o melhor modo de 60 Hz até cerca de 1080p em qualquer tela (TVs costumam preferir 4K a 30 Hz, o que prende o jogo em 30 FPS); roda no login e pelo kanshi sempre que uma tela é conectada |
-| Inicialização | `~/.config/labwc/autostart` abre o jogo por `~/.local/bin/outfox-run`, que o abre de novo 10 s depois de um crash; para parar, `~/.local/bin/outfox-stop` |
+| Tela | `~/.local/bin/display-60hz` escolhe o melhor modo de 60 Hz até cerca de 1080p em qualquer tela (TVs costumam preferir 4K a 30 Hz, o que prende o jogo em 30 FPS); roda no login e pelo kanshi sempre que uma tela é conectada. `~/.local/bin/display-watch` confere as telas a cada 2 s para pegar o que o kanshi perde, como uma TV desligada no boot que é ligada depois (ela pula para o 4K a 30 Hz preferido): volta para 60 Hz e reinicia o jogo se ele foi aberto noutra tela |
+| Inicialização | `~/.config/labwc/autostart` inicia o display-watch e abre o jogo por `~/.local/bin/outfox-run`, que espera uma tela de verdade (com a TV desligada, o HDMI informa uma tela genérica de 1024x768) e abre o jogo de novo 10 s depois de um crash; para parar, `~/.local/bin/outfox-stop` |
 | Cursor do mouse | escondido enquanto a janela do jogo está aberta (`~/.config/labwc/rc.xml`) |
 | Preferências do OutFox | modo pump, este tema, 1280x720 em tela cheia com vsync, cache de imagens e texturas que mantêm os menus em 60 FPS (`config/outfox/Preferences.ini` lista cada chave) |
 | Opções do tema | `config/outfox/OutFoxPrefs.ini`: charts UCS, quest e escondidos ocultos, bola de dificuldade grande etc. |
@@ -76,7 +76,7 @@ Não incluídas. O tema agrupa as músicas pela pasta de cada versão, então us
 
 ## Verificações
 
-- `python3 pi/tests/test_display60.py` testa a escolha do modo de 60 Hz.
+- `python3 pi/tests/test_display60.py` testa a escolha do modo de 60 Hz, `python3 pi/tests/test_display_watch.py` o vigia de telas.
 - FPS: com `ShowStats=1` no `Preferences.ini`, o OutFox grava uma linha por segundo com `:Video, , <fps> FPS` em `~/.project-outfox/Logs/ProjectOutfox.MainLog.*.log`.
 - `~/.cache/display-60hz.log` e `~/.cache/outfox-run.log` mostram o que os scripts de tela e de inicialização fizeram.
 

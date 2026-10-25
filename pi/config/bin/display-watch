@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Keeps the game on a real screen at 60 Hz when screens come and go.
+
+kanshi runs display-60hz when a screen is plugged in, but not when a TV that is
+already plugged in gets turned on: while the TV is off the HDMI port stays connected
+with the kernel's generic modes (1024x768, no EDID), and on power-on the compositor
+jumps to the TV's preferred mode (often 4K at 30 Hz). A game started before that keeps
+its old size and shows as a small window.
+
+  display-watch          checks the screens every 2 s; when they change, runs
+                         display-60hz, and when the game was started on another screen
+                         restarts it (outfox-run opens it again on the new one).
+                         Started from ~/.config/labwc/autostart.
+  display-watch --wait   blocks until a real screen (one with EDID) is on, puts it in
+                         its 60 Hz mode and records it in ~/.cache/outfox-run.screen;
+                         outfox-run runs it before each start of the game.
+Log: ~/.cache/display-60hz.log
+"""
+import os
+import subprocess
+import sys
+import time
+from importlib.machinery import SourceFileLoader
+import importlib.util
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+_loader = SourceFileLoader("display_60hz", os.path.join(HERE, "display-60hz"))
+_spec = importlib.util.spec_from_loader("display_60hz", _loader)
+d60 = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(d60)
+
+CACHE = os.path.expanduser("~/.cache")
+SCREEN_FILE = os.path.join(CACHE, "outfox-run.screen")     # screen the game was started on
+RESTART_FILE = os.path.join(CACHE, "outfox-run.restart")   # tells outfox-run to start it again
+INTERVAL = 2.0
+GENERIC = 1024 * 768   # largest of the kernel's modes for a screen without EDID
+
+
+def real(head):
+    """A screen that is really there: enabled and identified by its EDID. Without EDID
+    (TV off but still plugged in) wlroots reports no or "Unknown" make and model and
+    only the kernel's generic modes."""
+    if not head.get("enabled") or not head.get("modes"):
+        return False
+    ids = [str(head.get(k) or "").strip() for k in ("make", "model")]
+    if any(i and i.lower() != "unknown" for i in ids):
+        return True
+    return max(m["width"] * m["height"] for m in head["modes"]) > GENERIC
+
+
+def screen_key(heads):
+    """Identity and current mode of the real screens, "" when there is none."""
+    parts = []
+    for h in sorted((h for h in heads if real(h)), key=lambda h: h["name"]):
+        cur = next((m for m in h["modes"] if m.get("current")), None)
+        parts.append("%s %s %s %s %s" % (h["name"], h.get("make") or "", h.get("model") or "",
+                                          h.get("serial") or "", d60.label(cur) if cur else "?"))
+    return " | ".join(parts)
+
+
+def should_restart(started_on, now, game_running):
+    """Restart the game when it runs on a screen other than the current real one."""
+    return bool(game_running and started_on and now and started_on != now)
+
+
+def heads():
+    return d60.outputs(wait=0)
+
+
+def game_running():
+    return subprocess.run(["pgrep", "-x", "OutFox"], capture_output=True).returncode == 0
+
+
+def stop_game():
+    """OutFox can hang while closing on SIGTERM (outfox-stop does the same)."""
+    subprocess.run(["pkill", "-x", "OutFox"], check=False)
+    for _ in range(10):
+        time.sleep(0.5)
+        if not game_running():
+            return
+    d60.log("the game did not close in 5 s: killing it")
+    subprocess.run(["pkill", "-9", "-x", "OutFox"], check=False)
+
+
+def settle():
+    """Puts the real screens in their 60 Hz mode and returns the resulting key."""
+    if screen_key(heads()):
+        d60.main()
+        time.sleep(1.0)
+    return screen_key(heads())
+
+
+def wait():
+    told = False
+    while True:
+        key = settle()
+        if key:
+            os.makedirs(CACHE, exist_ok=True)
+            with open(SCREEN_FILE, "w") as f:
+                f.write(key)
+            d60.log("screen for the game: " + key)
+            return 0
+        if not told:
+            d60.log("waiting for a screen (no output with EDID yet)")
+            told = True
+        time.sleep(INTERVAL)
+
+
+def watch():
+    last = None
+    while True:
+        key = screen_key(heads())
+        if key != last:
+            d60.log("screens now: " + (key or "none with EDID"))
+            if key:
+                key = settle()
+                try:
+                    started_on = open(SCREEN_FILE).read().strip()
+                except OSError:
+                    started_on = None
+                if should_restart(started_on, key, game_running()):
+                    d60.log("the game started on another screen (%s): restarting it" % started_on)
+                    open(RESTART_FILE, "w").close()
+                    stop_game()
+            last = key
+        time.sleep(INTERVAL)
+
+
+if __name__ == "__main__":
+    sys.exit(wait() if "--wait" in sys.argv else watch())

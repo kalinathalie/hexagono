@@ -1,7 +1,11 @@
 #!/bin/bash
 # Runs OutFox and opens it again 10 s after it closes abruptly (crash).
-# Not restarted: a normal exit (code 0, e.g. Quit Game), a stop with
-# outfox-stop (OutFox exits with 139 even on SIGTERM, so a plain pkill looks
+# Before each start it waits for a real screen in its 60 Hz mode (display-watch --wait):
+# with the TV off the HDMI port reports a generic 1024x768 screen, and a game started
+# on it stays small once the TV is on. When display-watch sees the game running on
+# another screen than the current one, it stops it and asks for a restart, which
+# happens right away. Not restarted: a normal exit (code 0, e.g. Quit Game), a stop
+# with outfox-stop (OutFox exits with 139 even on SIGTERM, so a plain pkill looks
 # like a crash), or when another OutFox is already running by then (someone
 # started it by hand, e.g. while debugging). After 5 crashes in 5 minutes it
 # gives up, to avoid a crash loop. Log: ~/.cache/outfox-run.log
@@ -9,17 +13,21 @@ OUTFOX="${OUTFOX:-$(ls -d "$HOME"/ProjectOutFox/OutFox-*/OutFox 2>/dev/null | he
 LOG="$HOME/.cache/outfox-run.log"
 DELAY=10
 STOP="$HOME/.cache/outfox-run.stop"
+RESTART="$HOME/.cache/outfox-run.restart"
+SCREEN="$HOME/.cache/outfox-run.screen"
 mkdir -p "$(dirname "$LOG")"
 log() { echo "$(date '+%F %T') $*" >> "$LOG"; }
 
 crashes=()
-rm -f "$STOP"
+rm -f "$STOP" "$RESTART"
 while true; do
-    log "starting OutFox"
+    "$HOME/.local/bin/display-watch" --wait >/dev/null 2>&1
+    log "starting OutFox on: $(cat "$SCREEN" 2>/dev/null)"
     cd "$(dirname "$OUTFOX")" && "$OUTFOX" >/dev/null 2>&1
     code=$?
+    if [ -f "$STOP" ]; then rm -f "$STOP" "$RESTART"; log "stopped with outfox-stop (code $code)"; break; fi
+    if [ -f "$RESTART" ]; then rm -f "$RESTART"; log "restarting on the new screen"; continue; fi
     if [ $code -eq 0 ]; then log "normal exit"; break; fi
-    if [ -f "$STOP" ]; then rm -f "$STOP"; log "stopped with outfox-stop (code $code)"; break; fi
     now=$(date +%s)
     recent=()
     for t in "${crashes[@]}"; do [ $((now - t)) -lt 300 ] && recent+=("$t"); done

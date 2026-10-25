@@ -86,7 +86,7 @@ else
 fi
 
 say "Screen, autostart and pointer"
-for f in display-60hz outfox-run outfox-stop; do
+for f in display-60hz display-watch outfox-run outfox-stop; do
     install_file "$CONF/bin/$f" "$HOME/.local/bin/$f" 755
 done
 install_template "$CONF/labwc/autostart" "$HOME/.config/labwc/autostart"
