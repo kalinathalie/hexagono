@@ -1,12 +1,17 @@
 -- Stage break (40 misses in a row): the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND
 -- DANCE MAN?" animation when its local video exists (pi/assets/stagebreak.py), else the
--- theme's own animation below. This is a transition loaded with the gameplay screen:
--- OnCommand runs when the song starts, StartTransitioning when the stage breaks, so
--- the video is loaded and the sound played only then.
+-- theme's own animation below. This is a transition loaded with the gameplay screen,
+-- and both OnCommand and StartTransitioning also reach it when the song starts: the
+-- video, sound and fade begin once, when the stage has really failed.
 local Video = PhoenixStageBreakVideo and PhoenixStageBreakVideo()
 if Video then
+    local Started = false
     return Def.ActorFrame {
-        StartTransitioningCommand=function(self) self:playcommand("Begin") end,
+        StartTransitioningCommand=function(self)
+            if Started or not STATSMAN:GetCurStageStats():AllFailed() then return end
+            Started = true
+            self:playcommand("Begin")
+        end,
         Def.Sprite {
             BeginCommand=function(self)
                 self:Load(Video.Video):Center():zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
