@@ -219,11 +219,13 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             self:xy(ClosedX, SCREEN_CENTER_Y):visible(false)
         end,
 
-        -- Open by the pad code (never while the group wheel is open or a song is chosen)
+        -- Open by the pad code, also while choosing the difficulty like Phoenix
+        -- (never while the group wheel is open); the chart list ignores the pad
+        -- while the window is open (OptionsListOpened)
         CodeMessageCommand=function(self, params)
             if params.PlayerNumber ~= pn then return end
             if params.Name ~= "OpenOpList" or MenuButtonsOnly then return end
-            if S.Open or GroupWheelOpen or SongIsChosen or not CanOpen[pn] then return end
+            if S.Open or GroupWheelOpen or not CanOpen[pn] then return end
             self:playcommand("OpenWindow")
         end,
 

@@ -93,9 +93,18 @@ local function InputHandler(event)
             ConfirmStart[pn] = false
 
         elseif button == "UpLeft" or button == "UpRight" or button == "Up" then
-            MESSAGEMAN:Broadcast("StepsUnchosen", { Player = pn })
-            MESSAGEMAN:Broadcast("SongUnchosen")
-            ConfirmStart[pn] = false
+            if ConfirmStart[pn] then
+                -- READY: the upper panels only take the difficulty back
+                ConfirmStart[pn] = false
+                MESSAGEMAN:Broadcast("StepsUnchosen", { Player = pn })
+            else
+                -- choosing the difficulty: back to the wheel, nobody stays READY
+                for _, p in ipairs({ PLAYER_1, PLAYER_2 }) do
+                    if ConfirmStart[p] then MESSAGEMAN:Broadcast("StepsUnchosen", { Player = p }) end
+                    ConfirmStart[p] = false
+                end
+                MESSAGEMAN:Broadcast("SongUnchosen")
+            end
 
         elseif button == "Start" or button == "MenuStart" or button == "Center" then
             -- No song start while any command window is open

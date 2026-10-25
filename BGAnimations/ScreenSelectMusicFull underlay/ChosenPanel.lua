@@ -132,7 +132,9 @@ local Ready = Def.ActorFrame {
         if params.Player == pn then self:stoptweening():zoom(1.3):easeoutexpo(0.3):zoom(1):diffusealpha(1) end
     end,
     CurrentChartChangedMessageCommand=function(self, params) if params.Player == pn then self:stoptweening():easeoutexpo(0.2):diffusealpha(0) end end,
-    StepsUnchosenMessageCommand=function(self) self:stoptweening():easeoutexpo(0.2):diffusealpha(0) end,
+    StepsUnchosenMessageCommand=function(self, params)
+        if not params or not params.Player or params.Player == pn then self:stoptweening():easeoutexpo(0.2):diffusealpha(0) end
+    end,
     SongUnchosenMessageCommand=function(self) self:stoptweening():easeoutexpo(0.2):diffusealpha(0) end,
 }
 if ReadyArt then
