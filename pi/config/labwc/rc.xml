@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<labwc_config>
+  <windowRules>
+    <!-- Hide the mouse pointer when the game window appears; moving the mouse brings it back.
+         Merged with /etc/xdg/labwc/rc.xml because labwc runs with -m. -->
+    <windowRule identifier="OutFox">
+      <action name="HideCursor" />
+    </windowRule>
+  </windowRules>
+</labwc_config>

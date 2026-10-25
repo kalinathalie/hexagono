@@ -1,0 +1,6 @@
+# Any screen on any port (TV, new monitor...): enable it, then pick its best
+# 60 Hz mode up to about 1080p. Script: ~/.local/bin/display-60hz, log: ~/.cache/display-60hz.log
+profile any-screen {
+	output * enable
+	exec @HOME@/.local/bin/display-60hz
+}

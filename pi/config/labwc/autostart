@@ -1,0 +1,4 @@
+# best 60 Hz mode for whatever screen is connected, before the game starts
+@HOME@/.local/bin/display-60hz >/dev/null 2>&1
+# OutFox, opened again 10 s after a crash (stop it with outfox-stop)
+@HOME@/.local/bin/outfox-run &

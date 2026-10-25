@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Put every connected screen in its best 60 Hz mode, at most about 1080p.
+
+Many TVs prefer 4K at 30 Hz, and some monitors prefer 1440p or 144 Hz. OutFox on
+the Raspberry Pi 5 runs best at 60 Hz with the screen around 1080p: at 30 Hz the
+game is capped at 30 FPS by vsync, and bigger outputs cost GPU time every frame.
+
+For each enabled output this picks, among its modes between 59.5 and 60.5 Hz:
+  1. the same aspect ratio as the screen's preferred (native) mode, when possible;
+  2. the largest size up to MAX_PIXELS (1920x1200 and 2560x1080 fit, 1440p does not);
+     when every 60 Hz mode is bigger, the smallest one;
+  3. the refresh closest to 60.000.
+Screens without any 60 Hz mode are left alone, and nothing changes when the
+current mode is already the right one.
+
+Run by kanshi when a screen is connected (~/.config/kanshi/config) and once at
+login before OutFox starts (~/.config/labwc/autostart). Log: ~/.cache/display-60hz.log
+Usage: display-60hz [--dry-run]
+"""
+import json
+import os
+import subprocess
+import sys
+import time
+
+MAX_PIXELS = 2_800_000
+LOW, HIGH = 59.5, 60.5
+LOG = os.path.expanduser("~/.cache/display-60hz.log")
+
+
+def area(mode):
+    return mode["width"] * mode["height"]
+
+
+def aspect(mode):
+    return mode["width"] / mode["height"]
+
+
+def native(modes):
+    preferred = [m for m in modes if m.get("preferred")]
+    return preferred[0] if preferred else max(modes, key=area)
+
+
+def pick(modes):
+    """The 60 Hz mode to use for a screen with these modes, or None to leave it alone."""
+    sixty = [m for m in modes if LOW <= m["refresh"] <= HIGH]
+    if not sixty:
+        return None
+    base = aspect(native(modes))
+
+    def same_aspect(m):
+        return abs(aspect(m) - base) < 0.02
+
+    fit = [m for m in sixty if area(m) <= MAX_PIXELS]
+    if fit:
+        return max(fit, key=lambda m: (same_aspect(m), area(m), -abs(m["refresh"] - 60.0), bool(m.get("preferred"))))
+    return max(sixty, key=lambda m: (same_aspect(m), -area(m), -abs(m["refresh"] - 60.0)))
+
+
+def log(text):
+    line = time.strftime("%Y-%m-%d %H:%M:%S ") + text
+    print(line)
+    try:
+        os.makedirs(os.path.dirname(LOG), exist_ok=True)
+        with open(LOG, "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass
+
+
+def outputs(wait=10.0):
+    """Enabled outputs from wlr-randr, waiting a little for the compositor at login."""
+    deadline = time.time() + wait
+    while True:
+        try:
+            run = subprocess.run(["wlr-randr", "--json"], capture_output=True, text=True, timeout=5)
+            heads = [h for h in json.loads(run.stdout or "[]") if h.get("enabled") and h.get("modes")]
+        except (OSError, ValueError, subprocess.SubprocessError):
+            heads = []
+        if heads or time.time() >= deadline:
+            return heads
+        time.sleep(0.5)
+
+
+def label(mode):
+    return "%dx%d@%.3f" % (mode["width"], mode["height"], mode["refresh"])
+
+
+def main():
+    dry = "--dry-run" in sys.argv
+    heads = outputs()
+    if not heads:
+        log("no enabled outputs found")
+        return 1
+    for head in heads:
+        name = head["name"]
+        target = pick(head["modes"])
+        current = next((m for m in head["modes"] if m.get("current")), None)
+        if target is None:
+            log("%s: no 60 Hz mode, left at %s" % (name, label(current) if current else "?"))
+            continue
+        if current and label(current) == label(target):
+            log("%s: already %s" % (name, label(target)))
+            continue
+        log("%s: %s -> %s%s" % (name, label(current) if current else "?", label(target), " (dry run)" if dry else ""))
+        if not dry:
+            subprocess.run(["wlr-randr", "--output", name, "--mode", label(target)], check=False)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

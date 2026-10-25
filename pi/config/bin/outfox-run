@@ -1,0 +1,31 @@
+#!/bin/bash
+# Runs OutFox and opens it again 10 s after it closes abruptly (crash).
+# Not restarted: a normal exit (code 0, e.g. Quit Game), a stop with
+# outfox-stop (OutFox exits with 139 even on SIGTERM, so a plain pkill looks
+# like a crash), or when another OutFox is already running by then (someone
+# started it by hand, e.g. while debugging). After 5 crashes in 5 minutes it
+# gives up, to avoid a crash loop. Log: ~/.cache/outfox-run.log
+OUTFOX="${OUTFOX:-$(ls -d "$HOME"/ProjectOutFox/OutFox-*/OutFox 2>/dev/null | head -1)}"
+LOG="$HOME/.cache/outfox-run.log"
+DELAY=10
+STOP="$HOME/.cache/outfox-run.stop"
+mkdir -p "$(dirname "$LOG")"
+log() { echo "$(date '+%F %T') $*" >> "$LOG"; }
+
+crashes=()
+rm -f "$STOP"
+while true; do
+    log "starting OutFox"
+    cd "$(dirname "$OUTFOX")" && "$OUTFOX" >/dev/null 2>&1
+    code=$?
+    if [ $code -eq 0 ]; then log "normal exit"; break; fi
+    if [ -f "$STOP" ]; then rm -f "$STOP"; log "stopped with outfox-stop (code $code)"; break; fi
+    now=$(date +%s)
+    recent=()
+    for t in "${crashes[@]}"; do [ $((now - t)) -lt 300 ] && recent+=("$t"); done
+    crashes=("${recent[@]}" "$now")
+    log "crashed (code $code), restarting in ${DELAY}s (${#crashes[@]} in the last 5 min)"
+    if [ ${#crashes[@]} -ge 5 ]; then log "too many crashes, giving up"; break; fi
+    sleep $DELAY
+    if pgrep -x OutFox >/dev/null; then log "OutFox already running, not restarting"; break; fi
+done

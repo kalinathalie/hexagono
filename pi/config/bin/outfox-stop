@@ -1,0 +1,6 @@
+#!/bin/bash
+# Stops OutFox without outfox-run opening it again; forces it after 5 s if it hangs.
+touch "$HOME/.cache/outfox-run.stop"
+pkill -x OutFox
+for i in 1 2 3 4 5; do pgrep -x OutFox >/dev/null || exit 0; sleep 1; done
+pkill -9 -x OutFox

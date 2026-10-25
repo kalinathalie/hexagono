@@ -42,7 +42,7 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 | ![Janela de comandos](.github/readme/command-window.jpg) | ![Gameplay](.github/readme/gameplay.jpg) |
 | Janela de comandos: Auto Velocity | Gameplay com dois jogadores: o receptor do painel pisado brilha |
 
-As capturas usam a arte opcional descrita abaixo, que não vem no repositório.
+As capturas mostram o tema com as suas artes, que o `pi/assets.sh` baixa e gera (veja [Artes do tema](#artes-do-tema)).
 
 ## Requisitos
 
@@ -51,26 +51,24 @@ As capturas usam a arte opcional descrita abaixo, que não vem no repositório.
 
 ## Instalação
 
-Clone o repositório dentro da pasta [Themes](https://outfox.wiki/user-guide/config/folders/#themes) do OutFox, com o nome `Infinitesimal`:
+**Num Raspberry Pi 5**, o [kit do Raspberry Pi](pi/README.pt-BR.md) monta tudo a partir de um Raspberry Pi OS novo: OutFox, este tema com todas as suas artes, 60 Hz em qualquer tela, o jogo abrindo no login, as preferências e o mapeamento do tapete.
+
+**Em outro computador**, clone o repositório dentro da pasta [Themes](https://outfox.wiki/user-guide/config/folders/#themes) do OutFox com o nome `Infinitesimal`, escolha o tema nas opções de aparência do OutFox e gere as artes com `bash pi/assets.sh` (feito para Linux; precisa de Python 3 com Pillow e numpy, ffmpeg e node, e instala as noteskins em `~/.project-outfox/NoteSkins`, ou em `$NOTESKINS`):
 
 ```bash
 git clone https://github.com/kalinathalie/hexagono.git Infinitesimal
 ```
 
-Depois escolha o tema nas opções de aparência do OutFox.
+## Artes do tema
 
-## Arte opcional
-
-A arte do Pump It Up e do XSanity pertence aos seus donos e **não está neste repositório**. O tema procura essas pastas localmente e, quando não encontra, usa os próprios gráficos ou texto:
+A arte do Pump It Up e do XSanity pertence aos seus donos, então os arquivos **não estão neste repositório**: o `pi/assets.sh` baixa cada um da sua origem (phyrebird, YouTube, xsanity.net) e gera o resto com as ferramentas abaixo, nestas pastas ignoradas pelo git. Quando uma falta, o tema usa os próprios gráficos ou texto:
 
 | Pasta | Conteúdo | Sem ela |
 |---|---|---|
 | `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos, logo e vídeo de abertura do Phoenix 2 | gráficos do XSanity ou do próprio tema; sem o vídeo, a tela inicial mostra o logo |
-| `Graphics/XSanity/` | bolinhas, rótulos de nota, faixa do título, corações e cartões de nível, tirados de uma instalação do XSanity | gráficos do próprio tema |
+| `Graphics/XSanity/` | bolinhas, rótulos de nota, faixa do título, corações e cartões de nível do XSanity | gráficos do próprio tema |
 | `Graphics/XSCommandWindow/` | a janela de comandos no estilo do XSanity | sem nenhuma das duas janelas, o código de painéis abre a lista de opções do OutFox |
 | `Thumbs/` | miniaturas de 400x300 da roda | banners do cache do OutFox |
-
-Todas essas pastas estão no `.gitignore`.
 
 ## Ferramentas
 
@@ -80,7 +78,8 @@ Todas essas pastas estão no `.gitignore`.
   python3 tools/make_thumbs.py
   ```
 
-- `tools/make_phoenix_cards.py`: gera, a partir da arte local do Phoenix, os cartões de Single Lv. 24 a 26, de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
+- `tools/make_phoenix_cards.py`: gera, a partir dos cartões do Phoenix baixados, os cartões de Single Lv. 24 a 26, de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
+- `tools/make_phoenix_logo.py`: recorta o logo do Phoenix 2 do fundo branco para a tela inicial.
 - `tools/make_phoenix_labels.py`: redesenha em 4x, com a fonte do tema, os nomes das categorias da command window (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...), para ficarem nítidos quando ampliados, e acrescenta JUDGE TIMING.
 
 ## Herdado do Infinitesimal

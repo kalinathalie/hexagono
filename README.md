@@ -42,7 +42,7 @@ It was made to run on a Raspberry Pi 5 with a USB pad, locked at 60 FPS.
 | ![Command window](.github/readme/command-window.jpg) | ![Gameplay](.github/readme/gameplay.jpg) |
 | Command window: Auto Velocity | Two-player gameplay: the receptor of the pressed panel glows |
 
-The screenshots use the optional art described below, which is not part of this repository.
+The screenshots show the theme with its art, which `pi/assets.sh` downloads and builds (see [Theme art](#theme-art)).
 
 ## Requirements
 
@@ -51,26 +51,24 @@ The screenshots use the optional art described below, which is not part of this 
 
 ## Installation
 
-Clone the repository into OutFox's [Themes](https://outfox.wiki/user-guide/config/folders/#themes) folder, naming it `Infinitesimal`:
+**On a Raspberry Pi 5**, the [Raspberry Pi kit](pi/README.md) sets up everything from a fresh Raspberry Pi OS: OutFox, this theme with all of its art, 60 Hz on any screen, the game opening at login, the preferences and the pad mapping.
+
+**Elsewhere**, clone the repository into OutFox's [Themes](https://outfox.wiki/user-guide/config/folders/#themes) folder, naming it `Infinitesimal`, pick the theme in OutFox's appearance options and build the art with `bash pi/assets.sh` (written for Linux; it needs Python 3 with Pillow and numpy, ffmpeg and node, and installs the noteskins in `~/.project-outfox/NoteSkins`, or in `$NOTESKINS`):
 
 ```bash
 git clone https://github.com/kalinathalie/hexagono.git Infinitesimal
 ```
 
-Then pick the theme in OutFox's appearance options.
+## Theme art
 
-## Optional art
-
-The Pump It Up and XSanity art belongs to its owners and **is not in this repository**. The theme looks for these folders locally and, when they are missing, falls back to its own graphics or text:
+The Pump It Up and XSanity art belongs to its owners, so the files are **not in this repository**: `pi/assets.sh` downloads them from their sources (phyrebird, YouTube, xsanity.net) and builds the rest with the tools below, into these git-ignored folders. When one is missing, the theme falls back to its own graphics or text:
 
 | Folder | Contents | Without it |
 |---|---|---|
-| `Graphics/Phoenix/` | channel cards, difficulty balls, big ball, MY BEST panel, READY, cursors, grade icons, arrows, command window, and the Phoenix 2 logo and intro video | XSanity or theme graphics; without the video, the title screen shows the logo |
-| `Graphics/XSanity/` | difficulty balls, grade labels, title band, hearts and level cards, taken from an XSanity install | theme graphics |
+| `Graphics/Phoenix/` | channel cards, difficulty balls, big ball, MY BEST panel, READY, cursors, grade icons, arrows, command window, and the Phoenix 2 logo and title video | XSanity or theme graphics; without the video, the title screen shows the logo |
+| `Graphics/XSanity/` | difficulty balls, grade labels, title band, hearts and level cards from XSanity | theme graphics |
 | `Graphics/XSCommandWindow/` | the XSanity-style command window | with neither window, the panel code opens OutFox's options list |
 | `Thumbs/` | 400x300 wheel thumbnails | banners from OutFox's image cache |
-
-All of these folders are in `.gitignore`.
 
 ## Tools
 
@@ -80,7 +78,8 @@ All of these folders are in `.gitignore`.
   python3 tools/make_thumbs.py
   ```
 
-- `tools/make_phoenix_cards.py`: builds, from the local Phoenix art, the cards for Single Lv. 24 to 26, Double Lv. 1 to 4 and 26 to 28, Half-Double and the categories.
+- `tools/make_phoenix_cards.py`: builds, from the downloaded Phoenix cards, the cards for Single Lv. 24 to 26, Double Lv. 1 to 4 and 26 to 28, Half-Double and the categories.
+- `tools/make_phoenix_logo.py`: cuts the Phoenix 2 logo out of its white background for the title screen.
 - `tools/make_phoenix_labels.py`: redraws the command window category labels (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...) at 4x with the theme font, so they stay sharp when enlarged, and adds JUDGE TIMING.
 
 ## Inherited from Infinitesimal
