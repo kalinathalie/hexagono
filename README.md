@@ -51,7 +51,7 @@ The screenshots show the theme with its art, which `pi/assets.sh` downloads and 
 
 ## Installation
 
-**On a Raspberry Pi 5**, the [Raspberry Pi kit](pi/README.md) sets up everything from a fresh Raspberry Pi OS: OutFox, this theme with all of its art, 60 Hz on any screen, the game opening at login, the preferences and the pad mapping.
+**On a Raspberry Pi 5**, the [Raspberry Pi kit](pi/README.md) sets up everything from a fresh Raspberry Pi OS: OutFox, this theme with all of its art, 60 Hz on any screen, the game opening at login, the preferences and the pad mapping. Only the songs and the reference machine's extra noteskins are left out: see [what differs](pi/README.md#compared-with-the-reference-pi).
 
 **Elsewhere**, clone the repository into OutFox's [Themes](https://outfox.wiki/user-guide/config/folders/#themes) folder, naming it `Infinitesimal`, pick the theme in OutFox's appearance options and build the art with `bash pi/assets.sh` (written for Linux; it needs Python 3 with Pillow and numpy, ffmpeg and node, and installs the noteskins in `~/.project-outfox/NoteSkins`, or in `$NOTESKINS`):
 
