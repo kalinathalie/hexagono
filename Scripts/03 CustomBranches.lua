@@ -17,6 +17,16 @@ Branch.TitleMenu = function()
     end
 end
 
+-- A failed song (every player broke the stage) skips the score screen and goes
+-- on as the score screen would (profile save, then the song select in event mode).
+local FallbackAfterGameplay = Branch.AfterGameplay
+Branch.AfterGameplay = function()
+    if not GAMESTATE:IsCourseMode() and STATSMAN:GetCurStageStats():AllFailed() then
+        return Branch.AfterEvaluation()
+    end
+    return FallbackAfterGameplay()
+end
+
 function SelectMusicOrCourse()
     UseBasicMode = LoadModule("Config.Load.lua")("BasicMode","Save/OutFoxPrefs.ini") or false
     

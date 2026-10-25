@@ -58,7 +58,7 @@ for c = 1, NumColumns do
         Name="Glow" .. c,
         Texture=THEME:GetPathG("", "Gameplay/ReceptorGlow"),
         InitCommand=function(self) self:x(Info.XOffset):zoomto(84, 84):blend("BlendMode_Add"):diffusealpha(0) end,
-        PressCommand=function(self) self:stoptweening():diffusealpha(0.55):linear(0.12):diffusealpha(0.3) end,
+        PressCommand=function(self) self:stoptweening():diffusealpha(0.7):linear(0.12):diffusealpha(0.42) end,
         LiftCommand=function(self) self:stoptweening():linear(0.12):diffusealpha(0) end,
     }
 end
