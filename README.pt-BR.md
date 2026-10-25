@@ -19,7 +19,7 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 - **Roda de grupos com cartões do Phoenix:** versões do jogo, gêneros (Original, K-Pop, World Music, J-Music, Xross, pelo gênero de cada música; as versões Short Cut, Remix e Full Song ficam nos grupos próprios, como no arcade), níveis de Single (do 1 ao 26), Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
 - **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Na escolha da categoria, o nome dela aparece entre o da anterior e o da próxima. Tem Speed, Auto Velocity, Display, Note Skin (com prévia dos skins em volta do cursor), Judge (EJ, NJ, HJ, VJ; volta para NJ a cada jogo novo) e Judge Timing (adianta ou atrasa o julgamento de cada jogador em até 100 ms).
 - **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
-- **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, sem tela de notas depois; brilho no receptor do painel pisado e explosão em todo acerto, com qualquer noteskin; notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
+- **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, com a animação "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" do Phoenix 2 e sem tela de notas depois; brilho no receptor do painel pisado e explosão em todo acerto, com qualquer noteskin; notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
 - **Listas por número de jogadores:** com dois jogadores somem Double, Half-Double e Co-op; os charts de co-op ficam só no grupo Co-op.
 - **Setas BACK e SHIFT nos cantos**, vindas do InfiniteWorlds.
 - **Miniaturas nítidas na roda**, geradas a partir do fundo de cada música.
@@ -65,7 +65,7 @@ A arte do Pump It Up e do XSanity pertence aos seus donos, então os arquivos **
 
 | Pasta | Conteúdo | Sem ela |
 |---|---|---|
-| `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos, logo e vídeo de abertura do Phoenix 2 | gráficos do XSanity ou do próprio tema; sem o vídeo, a tela inicial mostra o logo |
+| `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos, logo e vídeo de abertura do Phoenix 2 e a animação de estouro | gráficos do XSanity ou do próprio tema; sem o vídeo, a tela inicial mostra o logo |
 | `Graphics/XSanity/` | bolinhas, rótulos de nota, faixa do título, corações e cartões de nível do XSanity | gráficos do próprio tema |
 | `Graphics/XSCommandWindow/` | a janela de comandos no estilo do XSanity | sem nenhuma das duas janelas, o código de painéis abre a lista de opções do OutFox |
 | `Thumbs/` | miniaturas de 400x300 da roda | banners do cache do OutFox |

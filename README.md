@@ -19,7 +19,7 @@ It was made to run on a Raspberry Pi 5 with a USB pad, locked at 60 FPS.
 - **Group wheel with Phoenix cards:** game versions, genres (Original, K-Pop, World Music, J-Music, Xross, from each song's genre; Short Cut, Remix and Full Song versions stay in their own groups, as on the arcade), Single (1 to 26), Double (1 to 28) and Half-Double levels, specials and a categories screen, each with its own card.
 - **Graphical command window:** opens with the panel code (down-left, down-right, three times), also while choosing the difficulty, and is driven only by the pad. While choosing a category, its name sits between the previous and next ones. It has Speed, Auto Velocity, Display, Note Skin (the skins around the cursor are previewed), Judge (EJ, NJ, HJ, VJ; back to NJ on every new game) and Judge Timing (moves each player's judgment up to 100 ms later or earlier).
 - **PIU-style Auto Velocity:** the speed follows the BPM, so gimmicks keep working. Constant speed is still available as an option.
-- **Arcade gameplay:** a song is lost only after 40 misses in a row, with no score screen afterwards. Emptying the life bar does not end the song but gives a broken (grey) grade. The receptor of the pressed panel glows and every hit shows an explosion, with any noteskin. Notes that a chart marks as hidden (gimmicks) stay invisible.
+- **Arcade gameplay:** a song is lost only after 40 misses in a row, with Phoenix 2's "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation and no score screen afterwards. Emptying the life bar does not end the song but gives a broken (grey) grade. The receptor of the pressed panel glows and every hit shows an explosion, with any noteskin. Notes that a chart marks as hidden (gimmicks) stay invisible.
 - **Lists by number of players:** with two players, Double, Half-Double and Co-op are hidden; co-op charts only appear in the Co-op group.
 - **BACK and SHIFT arrows in the corners**, from InfiniteWorlds.
 - **Sharp wheel thumbnails**, made from each song's background.
@@ -65,7 +65,7 @@ The Pump It Up and XSanity art belongs to its owners, so the files are **not in 
 
 | Folder | Contents | Without it |
 |---|---|---|
-| `Graphics/Phoenix/` | channel cards, difficulty balls, big ball, MY BEST panel, READY, cursors, grade icons, arrows, command window, and the Phoenix 2 logo and title video | XSanity or theme graphics; without the video, the title screen shows the logo |
+| `Graphics/Phoenix/` | channel cards, difficulty balls, big ball, MY BEST panel, READY, cursors, grade icons, arrows, command window, the Phoenix 2 logo and title video, and the stage break animation | XSanity or theme graphics; without the video, the title screen shows the logo |
 | `Graphics/XSanity/` | difficulty balls, grade labels, title band, hearts and level cards from XSanity | theme graphics |
 | `Graphics/XSCommandWindow/` | the XSanity-style command window | with neither window, the panel code opens OutFox's options list |
 | `Thumbs/` | 400x300 wheel thumbnails | banners from OutFox's image cache |

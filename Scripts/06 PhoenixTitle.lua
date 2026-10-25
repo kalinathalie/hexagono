@@ -31,3 +31,22 @@ function PhoenixTitleVideo()
 end
 
 PhoenixTitleSeen = PhoenixTitleSeen or false
+
+-- Phoenix 2 stage break animation ("HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?"),
+-- local art made by pi/assets/stagebreak.py: Graphics/Phoenix/StageBreak/hey.mp4 +
+-- hey.ogg, and info.ini with Length=<s>.
+-- PhoenixStageBreakVideo() -> { Video, Audio, Length } or nil
+local CachedBreak
+
+function PhoenixStageBreakVideo()
+    if CachedBreak ~= nil then return CachedBreak or nil end
+    CachedBreak = false
+    local Dir = "/Themes/" .. THEME:GetCurThemeName() .. "/Graphics/Phoenix/StageBreak/"
+    for _, File in ipairs({ "hey.mp4", "hey.ogg", "info.ini" }) do
+        if not FILEMAN:DoesFileExist(Dir .. File) then return nil end
+    end
+    local Length = tonumber((lua.ReadFile(Dir .. "info.ini") or ""):match("Length%s*=%s*([%d%.]+)"))
+    if not Length then return nil end
+    CachedBreak = { Video = Dir .. "hey.mp4", Audio = Dir .. "hey.ogg", Length = Length }
+    return CachedBreak
+end

@@ -64,6 +64,7 @@ The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the 
 | `Graphics/Phoenix` | difficulty balls, MY BEST, READY, cursors and arrows from phyrebird; `RecordGrades` too |
 | `Graphics/Phoenix/Logo` | the Phoenix 2 logo, cut out by `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | the Phoenix 2 title video from YouTube, cut where its attract loop repeats and converted to full-range color, by `assets/title.py` |
+| `Graphics/Phoenix/StageBreak` | the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation shown when a player breaks the stage, from YouTube, by `assets/stagebreak.py` |
 | `Graphics/XSanity`, `Graphics/XSCommandWindow` | from XSanity 0.96.0, downloaded from [xsanity.net](https://xsanity.net/downloads.php) (`--xsanity PATH` uses an install or zip you already have; later versions changed the art and ship fewer noteskins) |
 | `~/.project-outfox/NoteSkins/pump` | XSanity's Pump noteskins: the download has 11; the reference Pi has 61, kept in `noteskins-xsanity.zip` (back it up with the songs and pass it with `--noteskins PATH`); XSanity's `default` skin becomes `xs_default` |
 | `Thumbs` | made from the songs' banners and backgrounds by `tools/make_thumbs.py`, when songs are installed |

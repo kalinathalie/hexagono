@@ -43,12 +43,12 @@ def run(cmd):
     subprocess.run(cmd, check=True)
 
 
-def download(work, ytdlp):
+def download(work, ytdlp, url=URL):
     target = os.path.join(work, "source.mkv")
     if not os.path.exists(target):
         run(ytdlp + ["--no-playlist", "--js-runtimes", "node", "--retries", "10",
                      "-f", "bv*[height<=1080][fps>=50]+ba/bv*[height<=1080]+ba",
-                     "--merge-output-format", "mkv", "-o", os.path.join(work, "source.%(ext)s"), URL])
+                     "--merge-output-format", "mkv", "-o", os.path.join(work, "source.%(ext)s"), url])
     return target
 
 

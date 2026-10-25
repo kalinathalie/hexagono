@@ -1,3 +1,26 @@
+-- Stage break (40 misses in a row): the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND
+-- DANCE MAN?" animation when its local video exists (pi/assets/stagebreak.py), else the
+-- theme's own animation below. The video is loaded only when the stage breaks.
+local Video = PhoenixStageBreakVideo and PhoenixStageBreakVideo()
+if Video then
+    return Def.ActorFrame {
+        Def.Sprite {
+            OnCommand=function(self)
+                self:Load(Video.Video):Center():zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+                local Tex = self:GetTexture()
+                if Tex then Tex:loop(false) Tex:position(0) end
+                self:SetDecodeMovie(true)
+            end,
+        },
+        Def.Sound { File=Video.Audio, OnCommand=function(self) self:play() end },
+        -- fades to black over the last 0.3 s, which also sets how long the screen lasts
+        Def.Quad {
+            InitCommand=function(self) self:FullScreen():diffuse(0, 0, 0, 0) end,
+            OnCommand=function(self) self:sleep(Video.Length - 0.3):linear(0.3):diffusealpha(1) end,
+        },
+    }
+end
+
 local t = Def.ActorFrame{
 
     Def.Sprite {

@@ -5,7 +5,8 @@
 #   Graphics/Phoenix   from phyrebird (github.com/rayden-61/phyrebird): channel cards,
 #                      command window, difficulty balls, READY, grades; then the extra
 #                      cards and the sharp labels made by tools/, the Phoenix 2 logo and
-#                      the title video (YouTube), cut and converted (pi/assets/title.py)
+#                      the title video and the stage break animation (YouTube), cut and
+#                      converted (pi/assets/title.py, pi/assets/stagebreak.py)
 #   Graphics/XSanity, Graphics/XSCommandWindow and XSanity's Pump noteskins, from
 #                      XSanity 0.96.0 on xsanity.net (or an install or zip you already
 #                      have: --xsanity PATH); 0.97 changed the art
@@ -89,6 +90,16 @@ elif [ -f "$PX/Title/info.ini" ]; then
 else
     "$PY" "$HERE/assets/title.py" "$PX/Title" --work "$WORK/title" --yt-dlp "$VENV/bin/yt-dlp" \
         || { rm -f "$PX/Title/info.ini"; warn "the title video could not be built; the title screen shows the logo"; }
+fi
+
+say "Stage break animation"
+if [ "$VIDEO" = 0 ]; then
+    echo "skipped (--no-video): a broken stage shows the theme's own animation"
+elif [ -f "$PX/StageBreak/info.ini" ]; then
+    echo "already there"
+else
+    "$PY" "$HERE/assets/stagebreak.py" "$PX/StageBreak" --work "$WORK/stagebreak" --yt-dlp "$VENV/bin/yt-dlp" \
+        || { rm -f "$PX/StageBreak/info.ini"; warn "the stage break animation could not be built; a broken stage shows the theme's own animation"; }
 fi
 
 say "XSanity art and noteskins"
