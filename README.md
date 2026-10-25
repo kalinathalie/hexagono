@@ -10,6 +10,8 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 
 ## O que muda em relação ao Infinitesimal
 
+- **Tela inicial de fliperama:** sem menu. O centro do tapete entra o jogador e um segundo toque começa; o outro lado pode entrar antes. Com o vídeo do Phoenix 2 (arte local), a abertura toca uma vez e a espera fica em loop sem emenda. O código vermelho esquerdo, vermelho direito, azul esquerdo, azul direito, duas vezes, abre as opções.
+- **Criar perfil pelo tapete:** na seleção de perfil, CRIAR PERFIL abre um teclado na tela. Os azuis escolhem a tecla, o centro aperta e os vermelhos apagam.
 - **Seleção de músicas no layout do Phoenix:** faixa de preview com o BGA no centro e cópias espelhadas nas laterais, título com artista e BPM, roda de jaquetas 4:3 com setas amarelas na música selecionada e 13 bolinhas de dificuldade com a nota recorde de cada chart.
 - **Cronômetro no centro:** as barras de perfil do P1 e do P2 ficam dos lados do cronômetro, com nível, nome e vidas.
 - **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY.
@@ -56,7 +58,7 @@ A arte do Pump It Up e do XSanity pertence aos seus donos e **não está neste r
 
 | Pasta | Conteúdo | Sem ela |
 |---|---|---|
-| `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos e logo do Phoenix 2 | gráficos do XSanity ou do próprio tema |
+| `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos, logo e vídeo de abertura do Phoenix 2 | gráficos do XSanity ou do próprio tema; sem o vídeo, a tela inicial mostra o logo |
 | `Graphics/XSanity/` | bolinhas, rótulos de nota, faixa do título, corações e cartões de nível, tirados de uma instalação do XSanity | gráficos do próprio tema |
 | `Graphics/XSCommandWindow/` | a janela de comandos no estilo do XSanity | sem nenhuma das duas janelas, o código de painéis abre a lista de opções do OutFox |
 | `Thumbs/` | miniaturas de 400x300 da roda | banners do cache do OutFox |
