@@ -46,7 +46,7 @@ Both scripts can be run again at any time: they skip what is already in place, a
 | Autostart | `~/.config/labwc/autostart` starts display-watch and opens the game through `~/.local/bin/outfox-run`, which waits for a real screen (with the TV off the HDMI port reports a generic 1024x768 screen) and opens the game again 10 s after a crash; stop it with `~/.local/bin/outfox-stop` |
 | Mouse pointer | hidden while the game window is open (`~/.config/labwc/rc.xml`) |
 | OutFox preferences | pump mode, this theme, 1280x720 full screen with vsync, image cache and texture settings that keep the menus at 60 FPS (`config/outfox/Preferences.ini` lists each key) |
-| Theme options | `config/outfox/OutFoxPrefs.ini`: UCS, quest and hidden charts hidden, big difficulty ball, etc. |
+| Theme options | `config/outfox/OutFoxPrefs.ini`: UCS, quest and hidden charts hidden, big difficulty ball, a difficulty list that wraps around at both ends, etc. |
 | Pad mapping | `config/outfox/Keymaps.ini`: player 1 on joystick buttons 1 to 5 and the keys Q E S Z C, player 2 on buttons 6 to 10 and the numeric keypad. Another pad may need mapping again in OutFox's options |
 | Profile slots | 6 reserved local profiles that CREATE PROFILE on the profile screen renames (OutFox's Lua cannot create profiles) |
 | Theme art | runs `assets.sh` (skip with `--no-assets`) |
@@ -66,7 +66,7 @@ The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the 
 | `Graphics/Phoenix/Title` | the Phoenix 2 title video from YouTube, cut where its attract loop repeats and converted to full-range color, by `assets/title.py` |
 | `Graphics/Phoenix/StageBreak` | the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation shown when a player breaks the stage, from YouTube, by `assets/stagebreak.py` |
 | `Graphics/XSanity`, `Graphics/XSCommandWindow` | from XSanity 0.96.0, downloaded from [xsanity.net](https://xsanity.net/downloads.php) (`--xsanity PATH` uses an install or zip you already have; later versions changed the art and ship fewer noteskins) |
-| `~/.project-outfox/NoteSkins/pump` | XSanity's Pump noteskins: the download has 11; the reference Pi has 61, kept in `noteskins-xsanity.zip` (back it up with the songs and pass it with `--noteskins PATH`); XSanity's `default` skin becomes `xs_default` |
+| `~/.project-outfox/NoteSkins/pump` | XSanity's Pump noteskins: the download has 11; the reference Pi has 61, kept in `noteskins-xsanity.zip` (back it up with the songs and pass it with `--noteskins PATH`); XSanity's `default` skin becomes `xs_default`; explosions that only played during a combo also play on the first note and after a miss |
 | `Graphics/Phoenix/Avatars` | the 165 Phoenix player icons from piugame.com (`PIU 001.png` ..), offered under EDIT PHOTO in profile select, by `assets/avatars.py` |
 | `Thumbs` | made from the songs' banners and backgrounds by `tools/make_thumbs.py`, when songs are installed |
 
