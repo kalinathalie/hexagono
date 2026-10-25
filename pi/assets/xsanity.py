@@ -87,6 +87,41 @@ def art(xs, theme, missing):
     print("XSanity art: %d level cards, %d graphics, %d command window files" % (cards, len(GRAPHICS), files))
 
 
+BRIGHT_LINE = re.compile(r"(?m)^([ \t]*)(BrightCommand[ \t]*=)")
+
+
+def dim_like_bright(text):
+    """Explosion actors that only react to "Bright" also react to "Dim".
+
+    The engine plays "Bright" on a hit when the combo is above
+    BrightGhostComboThreshold and "Dim" otherwise; it compares the combo before the
+    hit, so the first note and the note after a miss are always "Dim". Most of these
+    skins draw their explosion only on "Bright", so those hits had none. Each actor
+    with an active BrightCommand gets a DimCommand that plays it; skins that handle
+    "Dim" themselves are left alone."""
+    if re.search(r"(?m)^[ \t]*DimCommand[ \t]*=", text):
+        return text
+    newline = "\r\n" if "\r\n" in text else "\n"
+    return BRIGHT_LINE.sub(lambda m: m.group(1) + 'DimCommand=cmd(playcommand,"Bright");' + newline
+                           + m.group(1) + m.group(2), text)
+
+
+def fix_explosions(pump):
+    """Applies dim_like_bright to every explosion actor of the pump noteskins."""
+    changed = 0
+    for d, _, fs in os.walk(pump):
+        for f in fs:
+            if "explosion" not in f.lower() or not f.lower().endswith(".lua"):
+                continue
+            p = os.path.join(d, f)
+            text = open(p, encoding="utf-8", errors="surrogateescape", newline="").read()
+            new = dim_like_bright(text)
+            if new != text:
+                open(p, "w", encoding="utf-8", errors="surrogateescape", newline="").write(new)
+                changed += 1
+    return changed
+
+
 def noteskins(src, target):
     """Installs the skin folders of src (a pump noteskins folder) in target/pump."""
     if not src or not os.path.isdir(src):
@@ -113,7 +148,7 @@ def noteskins(src, target):
             new = new.replace("NoteSkins/pump/default/", "NoteSkins/pump/xs_default/")
             if new != text:
                 open(p, "w", encoding="utf-8", errors="surrogateescape", newline="").write(new)
-    print("noteskins:", count)
+    print("noteskins: %d, explosions shown on every hit: %d files" % (count, fix_explosions(dst)))
 
 
 def extract(zip_path, dest, keep):
