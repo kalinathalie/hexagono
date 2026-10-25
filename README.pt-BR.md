@@ -51,24 +51,61 @@ As capturas mostram o tema com as suas artes, que o `pi/assets.sh` baixa e gera 
 
 ## Instalação
 
-**Num Raspberry Pi 5**, o [kit do Raspberry Pi](pi/README.pt-BR.md) monta tudo a partir de um Raspberry Pi OS novo: OutFox, este tema com todas as suas artes, 60 Hz em qualquer tela, o jogo abrindo no login, as preferências e o mapeamento do tapete. Só ficam de fora as músicas e as noteskins extras da máquina de referência: veja [o que muda](pi/README.pt-BR.md#comparado-com-o-pi-de-referência).
+### Num Raspberry Pi 5
 
-**Em outro computador**, clone o repositório dentro da pasta [Themes](https://outfox.wiki/user-guide/config/folders/#themes) do OutFox com o nome `Infinitesimal`, escolha o tema nas opções de aparência do OutFox e gere as artes com `bash pi/assets.sh` (feito para Linux; precisa de Python 3 com Pillow e numpy, ffmpeg e node, e instala as noteskins em `~/.project-outfox/NoteSkins`, ou em `$NOTESKINS`):
+Quatro passos transformam um Raspberry Pi 5 na máquina de referência. Você precisa do Pi (o de referência tem 8 GB), de um cartão microSD com espaço para as músicas (o de referência usa 128 GB; as músicas ocupam 47 GB), de internet, de uma tela e de um tapete (um teclado também serve).
+
+1. **Grave o sistema.** No [Raspberry Pi Imager](https://www.raspberrypi.com/software/), escolha *Raspberry Pi 5*, depois *Raspberry Pi OS (64-bit)*, a versão com área de trabalho, e depois o seu cartão. Nas configurações do Imager, defina um nome de usuário, uma senha e o Wi-Fi. Grave o cartão, coloque no Pi e ligue.
+
+2. **Instale tudo** com um comando. No Pi, abra o Terminal (o ícone fica na barra de cima), ou conecte por SSH, e cole:
+
+   ```bash
+   git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal && bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
+   ```
+
+   Leva cerca de 20 minutos e instala o Project OutFox, este tema com todas as suas artes (vídeo de abertura, cartões, noteskins, ícones de jogador...), 60 Hz em qualquer tela, o jogo abrindo no login, as preferências e o mapeamento do tapete. Ele pede a sua senha e, no meio, mostra a licença das fontes da Microsoft: aceite (escolha `<Ok>` e depois `<Yes>`, com as setas e Enter) para os cartões usarem a mesma fonte da máquina de referência.
+
+   No fim aparece *Done*. Se aparecerem avisos (warnings) antes dele, algo não pôde ser baixado: rode de novo mais tarde só a segunda metade, `bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh`, e ele busca o que faltou.
+
+3. **Coloque as músicas.** Copie as pastas de músicas para `~/.project-outfox/Songs`, uma pasta por versão, com nomes como `17 - PHOENIX 2` (veja [Músicas](pi/README.pt-BR.md#músicas)). Depois gere as miniaturas da roda:
+
+   ```bash
+   cd ~/.project-outfox/Themes/Infinitesimal && python3 tools/make_thumbs.py
+   ```
+
+4. **Reinicie:**
+
+   ```bash
+   sudo reboot
+   ```
+
+   O Pi entra sozinho e o jogo abre na tela inicial, em 60 Hz.
+
+Pronto: o Pi fica como o de referência, menos o que é pessoal (músicas, perfis, notas) e as noteskins extras: o de referência tem 61, de uma coleção particular; um Pi novo recebe as 11 do XSanity e as 6 do OutFox ([como instalar um conjunto seu](pi/README.pt-BR.md#passos)). Se o tapete não responder, mapeie em INPUT OPTIONS: na tela inicial, pise vermelho esquerdo, vermelho direito, azul esquerdo, azul direito, duas vezes. Cada passo em detalhe: [kit do Raspberry Pi](pi/README.pt-BR.md).
+
+### Em outro computador
+
+Com o [Project OutFox](https://projectoutfox.com/downloads) instalado, clone o tema dentro da pasta [Themes](https://outfox.wiki/user-guide/config/folders/#themes) dele com o nome `Infinitesimal`, gere as artes (veja abaixo) e escolha o tema nas opções do OutFox. No Linux:
 
 ```bash
-git clone https://github.com/kalinathalie/hexagono.git Infinitesimal
+git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal
 ```
 
 ## Artes do tema
 
-A arte do Pump It Up e do XSanity pertence aos seus donos, então os arquivos **não estão neste repositório**: o `pi/assets.sh` baixa cada um da sua origem (phyrebird, YouTube, xsanity.net) e gera o resto com as ferramentas abaixo, nestas pastas ignoradas pelo git. Quando uma falta, o tema usa os próprios gráficos ou texto:
+A arte do Pump It Up, do phyrebird e do XSanity **não está neste repositório**. Um comando baixa cada uma da sua origem e gera o resto nas pastas do tema ignoradas pelo git. No Raspberry Pi, o `setup.sh` já roda ele; à mão (no Linux, com Python 3, Pillow, numpy, ffmpeg e node):
 
-| Pasta | Conteúdo | Sem ela |
-|---|---|---|
-| `Graphics/Phoenix/` | cartões de canal, bolinhas, bola grande, painel MY BEST, READY, cursores, ícones de nota, setas, janela de comandos, logo e vídeo de abertura do Phoenix 2, a animação de estouro e os ícones de jogador | gráficos do XSanity ou do próprio tema; sem o vídeo, a tela inicial mostra o logo |
-| `Graphics/XSanity/` | bolinhas, rótulos de nota, faixa do título, corações e cartões de nível do XSanity | gráficos do próprio tema |
-| `Graphics/XSCommandWindow/` | a janela de comandos no estilo do XSanity | sem nenhuma das duas janelas, o código de painéis abre a lista de opções do OutFox |
-| `Thumbs/` | miniaturas de 400x300 da roda | banners do cache do OutFox |
+```bash
+bash ~/.project-outfox/Themes/Infinitesimal/pi/assets.sh
+```
+
+A maior parte do tempo vai para os downloads e o vídeo de abertura. Ele pula o que já existe e termina com a lista do que não conseguiu, então rodar de novo completa o trabalho. O que ele cria:
+
+- `Graphics/Phoenix/`: cartões de canal do Phoenix, bolinhas de dificuldade, MY BEST, READY, ícones de nota, janela de comandos, logo do Phoenix 2, vídeo de abertura, animação de estouro e os ícones de jogador.
+- `Graphics/XSanity/` e `Graphics/XSCommandWindow/`: as artes do XSanity, e as noteskins de Pump dele em `~/.project-outfox/NoteSkins`.
+- `Thumbs/`: as miniaturas da roda, depois que as músicas estão instaladas.
+
+O que faltar é trocado pelos gráficos do próprio tema. Origens e opções: [README do kit](pi/README.pt-BR.md#as-artes-do-tema-assetssh).
 
 ## Ferramentas
 

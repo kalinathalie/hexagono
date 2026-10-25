@@ -51,24 +51,61 @@ The screenshots show the theme with its art, which `pi/assets.sh` downloads and 
 
 ## Installation
 
-**On a Raspberry Pi 5**, the [Raspberry Pi kit](pi/README.md) sets up everything from a fresh Raspberry Pi OS: OutFox, this theme with all of its art, 60 Hz on any screen, the game opening at login, the preferences and the pad mapping. Only the songs and the reference machine's extra noteskins are left out: see [what differs](pi/README.md#compared-with-the-reference-pi).
+### On a Raspberry Pi 5
 
-**Elsewhere**, clone the repository into OutFox's [Themes](https://outfox.wiki/user-guide/config/folders/#themes) folder, naming it `Infinitesimal`, pick the theme in OutFox's appearance options and build the art with `bash pi/assets.sh` (written for Linux; it needs Python 3 with Pillow and numpy, ffmpeg and node, and installs the noteskins in `~/.project-outfox/NoteSkins`, or in `$NOTESKINS`):
+Four steps turn a Raspberry Pi 5 into the reference machine. You need the Pi (the reference has 8 GB), a microSD card with room for the songs (the reference uses 128 GB; its songs take 47 GB), internet, a screen and a pad (a keyboard works too).
+
+1. **Write the system.** In [Raspberry Pi Imager](https://www.raspberrypi.com/software/) choose *Raspberry Pi 5*, then *Raspberry Pi OS (64-bit)*, the version with the desktop, then your card. In the Imager's settings, set a user name, a password and the Wi-Fi. Write the card, put it in the Pi and turn it on.
+
+2. **Install everything** with one command. On the Pi, open the Terminal (its icon is on the top bar), or connect over SSH, and paste:
+
+   ```bash
+   git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal && bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
+   ```
+
+   It takes about 20 minutes and installs Project OutFox, this theme with all of its art (title video, cards, noteskins, player icons...), 60 Hz on any screen, the game opening at login, the preferences and the pad mapping. It asks for your password, and midway shows the license of Microsoft's fonts: accept it (choose `<Ok>`, then `<Yes>`, with the arrow keys and Enter) so the cards use the same font as the reference machine.
+
+   It ends with *Done*. If it lists warnings before that, something could not be downloaded: run only the second half again later, `bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh`, and it fetches what is missing.
+
+3. **Add the songs.** Copy the song folders to `~/.project-outfox/Songs`, one folder per version, named like `17 - PHOENIX 2` (see [Songs](pi/README.md#songs)). Then build the wheel thumbnails:
+
+   ```bash
+   cd ~/.project-outfox/Themes/Infinitesimal && python3 tools/make_thumbs.py
+   ```
+
+4. **Restart:**
+
+   ```bash
+   sudo reboot
+   ```
+
+   The Pi logs in by itself and the game opens on the title screen, at 60 Hz.
+
+The Pi is now like the reference one, except for what is personal (songs, profiles, scores) and its extra noteskins: the reference has 61 from a private collection, a new Pi gets XSanity's 11 and OutFox's 6 ([adding a set of your own](pi/README.md#steps)). If your pad does not respond, map it under INPUT OPTIONS: on the title screen, press red left, red right, blue left, blue right, twice. Every step in detail: [Raspberry Pi kit](pi/README.md).
+
+### On another computer
+
+With [Project OutFox](https://projectoutfox.com/downloads) installed, clone the theme into its [Themes](https://outfox.wiki/user-guide/config/folders/#themes) folder with the name `Infinitesimal`, build the art (see below) and pick the theme in OutFox's options. On Linux:
 
 ```bash
-git clone https://github.com/kalinathalie/hexagono.git Infinitesimal
+git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal
 ```
 
 ## Theme art
 
-The Pump It Up and XSanity art belongs to its owners, so the files are **not in this repository**: `pi/assets.sh` downloads them from their sources (phyrebird, YouTube, xsanity.net) and builds the rest with the tools below, into these git-ignored folders. When one is missing, the theme falls back to its own graphics or text:
+The art of Pump It Up, phyrebird and XSanity is **not in this repository**. One command downloads it from its sources and builds the rest into the theme's git-ignored folders. On the Raspberry Pi, `setup.sh` already runs it; by hand (on Linux, with Python 3, Pillow, numpy, ffmpeg and node):
 
-| Folder | Contents | Without it |
-|---|---|---|
-| `Graphics/Phoenix/` | channel cards, difficulty balls, big ball, MY BEST panel, READY, cursors, grade icons, arrows, command window, the Phoenix 2 logo and title video, the stage break animation and the player icons | XSanity or theme graphics; without the video, the title screen shows the logo |
-| `Graphics/XSanity/` | difficulty balls, grade labels, title band, hearts and level cards from XSanity | theme graphics |
-| `Graphics/XSCommandWindow/` | the XSanity-style command window | with neither window, the panel code opens OutFox's options list |
-| `Thumbs/` | 400x300 wheel thumbnails | banners from OutFox's image cache |
+```bash
+bash ~/.project-outfox/Themes/Infinitesimal/pi/assets.sh
+```
+
+Most of its time goes to the downloads and the title video. It skips what is already there and ends with a list of anything it could not get, so running it again finishes the job. What it creates:
+
+- `Graphics/Phoenix/`: Phoenix channel cards, difficulty balls, MY BEST, READY, grade icons, command window, Phoenix 2 logo, title video, stage break animation and the player icons.
+- `Graphics/XSanity/` and `Graphics/XSCommandWindow/`: XSanity's art, and its Pump noteskins in `~/.project-outfox/NoteSkins`.
+- `Thumbs/`: the wheel thumbnails, once the songs are installed.
+
+Anything missing falls back to the theme's own graphics. Sources and options: [the kit's README](pi/README.md#the-themes-art-assetssh).
 
 ## Tools
 

@@ -6,20 +6,20 @@ Everything needed to turn a Raspberry Pi 5 into the reference machine: Project O
 
 ## Steps
 
-1. Write **Raspberry Pi OS (64-bit) with desktop** to the card with Raspberry Pi Imager (tested with the release based on Debian 13 "trixie"), boot it and connect it to the internet. Any user name works, and `git` comes with the system.
-2. Clone the theme to the folder OutFox reads:
+1. Write **Raspberry Pi OS (64-bit) with desktop** to the card with [Raspberry Pi Imager](https://www.raspberrypi.com/software/) (tested with the release based on Debian 13 "trixie"); in the Imager's settings set a user name, a password and the Wi-Fi. Boot the Pi. Any user name works, and `git` comes with the system.
+2. In the Pi's Terminal (or over SSH), clone the theme to the folder OutFox reads and run the setup, in one command:
 
    ```bash
-   git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal
+   git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal && bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
    ```
 
-3. Run the setup (about 20 minutes, most of it downloads and the title video):
+   About 20 minutes, most of it downloads and the title video. It asks for your password. Midway, the installer of Microsoft's fonts shows their license: accepting it (`<Ok>`, then `<Yes>`) gives the generated channel cards their original font, Verdana, as on the reference Pi; declining it is fine too, the cards then use DejaVu Sans.
+3. If it lists warnings before *Done*, a download failed: run the setup again later, and it fetches only what is missing:
 
    ```bash
    bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
    ```
 
-   Midway, the installer of Microsoft's fonts shows their license. Accepting it gives the generated channel cards their original font (Verdana); declining it is fine too, the cards then use DejaVu Sans.
 4. Copy the song folders to `~/.project-outfox/Songs`, one folder per version, named like `17 - PHOENIX 2` (see [Songs](#songs)), then build the wheel thumbnails:
 
    ```bash
@@ -32,7 +32,7 @@ Everything needed to turn a Raspberry Pi 5 into the reference machine: Project O
    bash ~/.project-outfox/Themes/Infinitesimal/pi/assets.sh --noteskins ~/noteskins.zip
    ```
 
-6. Reboot. The Pi logs in to the desktop and the game opens on its own, at 60 Hz on whatever screen is connected. After quitting the game, the **Pump It Up (OutFox)** icon on the desktop opens it again.
+6. Restart with `sudo reboot`. The Pi logs in to the desktop and the game opens on its own, at 60 Hz on whatever screen is connected. After quitting the game, the **Pump It Up (OutFox)** icon on the desktop opens it again.
 7. If your pad is not like the reference one (a USB adapter that shows both pads as one joystick, player 1 on buttons 1 to 5 and player 2 on 6 to 10; `config/outfox/Keymaps.ini` has each panel's button), map it under INPUT OPTIONS in OutFox's options. To open them from the title screen, press red left, red right, blue left, blue right, twice. Until the pad works you can use the keyboard: player 1 is Q, E, S, Z, C (up-left, up-right, center, down-left, down-right).
 
 Both scripts can be run again at any time: they skip what is already in place, and keep any file they replace as `*.bak-hexagono`.

@@ -6,20 +6,20 @@ Tudo o que é preciso para transformar um Raspberry Pi 5 na máquina de referên
 
 ## Passos
 
-1. Grave o **Raspberry Pi OS (64-bit) com área de trabalho** no cartão pelo Raspberry Pi Imager (testado com a versão baseada no Debian 13 "trixie"), ligue o Pi e conecte-o à internet. Qualquer nome de usuário serve, e o `git` já vem no sistema.
-2. Clone o tema na pasta que o OutFox lê:
+1. Grave o **Raspberry Pi OS (64-bit) com área de trabalho** no cartão pelo [Raspberry Pi Imager](https://www.raspberrypi.com/software/) (testado com a versão baseada no Debian 13 "trixie"); nas configurações do Imager, defina um nome de usuário, uma senha e o Wi-Fi. Ligue o Pi. Qualquer nome de usuário serve, e o `git` já vem no sistema.
+2. No Terminal do Pi (ou por SSH), clone o tema na pasta que o OutFox lê e rode a instalação, num comando só:
 
    ```bash
-   git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal
+   git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal && bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
    ```
 
-3. Rode a instalação (cerca de 20 minutos, a maior parte downloads e o vídeo de abertura):
+   Cerca de 20 minutos, a maior parte downloads e o vídeo de abertura. Ele pede a sua senha. No meio, o instalador das fontes da Microsoft mostra a licença delas: aceitando (`<Ok>` e depois `<Yes>`), os cartões de canal gerados ficam com a fonte original, Verdana, como no Pi de referência; recusando também funciona, e os cartões usam a DejaVu Sans.
+3. Se aparecerem avisos (warnings) antes do *Done*, algum download falhou: rode a instalação de novo mais tarde, e ela busca só o que faltou:
 
    ```bash
    bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
    ```
 
-   No meio, o instalador das fontes da Microsoft mostra a licença delas. Aceitando, os cartões de canal gerados ficam com a fonte original (Verdana); recusando também funciona, e os cartões usam a DejaVu Sans.
 4. Copie as pastas de músicas para `~/.project-outfox/Songs`, uma pasta por versão, com nomes como `17 - PHOENIX 2` (veja [Músicas](#músicas)), e gere as miniaturas da roda:
 
    ```bash
@@ -32,7 +32,7 @@ Tudo o que é preciso para transformar um Raspberry Pi 5 na máquina de referên
    bash ~/.project-outfox/Themes/Infinitesimal/pi/assets.sh --noteskins ~/noteskins.zip
    ```
 
-6. Reinicie. O Pi entra na área de trabalho e o jogo abre sozinho, em 60 Hz em qualquer tela conectada. Depois de sair do jogo, o ícone **Pump It Up (OutFox)** na área de trabalho abre de novo.
+6. Reinicie com `sudo reboot`. O Pi entra na área de trabalho e o jogo abre sozinho, em 60 Hz em qualquer tela conectada. Depois de sair do jogo, o ícone **Pump It Up (OutFox)** na área de trabalho abre de novo.
 7. Se o seu tapete não for como o de referência (um adaptador USB que mostra os dois tapetes como um joystick só, jogador 1 nos botões 1 a 5 e jogador 2 nos 6 a 10; o `config/outfox/Keymaps.ini` tem o botão de cada painel), mapeie em INPUT OPTIONS, nas opções do OutFox. Para abri-las na tela inicial, pise vermelho esquerdo, vermelho direito, azul esquerdo, azul direito, duas vezes. Até o tapete funcionar dá para usar o teclado: o jogador 1 fica em Q, E, S, Z, C (cima-esquerda, cima-direita, centro, baixo-esquerda, baixo-direita).
 
 Os dois scripts podem ser rodados de novo a qualquer momento: eles pulam o que já está pronto e guardam como `*.bak-hexagono` qualquer arquivo que substituírem.
