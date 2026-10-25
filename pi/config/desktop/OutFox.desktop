@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pump It Up (OutFox)
+Comment=Project OutFox with the Hexágono theme
+Exec=@HOME@/.local/bin/outfox-run
+Icon=applications-games
+Terminal=false
+Categories=Game;

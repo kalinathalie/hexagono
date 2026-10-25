@@ -92,32 +92,15 @@ done
 install_template "$CONF/labwc/autostart" "$HOME/.config/labwc/autostart"
 install_file "$CONF/labwc/rc.xml" "$HOME/.config/labwc/rc.xml"
 install_template "$CONF/kanshi/config" "$HOME/.config/kanshi/config"
+# a desktop icon to open the game again after quitting it
+DESKTOP_DIR="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
+install_template "$CONF/desktop/OutFox.desktop" "$DESKTOP_DIR/OutFox.desktop"
 
 say "OutFox preferences, theme options and pad mapping"
 mkdir -p "$DATA/Save"
-# set only the listed keys, wherever they are in the file; new keys go under [Options]
-python3 - "$CONF/outfox/Preferences.ini" "$DATA/Save/Preferences.ini" <<'PY'
-import os, re, sys
-src, dst = sys.argv[1], sys.argv[2]
-want = {}
-for line in open(src, encoding="utf-8"):
-    m = re.match(r"^([A-Za-z0-9_]+)=(.*)$", line.strip())
-    if m: want[m.group(1)] = m.group(2)
-lines = open(dst, encoding="utf-8").read().splitlines() if os.path.exists(dst) else ["[Options]"]
-seen = set()
-for i, line in enumerate(lines):
-    m = re.match(r"^([A-Za-z0-9_]+)=", line)
-    if m and m.group(1) in want:
-        lines[i] = m.group(1) + "=" + want[m.group(1)]
-        seen.add(m.group(1))
-missing = [k + "=" + v for k, v in want.items() if k not in seen]
-if missing:
-    at = lines.index("[Options]") + 1 if "[Options]" in lines else 0
-    if at == 0: lines.insert(0, "[Options]"); at = 1
-    lines[at:at] = missing
-open(dst, "w", encoding="utf-8").write("\n".join(lines) + "\n")
-print("Preferences.ini: %d keys set" % len(want))
-PY
+# set only the listed keys, where OutFox keeps them, including the per-game theme ([Game-pump])
+[ -f "$DATA/Save/Preferences.ini" ] && cp -p "$DATA/Save/Preferences.ini" "$DATA/Save/Preferences.ini.bak-hexagono"
+python3 "$HERE/merge_prefs.py" "$CONF/outfox/Preferences.ini" "$DATA/Save/Preferences.ini"
 install_file "$CONF/outfox/OutFoxPrefs.ini" "$DATA/Save/OutFoxPrefs.ini"
 install_file "$CONF/outfox/Keymaps.ini" "$DATA/Save/Keymaps.ini"
 
