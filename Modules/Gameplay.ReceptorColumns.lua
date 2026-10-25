@@ -3,7 +3,8 @@
 --
 --   For(button, controller, eventPlayer, pn, kind) -> column or nil
 --     button      pad panel ("DownLeft", "UpLeft", "Center", "UpRight", "DownRight")
---     controller  "GameController_1" / "GameController_2" (which pad was pressed)
+--     controller  which pad was pressed: OutFox sends "GameController_Left" /
+--                 "GameController_Right" (its Lua docs say "GameController_1" / "_2")
 --     eventPlayer the player the engine gave the press to
 --     pn          the player whose glow this is
 --     kind        "single" | "double" | "half"
@@ -19,6 +20,7 @@ local Columns = {}
 local BY_BUTTON = { DownLeft = 1, UpLeft = 2, Center = 3, UpRight = 4, DownRight = 5 }
 local HALF_LEFT = { [3] = 1, [4] = 2, [5] = 3 }
 local HALF_RIGHT = { [1] = 4, [2] = 5, [3] = 6 }
+local LEFT_PAD = { GameController_Left = true, GameController_1 = true }
 
 function Columns.For(button, controller, eventPlayer, pn, kind)
     local Index = BY_BUTTON[button]
@@ -28,7 +30,7 @@ function Columns.For(button, controller, eventPlayer, pn, kind)
     end
     local Left
     if controller then
-        Left = controller == "GameController_1"
+        Left = LEFT_PAD[controller] == true
     else
         Left = eventPlayer == pn   -- no controller given: the player decides, as before
     end

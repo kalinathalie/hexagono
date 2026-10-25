@@ -2,7 +2,8 @@
 
 local Columns = LoadModule("Gameplay.ReceptorColumns.lua")
 local P1, P2 = "PlayerNumber_P1", "PlayerNumber_P2"
-local C1, C2 = "GameController_1", "GameController_2"
+-- what OutFox sends in event.controller (its Lua docs say "GameController_1"/"_2")
+local C1, C2 = "GameController_Left", "GameController_Right"
 
 Test("Single: own pad only, columns 1-5", function()
     CheckEq(Columns.For("DownLeft", C1, P1, P1, "single"), 1, "down-left")
@@ -33,4 +34,9 @@ end)
 Test("Without a controller the player number decides the pad, as before", function()
     CheckEq(Columns.For("UpRight", nil, P2, P1, "double"), 9, "pad of the other player")
     CheckEq(Columns.For("UpRight", nil, P1, P1, "double"), 4, "own pad")
+end)
+
+Test("Double: the controller names of the Lua docs work too", function()
+    CheckEq(Columns.For("UpRight", "GameController_1", "PlayerNumber_P1", "PlayerNumber_P1", "double"), 4, "pad 1")
+    CheckEq(Columns.For("UpRight", "GameController_2", "PlayerNumber_P1", "PlayerNumber_P1", "double"), 9, "pad 2")
 end)
