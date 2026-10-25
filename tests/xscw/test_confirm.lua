@@ -32,3 +32,12 @@ Test("Confirm: a profile taken by the other player cannot be picked; guest alway
     CheckEq(Confirm.Allowed(0, 0), true, "both guests")
     CheckEq(Confirm.Allowed(1, nil), true, "nobody else")
 end)
+
+Test("Confirm: dropping a player who joined mid-session goes back to a one-player style", function()
+    -- joining from song select sets versus, and the engine keeps counting both players
+    -- as human under it after one unjoins
+    CheckEq(Confirm.StyleAfterDrop("StyleType_TwoPlayersTwoSides"), "single", "versus")
+    CheckEq(Confirm.StyleAfterDrop("StyleType_TwoPlayersSharedSides"), "single", "shared sides")
+    CheckEq(Confirm.StyleAfterDrop("StyleType_OnePlayerOneSide"), nil, "already one player")
+    CheckEq(Confirm.StyleAfterDrop(nil), nil, "no style yet (joined on the title screen)")
+end)

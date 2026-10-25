@@ -478,9 +478,13 @@ end
 
 -- With two players the red panels drop one; the other one moves on if already READY
 local function DropPlayer(pn)
-    if #GAMESTATE:GetHumanPlayers() < 2 then return end
+    if GAMESTATE:GetNumSidesJoined() < 2 then return end
     Ready[pn], KB[pn], Edit[pn] = nil, nil, nil
     SCREENMAN:GetTopScreen():SetProfileIndex(pn, -2)
+    -- joined from song select: back to a one-player style (Profile.Confirm.StyleAfterDrop)
+    local Style = GAMESTATE:GetCurrentStyle()
+    local OnePlayer = Confirm.StyleAfterDrop(Style and Style:GetStyleType())
+    if OnePlayer then GAMESTATE:SetCurrentStyle(OnePlayer) end
     MESSAGEMAN:Broadcast("BackButton")
     Proceed()
 end

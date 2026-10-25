@@ -11,6 +11,11 @@
 --       { AllGuest = bool, DefaultIDs = { [pn] = "00000000" | "" } }
 --       players = { [pn] = { Ready = bool, Index = engine index (0 = guest), ID = local profile ID } }
 --   Allowed(index, otherIndex) -> false when the other player already holds that profile
+--   StyleAfterDrop(styleType) -> "single" when a two-player style is set, else nil
+--       A player joining from song select sets versus, and under a two-player style the
+--       engine still counts a player who unjoined as human (GAMESTATE:IsHumanPlayer
+--       follows the style once there is one), so a dropped player stayed on screen and
+--       profile select waited for them.
 
 local Confirm = {}
 
@@ -30,6 +35,12 @@ end
 
 function Confirm.Allowed(index, otherIndex)
     return index == 0 or otherIndex == nil or index ~= otherIndex
+end
+
+local TWO_PLAYERS = { StyleType_TwoPlayersTwoSides = true, StyleType_TwoPlayersSharedSides = true }
+
+function Confirm.StyleAfterDrop(styleType)
+    return TWO_PLAYERS[styleType] and "single" or nil
 end
 
 return Confirm
