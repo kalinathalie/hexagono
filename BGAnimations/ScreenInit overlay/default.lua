@@ -3,6 +3,11 @@
 if PhoenixTitleVideo and PhoenixTitleVideo() then
     return Def.ActorFrame {
         Def.Quad { InitCommand=function(self) self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT):Center():diffuse(Color.Black) end },
+        -- the screen moves on by itself only through this transfer, as in the full intro below
+        Def.Actor {
+            OnCommand=function(self) self:sleep(0.2):queuecommand("Transfer") end,
+            TransferCommand=function(self) SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen") end,
+        },
     }
 end
 
