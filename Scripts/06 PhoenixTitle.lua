@@ -2,7 +2,8 @@
 -- Graphics/Phoenix/Title/intro.mp4 + intro.ogg play once (warning, logos,
 -- trailer), then loop.mp4 and loop.ogg repeat while waiting for players.
 -- info.ini holds the lengths:  IntroVideo=<s>  IntroAudio=<s>  LoopAudio=<s>
--- and TrailerStart=<s> (optional): when the title prompts appear during the intro.
+-- and LogoStart=<s> (optional): when the game logo loop starts in the intro, after the
+-- trailer; the title prompts appear then (without it, when the intro ends).
 --
 -- PhoenixTitleVideo() -> { Intro, Loop, IntroAudio, LoopAudio, IntroVideoLength,
 --                          IntroAudioLength, LoopAudioLength } or nil
@@ -25,7 +26,7 @@ function PhoenixTitleVideo()
         Intro = Dir .. "intro.mp4", Loop = Dir .. "loop.mp4",
         IntroAudio = Dir .. "intro.ogg", LoopAudio = Dir .. "loop.ogg",
         IntroVideoLength = IntroVideo, IntroAudioLength = IntroAudio, LoopAudioLength = LoopAudio,
-        TrailerStart = Number("TrailerStart") or 0,
+        LogoStart = Number("LogoStart") or IntroVideo,
     }
     return Cached
 end

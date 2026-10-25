@@ -23,7 +23,7 @@ local function Swallowed() return Swallow end
 local IsTitle = false   -- the underlay is shared with ScreenLogo (attract, coin mode): no joining there
 
 local Root   -- the underlay frame, for commands from the input callback
--- the PRESS CENTER STEP prompts wait for the green trailer (not over the warning and the logos)
+-- the PRESS CENTER STEP prompts wait for the game logo (not over the warning, the logos and the trailer)
 local PromptsOn = (Video == nil) or PhoenixTitleSeen
 
 local function Screen() return SCREENMAN:GetTopScreen() end
@@ -106,7 +106,7 @@ if Video then
                 SOUND:PlayMusicPart(Video.IntroAudio, 0, Video.IntroAudioLength, 0, 0, false, false, false)
                 self:GetChild("AudioTimer"):sleep(Video.IntroAudioLength):queuecommand("Fire")
                 self:GetChild("VideoTimer"):sleep(Video.IntroVideoLength):queuecommand("Fire")
-                self:GetChild("PromptTimer"):sleep(Video.TrailerStart):queuecommand("Fire")
+                self:GetChild("PromptTimer"):sleep(Video.LogoStart):queuecommand("Fire")
             end
         end,
         -- a player joined during the trailer: go straight to the title loop

@@ -33,7 +33,9 @@ AUDIO_RATE = 48000
 AUDIO_CUT = 4821208      # samples: 100.441833 s, where the audio loop starts (24.8 ms before the video cut)
 AUDIO_LOOP = 529235      # samples in one music cycle: 11.025729 s
 FADE = 2400              # 50 ms crossfade at the end of the loop, back into its start
-TRAILER_START = 24.5     # seconds into the intro where the green trailer begins (title prompts appear)
+# seconds into the intro where the attract loop first starts, one loop period before the cut:
+# after the trailer and its end card, the game logo with ONLINE / FREE PLAY (title prompts appear)
+LOGO_START = (2 * INTRO_FRAMES - LOOP_END) / 60
 VIDEO = ("setpts=PTS-STARTPTS,fps=30,scale=1280:720:flags=lanczos:in_range=tv:out_range=pc")
 X264 = ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-color_range", "pc",
         "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-g", "60", "-movflags", "+faststart"]
@@ -94,8 +96,8 @@ def info(out):
         f.write("; Phoenix 2 title video (youtu.be/TEJaL2LWY8w), cut where the attract loop repeats\n"
                 "; intro: 0 to the cut; loop video: 421 frames at 30 fps; loop audio: one 11.026 s music cycle\n"
                 "[Title]\n"
-                "IntroVideo=%.6f\nIntroAudio=%.6f\nLoopAudio=%.6f\nTrailerStart=%s\n"
-                % (INTRO_FRAMES / 2 / 30, AUDIO_CUT / AUDIO_RATE, AUDIO_LOOP / AUDIO_RATE, TRAILER_START))
+                "IntroVideo=%.6f\nIntroAudio=%.6f\nLoopAudio=%.6f\nLogoStart=%.6f\n"
+                % (INTRO_FRAMES / 2 / 30, AUDIO_CUT / AUDIO_RATE, AUDIO_LOOP / AUDIO_RATE, LOGO_START))
 
 
 def main():
