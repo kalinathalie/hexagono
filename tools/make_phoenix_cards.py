@@ -8,7 +8,10 @@ the same style from the Phoenix cards kept locally in Graphics/Phoenix/Channels
 
   C_DLV_01..04    the Double Lv. 5 card with the "Lv. N" line of the Single Lv. N
                   card, recolored from red to green
-  C_HDLV_01..25   the Double Lv. N cards recolored to cyan with a "HALF" tag,
+  C_DLV_26..28    the Double Lv. 25 card with its last digit replaced by the 6, 7
+                  or 8 of the Double Lv. 26 (over), 17 and 18 cards (Phoenix only
+                  has one "over 26" card)
+  C_HDLV_01..28   the Double Lv. N cards recolored to cyan with a "HALF" tag,
                   like the "OVER" tag of the Double Lv. 26 card
   CAT_*.png       category cards: the blank card background recolored per
                   category with the category name; CAT_DOUBLE is Phoenix's own
@@ -23,6 +26,8 @@ Usage:  python tools/make_phoenix_cards.py [--channels DIR] [--font TTF]
 """
 import argparse
 import os
+
+import numpy as np
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -100,10 +105,78 @@ def double_low_levels(ch):
         Image.composite(single, d5, mask).save(os.path.join(ch, "C_DLV_%02d.png" % n))
 
 
+def _ink(a):
+    """White text pixels of a card (RGBA float array)."""
+    rgb = a[..., :3]
+    lum = rgb.mean(axis=2)
+    sat = rgb.max(axis=2) - rgb.min(axis=2)
+    return (lum > 150) & (sat < 60) & (a[..., 3] > 200)
+
+
+def _dilate(mask, r):
+    return np.asarray(Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(2 * r + 1))) > 0
+
+
+def _glyphs(ink, y0, y1):
+    """Column ranges of the glyphs of one text line."""
+    cols = np.nonzero(ink[y0:y1].sum(axis=0) > 0)[0]
+    groups, start = [], cols[0]
+    for a, b in zip(cols, cols[1:]):
+        if b - a > 2:
+            groups.append((start, a + 1))
+            start = b
+    groups.append((start, cols[-1] + 1))
+    return groups
+
+
+def double_high_levels(ch):
+    """Double Lv. 26-28. All Double level cards share the same background pixel for
+    pixel, so the clean background under the digits is rebuilt from the cards that
+    have no text there; the new last digit is then laid over it."""
+    cards = {n: np.asarray(load(ch, "C_DLV_%02d" % n)).astype(np.float64) for n in range(5, 26)}
+    cards["26O"] = np.asarray(load(ch, "C_DLV_26O")).astype(np.float64)
+    covered = {k: _dilate(_ink(a), 6) for k, a in cards.items()}
+    stack = np.stack([cards[k] for k in cards]); free = np.stack([~covered[k] for k in cards])
+    weight = free[..., None].astype(np.float64)
+    bg = (stack * weight).sum(axis=0) / np.maximum(weight.sum(axis=0), 1)
+    # pixels with text on every card (the neon frame lines) are the same on all of them
+    none_free = weight.sum(axis=0)[..., 0] == 0
+    bg[none_free] = np.median(stack, axis=0)[none_free]
+    y0, y1 = 168, 212                     # the "Lv. NN" line
+    unit_x = 216                          # the units digit of "Lv. 2N" starts here (the 6 of "over 26")
+    cols = np.arange(cards[25].shape[1])[None, :]
+
+    def unit_glyph(key):
+        """Ink of the last digit of a card's level line (wider than the frame line at x 272)."""
+        groups = [g for g in _glyphs(_ink(cards[key]), y0, y1) if g[1] - g[0] > 10]
+        left = max(unit_x, groups[-1][0]) if key in (25, "26O") else groups[-1][0]
+        band = np.zeros(cards[key].shape[:2], bool); band[y0 - 6:y1 + 8] = True
+        return _ink(cards[key]) & band & (cols >= left) & (cols < 270), left
+
+    ink5, left5 = unit_glyph(25)
+    erase = _dilate(ink5, 4)
+    clean = cards[25].copy(); clean[erase] = bg[erase]
+    for n, key in ((26, "26O"), (27, 17), (28, 18)):
+        src = cards[key]
+        ink, left = unit_glyph(key)
+        dx = left5 - left
+        out = clean.copy()
+        for y, x in zip(*np.nonzero(_dilate(ink, 5))):
+            tx = x + dx
+            if not (0 <= tx < out.shape[1]):
+                continue
+            d = src[y, x, :3] - bg[y, x, :3]
+            c = np.full(3, 255.0) if d.mean() >= 0 else np.zeros(3)   # white text or dark shadow
+            denom = np.abs(c - bg[y, x, :3]).max()
+            alpha = 0.0 if denom < 1 else min(1.0, np.abs(d).max() / denom)
+            out[y, tx, :3] = out[y, tx, :3] * (1 - alpha) + c * alpha
+        Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA").save(os.path.join(ch, "C_DLV_%02d.png" % n))
+
+
 def half_double_levels(ch, font_path):
     """Half-Double Lv. N: the Double card in cyan with a "HALF" tag (Phoenix has none)."""
     font = ImageFont.truetype(font_path, 27)
-    for n in range(1, 26):
+    for n in range(1, 29):
         src = os.path.join(ch, "C_DLV_%02d.png" % n)
         if not os.path.exists(src):
             continue
@@ -148,6 +221,7 @@ def main():
     ap.add_argument("--font", default="C:/Windows/Fonts/verdanaz.ttf")
     a = ap.parse_args()
     double_low_levels(a.channels)
+    double_high_levels(a.channels)
     half_double_levels(a.channels, a.font)
     category_cards(a.channels, a.font)
     print("cards written to", a.channels)

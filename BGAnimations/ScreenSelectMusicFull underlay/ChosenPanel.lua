@@ -178,8 +178,9 @@ return Def.ActorFrame {
         BallFrame:GetChild("Level"):settext(Row.MeterText(Meter))
         if UsePhoenixBall then
             local Frame = PhoenixBig[Style.Name]
-            BallFrame:GetChild("Body"):setstate(Frame or 2)
-            -- Phoenix has no half-double ball: green ball with the name written over it
+            -- Phoenix has no half-double ball: the blue ball (as the cyan bubble in the row)
+            -- with the name written over it
+            BallFrame:GetChild("Body"):setstate(Frame or 3)
             BallFrame:GetChild("Title"):visible(Frame ~= nil):setstate(Frame or 0)
             BallFrame:GetChild("Type"):visible(Frame == nil):settext(ToUpper(FullModeChartLabel(Steps)))
         elseif XS.Big then

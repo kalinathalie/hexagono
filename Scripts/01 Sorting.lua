@@ -446,7 +446,8 @@ function AssembleGroupSorting()
             elseif not ShowHidden and string.find(ToUpper(Chart:GetDescription()), "HIDDEN") then ShouldRemove = true end
             
             if string.find( Chart:GetStepsType():lower(), CurrentGameMode ) then
-                if ToEnumShortString(ToEnumShortString(Chart:GetStepsType())) == "Double" and not ShouldRemove then
+                -- level 99 doubles are the co-op charts: they have their own Special group
+                if ToEnumShortString(ToEnumShortString(Chart:GetStepsType())) == "Double" and not ShouldRemove and Chart:GetMeter() ~= 99 then
                     local ChartLevel = Chart:GetMeter()
                     if LevelGroups[ChartLevel] == nil then LevelGroups[ChartLevel] = {} end
                     if not HasValue(LevelGroups[ChartLevel], Song) then
@@ -493,6 +494,9 @@ function UpdateGroupSorting()
             table.remove(GroupsList, MainGroup)
         end
     end
+
+    -- two players: no Double, Half-Double or Co-op (Modules/Select.GroupFilter.lua)
+    LoadModule("Select.GroupFilter.lua").ForPlayers(GroupsList, GAMESTATE:GetNumSidesJoined())
     
     MESSAGEMAN:Broadcast("UpdateChartDisplay")
     Trace("Group sorting updated!")

@@ -30,6 +30,9 @@ local t = Def.ActorFrame {
 }
 
 for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
+    -- glow on the receptors of the pressed panels, for any noteskin
+    t[#t+1] = LoadActor("ReceptorGlow.lua", pn)
+
     local IsDouble = (GAMESTATE:GetCurrentStyle():GetStyleType() == "StyleType_OnePlayerTwoSides")
     local IsCenter = (IsDouble or Center1Player() or GAMESTATE:GetIsFieldCentered(pn))
     local PosX = IsCenter and SCREEN_CENTER_X or THEME:GetMetric(Var "LoadingScreen", "Player" .. ToEnumShortString(pn) .. "OnePlayerOneSideX")

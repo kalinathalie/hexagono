@@ -60,8 +60,8 @@ local CATEGORY_CARDS = {
 }
 local LEVEL_CARDS = {   -- prefix, first level with a card, card for that level and over
     ["Single"] = { "C_LV_%02d", 24, "C_LV_24O" },
-    ["Double"] = { "C_DLV_%02d", 26, "C_DLV_26O" },
-    ["Half-Double"] = { "C_HDLV_%02d", 26, "C_HDLV_26O" },
+    ["Double"] = { "C_DLV_%02d", 29, "C_DLV_26O" },        -- 26-28 generated, Phoenix only has "over 26"
+    ["Half-Double"] = { "C_HDLV_%02d", 29, "C_HDLV_26O" },
 }
 
 function Cards.PhoenixCard(Category, SubName)
