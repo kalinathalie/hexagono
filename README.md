@@ -18,6 +18,8 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 - **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single, Double e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
 - **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes) e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display e Note Skin, com prévia da nota.
 - **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
+- **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, sem tela de notas depois; brilho no receptor do painel pisado e explosão em todo acerto, com qualquer noteskin; notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
+- **Listas por número de jogadores:** com dois jogadores somem Double, Half-Double e Co-op.
 - **Setas BACK e SHIFT nos cantos**, vindas do InfiniteWorlds.
 - **Miniaturas nítidas na roda**, geradas a partir do fundo de cada música.
 - **Fundo estático** no lugar do vídeo animado, para não pesar na navegação.
