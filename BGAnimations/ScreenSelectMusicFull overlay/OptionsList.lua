@@ -190,7 +190,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         -- dynamically move the entire list's vertical position relative
         -- to what the player is currently selecting
         AdjustCommand=function(self, params)
-            if params.Player == pn then
+            -- the graphical command window sends OptionsListStart too, without a Selection
+            if params.Player == pn and params.Selection then
                 -- Edge case since we don't need to scroll in Speed Mods
                 if params.Selection + 1 > 5 and OptionsListMenu == "Noteskins" then
                     OptionsListActor:stoptweening():linear(0.1):y(-110 - (26 * (params.Selection - 5)))
