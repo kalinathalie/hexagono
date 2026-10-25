@@ -23,6 +23,8 @@ local function Swallowed() return Swallow end
 local IsTitle = false   -- the underlay is shared with ScreenLogo (attract, coin mode): no joining there
 
 local Root   -- the underlay frame, for commands from the input callback
+-- the PRESS CENTER STEP prompts wait for the green trailer (not over the warning and the logos)
+local PromptsOn = (Video == nil) or PhoenixTitleSeen
 
 local function Screen() return SCREENMAN:GetTopScreen() end
 
@@ -96,10 +98,15 @@ if Video then
                 self:playcommand("ToLoop")
                 StartLoopAudio()
             else
+                -- play once from its first frame, in step with the audio; at the end it holds
+                -- its last frame instead of wrapping to the red warning
+                local Tex = Intro:GetTexture()
+                if Tex then Tex:loop(false) Tex:position(0) end
                 Intro:visible(true):SetDecodeMovie(true)
                 SOUND:PlayMusicPart(Video.IntroAudio, 0, Video.IntroAudioLength, 0, 0, false, false, false)
                 self:GetChild("AudioTimer"):sleep(Video.IntroAudioLength):queuecommand("Fire")
                 self:GetChild("VideoTimer"):sleep(Video.IntroVideoLength):queuecommand("Fire")
+                self:GetChild("PromptTimer"):sleep(Video.TrailerStart):queuecommand("Fire")
             end
         end,
         -- a player joined during the trailer: go straight to the title loop
@@ -107,12 +114,15 @@ if Video then
             if PhoenixTitleSeen then return end
             self:GetChild("AudioTimer"):stoptweening()
             self:GetChild("VideoTimer"):stoptweening()
+            self:GetChild("PromptTimer"):stoptweening():playcommand("Fire")
             self:playcommand("ToLoop")
             StartLoopAudio()
         end,
         ToLoopCommand=function(self)
             PhoenixTitleSeen = true
             local Intro, Loop = self:GetChild("Intro"), self:GetChild("Loop")
+            local Tex = Loop:GetTexture()
+            if Tex then Tex:position(0) end
             Loop:visible(true):SetDecodeMovie(true)
             Intro:visible(false):SetDecodeMovie(false)
             Intro:queuecommand("Unload")
@@ -120,6 +130,11 @@ if Video then
 
         Def.Actor { Name="AudioTimer", FireCommand=function(self) StartLoopAudio() end },
         Def.Actor { Name="VideoTimer", FireCommand=function(self) self:GetParent():playcommand("ToLoop") end },
+        Def.Actor { Name="PromptTimer", FireCommand=function(self)
+            if PromptsOn then return end
+            PromptsOn = true
+            MESSAGEMAN:Broadcast("TitlePrompts")
+        end },
 
         Def.Sprite {
             Name="Loop", Texture=Video.Loop,
@@ -221,9 +236,13 @@ local function Side(pn)
         InitCommand=function(self) self:xy(X, SCREEN_HEIGHT * 0.75):visible(false) end,
         RefreshCommand=function(self)
             local Joined = GAMESTATE:IsSideJoined(pn)
-            self:visible(IsTitle)
+            self:visible(IsTitle and PromptsOn)
             self:GetChild("Prompt"):GetChild("Press"):visible(not Joined)
             self:GetChild("Ready"):visible(Joined)
+        end,
+        TitlePromptsMessageCommand=function(self)
+            self:playcommand("Refresh")
+            self:diffusealpha(0):linear(0.3):diffusealpha(1)
         end,
         TitleJoinedMessageCommand=function(self, params)
             if params.Player == pn then self:stoptweening():zoom(1.2):easeoutexpo(0.3):zoom(1) end

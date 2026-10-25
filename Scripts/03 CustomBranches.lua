@@ -17,12 +17,18 @@ Branch.TitleMenu = function()
     end
 end
 
--- A failed song (every player broke the stage) skips the score screen and goes
--- on as the score screen would (profile save, then the song select in event mode).
+-- A stage break (every player missed 40 notes in a row, Modules/PIU/Gameplay.StageBreak.lua)
+-- skips the score screen and goes on as the score screen would (profile save, then the
+-- song select in event mode). A song finished with an emptied life bar is failed too
+-- (broken grade) but shows its score screen.
 local FallbackAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
-    if not GAMESTATE:IsCourseMode() and STATSMAN:GetCurStageStats():AllFailed() then
-        return Branch.AfterEvaluation()
+    if not GAMESTATE:IsCourseMode() then
+        local AllBroke = #GAMESTATE:GetHumanPlayers() > 0
+        for _, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+            if not (PIUStageBreak and PIUStageBreak[pn]) then AllBroke = false end
+        end
+        if AllBroke then return Branch.AfterEvaluation() end
     end
     return FallbackAfterGameplay()
 end

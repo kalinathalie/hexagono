@@ -87,12 +87,12 @@ return function(pn)
                 
                 MESSAGEMAN:Broadcast("UpdateLife", {Player = pn, Life = LifeOutput})
                 
-                if State:GetHealthState() ~= "HealthState_Dead" and not (PIUStageBreak and PIUStageBreak[pn]) then
+                if not (PIUStageBreak and PIUStageBreak[pn]) then
                     -- I will forever thank Inori and tertu for this bit of lua
                     local PlayerChild = SCREENMAN:GetTopScreen():GetChild("Player"..ToEnumShortString(pn))
-                    -- the gauge never fails the player: only 40 misses in a row do
-                    -- (Gameplay.StageBreak.lua), so the engine life stays above 0
-                    PlayerChild:SetLife(math.max(LifeOutput, 0.001))
+                    -- reaching 0 breaks the grade but the song goes on (FailType_ImmediateContinue,
+                    -- set by Gameplay.StageBreak.lua), and the bar can fill up again
+                    PlayerChild:SetLife(LifeOutput)
                 end
             end
         end
