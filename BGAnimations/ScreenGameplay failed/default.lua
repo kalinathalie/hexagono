@@ -1,30 +1,33 @@
 -- Stage break (40 misses in a row): the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND
 -- DANCE MAN?" animation when its local video exists (pi/assets/stagebreak.py), else the
 -- theme's own animation below. This is a transition loaded with the gameplay screen,
--- and both OnCommand and StartTransitioning also reach it when the song starts: the
--- video, sound and fade begin once, when the stage has really failed.
+-- so it also gets the screen's own commands when the song starts (On, and Begin, which
+-- the engine plays on every screen): the video, sound and fade use a command of their
+-- own, StageBreakStart, played once when the transition starts on a failed stage.
 local Video = PhoenixStageBreakVideo and PhoenixStageBreakVideo()
 if Video then
     local Started = false
     return Def.ActorFrame {
         StartTransitioningCommand=function(self)
-            if Started or not STATSMAN:GetCurStageStats():AllFailed() then return end
+            local Failed = STATSMAN:GetCurStageStats():AllFailed()
+            Trace("StageBreak: StartTransitioning, all failed: " .. tostring(Failed) .. ", started before: " .. tostring(Started))
+            if Started or not Failed then return end
             Started = true
-            self:playcommand("Begin")
+            self:playcommand("StageBreakStart")
         end,
         Def.Sprite {
-            BeginCommand=function(self)
+            StageBreakStartCommand=function(self)
                 self:Load(Video.Video):Center():zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
                 local Tex = self:GetTexture()
                 if Tex then Tex:loop(false) Tex:position(0) end
                 self:SetDecodeMovie(true)
             end,
         },
-        Def.Sound { File=Video.Audio, BeginCommand=function(self) self:play() end },
+        Def.Sound { File=Video.Audio, StageBreakStartCommand=function(self) self:play() end },
         -- fades to black over the last 0.3 s, which also sets how long the screen lasts
         Def.Quad {
             InitCommand=function(self) self:FullScreen():diffuse(0, 0, 0, 0) end,
-            BeginCommand=function(self) self:sleep(Video.Length - 0.3):linear(0.3):diffusealpha(1) end,
+            StageBreakStartCommand=function(self) self:sleep(Video.Length - 0.3):linear(0.3):diffusealpha(1) end,
         },
     }
 end
