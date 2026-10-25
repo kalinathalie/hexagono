@@ -17,7 +17,7 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 - **Cronômetro no centro:** as barras de perfil do P1 e do P2 ficam dos lados do cronômetro, com nível, nome e vidas.
 - **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY. Os vermelhos no READY tiram só o READY; de novo, voltam para a roda.
 - **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single (do 1 ao 26), Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
-- **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display e Note Skin, com prévia da nota.
+- **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display, Note Skin (com prévia dos skins em volta do cursor) e Judge (EJ, NJ, HJ, VJ; volta para NJ a cada jogo novo).
 - **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
 - **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, sem tela de notas depois; brilho no receptor do painel pisado e explosão em todo acerto, com qualquer noteskin; notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
 - **Listas por número de jogadores:** com dois jogadores somem Double, Half-Double e Co-op; os charts de co-op ficam só no grupo Co-op.
