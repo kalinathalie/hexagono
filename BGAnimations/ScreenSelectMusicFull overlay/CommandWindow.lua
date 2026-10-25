@@ -69,7 +69,9 @@ local Categories = BuildCategories(Deps)
 local Art = LoadModule("Select.Art.lua")
 local PX = {
     Bg = Art("Phoenix/CommandWindow/bg"),                 -- teal "COMMAND" panel with the inner box
-    Titles = Art("Phoenix/CommandWindow/MenuIcons 1x9"),  -- SPEED, DISPLAY, NOTESKIN, ... AUTO VELOCITY
+    -- SPEED, DISPLAY, NOTESKIN, ... AUTO VELOCITY; "labels" is the same sheet redrawn
+    -- at 4x by tools/make_phoenix_labels.py (the Phoenix one is blurry when enlarged)
+    Titles = Art("Phoenix/CommandWindow/labels 1x9") or Art("Phoenix/CommandWindow/MenuIcons 1x9"),
     Icons = Art("Phoenix/CommandWindow/icons 11x11"),     -- option badges
     Badge = Art("Phoenix/CommandWindow/frame"),           -- empty badge for options without art
     Brackets = Art("Phoenix/CommandWindow/arrows_big"),   -- yellow brackets around the cursor
@@ -87,6 +89,9 @@ local PLabelY, PValueY, PBoxY, PDescY = -82, -16, 69, 139
 local PSlotX = { [-2] = -128, [-1] = -72, [0] = 0, [1] = 72, [2] = 128 }
 local PSlotZoom = { [-2] = 0.55, [-1] = 0.8, [0] = 1.12, [1] = 0.8, [2] = 0.55 }
 local PSlotAlpha = { [-2] = 0.3, [-1] = 0.75, [0] = 1, [1] = 0.75, [2] = 0.3 }
+local PSlotOrder = { 0, -1, 1, -2, 2 }   -- with few options the cursor's own slot wins
+local PLabelW = 104                      -- label width at zoom 1, as on the Phoenix sheet
+local PSkinZoom = 0.94                   -- noteskin preview zoom relative to a badge
 local PYellow = color("#ffe600")
 
 local function PTriangle(Dir, X, Y)
@@ -489,12 +494,16 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         else
             Window[#Window + 1] = Def.Actor { Name="PxBrackets" }
         end
-        -- Noteskin preview (uses the NS<skin> actors preloaded by the decorations layer)
-        Window[#Window + 1] = Def.ActorFrame {
-            Name="PxSkin",
-            InitCommand=function(self) self:y(PBoxY):visible(false) end,
-            Def.ActorProxy { Name="Proxy", InitCommand=function(self) self:zoom(1.05) end },
-        }
+        -- Noteskin previews around the cursor, laid out like the badges (they show the
+        -- NS<skin> actors preloaded by the decorations layer)
+        local Skins = Def.ActorFrame { Name="PxSkin", InitCommand=function(self) self:y(PBoxY):visible(false) end }
+        for _, Off in ipairs(SlotOffsets) do
+            Skins[#Skins + 1] = Def.ActorProxy {
+                Name="Proxy" .. Off,
+                InitCommand=function(self) self:x(PSlotX[Off]):zoom(PSlotZoom[Off] * PSkinZoom) end,
+            }
+        end
+        Window[#Window + 1] = Skins
         Window[#Window + 1] = Def.BitmapText {
             Name="PxDesc", Font="Montserrat normal 20px",
             InitCommand=function(self) self:y(PDescY):zoom(0.55):wrapwidthpixels(258 / 0.55):shadowlength(1) end,
@@ -506,7 +515,8 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             local IsSkin = Category.Kind == "noteskin"
 
             -- Category label: big with side arrows while choosing the category
-            self:GetChild("PxLabel"):setstate(Category.PhoenixTitle or 0):zoom(AtItems and 1.35 or 1.75)
+            local Label = self:GetChild("PxLabel"):setstate(Category.PhoenixTitle or 0)
+            Label:zoom((AtItems and 1.35 or 1.75) * PLabelW / Label:GetWidth())
             self:GetChild("PxArrowL"):visible(not AtItems)
             self:GetChild("PxArrowR"):visible(not AtItems)
 
@@ -514,7 +524,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             local Items = Category.Items or {}
             local Center = AtItems and S.Item or (Category.DefaultItem and Category.DefaultItem(pn) or 1)
             local Shown = {}
-            for _, Off in ipairs(SlotOffsets) do
+            for _, Off in ipairs(PSlotOrder) do
                 local Slot = self:GetChild("PxSlot" .. Off)
                 local Index = Wrap(Center + Off, #Items)
                 local Item = Items[Index]
@@ -537,20 +547,26 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                     Slot:diffusealpha(PSlotAlpha[Off] * (AtItems and 1 or 0.55))
                 end
             end
-            self:GetChild("PxBrackets"):visible(AtItems and not IsSkin)
-            self:GetChild("PxGlow"):visible(AtItems and not IsSkin)
+            self:GetChild("PxBrackets"):visible(AtItems)
+            self:GetChild("PxGlow"):visible(AtItems)
 
-            -- Noteskin preview, AV value
+            -- Noteskin previews (2 on each side of the cursor), AV value
             local ValueText = nil
             local Preview = self:GetChild("PxSkin")
             if IsSkin then
-                local Item = Items[Center]
                 local Screen = SCREENMAN:GetTopScreen()
-                local Target = Item and Screen and Screen:GetChild("NS" .. string.lower(Item.Label))
-                local Proxy = Preview:GetChild("Proxy")
-                if Target then Proxy:SetTarget(Target) end
-                Proxy:visible(Target ~= nil)
-                Preview:visible(true):diffusealpha(AtItems and 1 or 0.55)
+                local ShownSkin = {}
+                for _, Off in ipairs(PSlotOrder) do
+                    local Index = Wrap(Center + Off, #Items)
+                    local Item = not ShownSkin[Index] and Items[Index]
+                    local Target = Item and Screen and Screen:GetChild("NS" .. string.lower(Item.Label))
+                    if Item then ShownSkin[Index] = true end
+                    local Proxy = Preview:GetChild("Proxy" .. Off)
+                    if Target then Proxy:SetTarget(Target) end
+                    Proxy:visible(Target ~= nil):diffusealpha(PSlotAlpha[Off] * (AtItems and 1 or 0.55))
+                end
+                Preview:visible(true)
+                local Item = Items[Center]
                 ValueText = Item and string.upper(Item.Label) or ""
             else
                 Preview:visible(false)

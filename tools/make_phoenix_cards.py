@@ -11,14 +11,16 @@ the same style from the Phoenix cards kept locally in Graphics/Phoenix/Channels
   C_DLV_26..28    the Double Lv. 25 card with its last digit replaced by the 6, 7
                   or 8 of the Double Lv. 26 (over), 17 and 18 cards (Phoenix only
                   has one "over 26" card)
+  C_LV_24..26     the same for Single: the Lv. 23 card with the 4, 5 or 6 of the
+                  Single Lv. 24 (over), 15 and 16 cards
   C_HDLV_01..28   the Double Lv. N cards recolored to cyan with a "HALF" tag,
                   like the "OVER" tag of the Double Lv. 26 card
   CAT_*.png       category cards: the blank card background recolored per
                   category with the category name; CAT_DOUBLE is Phoenix's own
                   "DOUBLE DIFFICULTY ZONE" card
 
-Inputs in the channels folder: C_LV_01..04, C_DLV_05..25, BLANK_RED.png (the
-text-free card background) and ZONE_DOUBLE.png. Text uses a bold italic TTF
+Inputs in the channels folder: C_LV_01..23, C_LV_24O, C_DLV_05..25, C_DLV_26O,
+BLANK_RED.png (the text-free card background) and ZONE_DOUBLE.png. Text uses a bold italic TTF
 (Phoenix uses Plateia Bold; Verdana Bold Italic, widened, is the closest
 Windows font).
 
@@ -26,6 +28,7 @@ Usage:  python tools/make_phoenix_cards.py [--channels DIR] [--font TTF]
 """
 import argparse
 import os
+from collections import deque
 
 import numpy as np
 
@@ -129,12 +132,10 @@ def _glyphs(ink, y0, y1):
     return groups
 
 
-def double_high_levels(ch):
-    """Double Lv. 26-28. All Double level cards share the same background pixel for
-    pixel, so the clean background under the digits is rebuilt from the cards that
-    have no text there; the new last digit is then laid over it."""
-    cards = {n: np.asarray(load(ch, "C_DLV_%02d" % n)).astype(np.float64) for n in range(5, 26)}
-    cards["26O"] = np.asarray(load(ch, "C_DLV_26O")).astype(np.float64)
+def _clean_background(cards):
+    """Background of a series of level cards without their text. The cards of a
+    series share the same background pixel for pixel, so each pixel comes from the
+    cards that have no text there."""
     covered = {k: _dilate(_ink(a), 6) for k, a in cards.items()}
     stack = np.stack([cards[k] for k in cards]); free = np.stack([~covered[k] for k in cards])
     weight = free[..., None].astype(np.float64)
@@ -142,6 +143,36 @@ def double_high_levels(ch):
     # pixels with text on every card (the neon frame lines) are the same on all of them
     none_free = weight.sum(axis=0)[..., 0] == 0
     bg[none_free] = np.median(stack, axis=0)[none_free]
+    return bg
+
+
+def _paste_text(out, src, bg, region, dx, shadow=None):
+    """Lay the text of src inside region (white letters and their dark shadow,
+    measured against the clean background) over out, dx pixels to the right.
+    With a shadow mask, dark pixels are laid only inside it."""
+    for y, x in zip(*np.nonzero(region)):
+        tx = x + dx
+        if not (0 <= tx < out.shape[1]):
+            continue
+        d = src[y, x, :3] - bg[y, x, :3]
+        if d.mean() < 0 and shadow is not None and not shadow[y, x]:
+            continue
+        c = np.full(3, 255.0) if d.mean() >= 0 else np.zeros(3)   # white text or dark shadow
+        denom = np.abs(c - bg[y, x, :3]).max()
+        alpha = 0.0 if denom < 1 else min(1.0, np.abs(d).max() / denom)
+        out[y, tx, :3] = out[y, tx, :3] * (1 - alpha) + c * alpha
+
+
+def _save(out, ch, name):
+    Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA").save(os.path.join(ch, name + ".png"))
+
+
+def double_high_levels(ch):
+    """Double Lv. 26-28: the Double Lv. 25 card over the clean background, with a
+    new last digit laid over it."""
+    cards = {n: np.asarray(load(ch, "C_DLV_%02d" % n)).astype(np.float64) for n in range(5, 26)}
+    cards["26O"] = np.asarray(load(ch, "C_DLV_26O")).astype(np.float64)
+    bg = _clean_background(cards)
     y0, y1 = 168, 212                     # the "Lv. NN" line
     unit_x = 216                          # the units digit of "Lv. 2N" starts here (the 6 of "over 26")
     cols = np.arange(cards[25].shape[1])[None, :]
@@ -157,20 +188,92 @@ def double_high_levels(ch):
     erase = _dilate(ink5, 4)
     clean = cards[25].copy(); clean[erase] = bg[erase]
     for n, key in ((26, "26O"), (27, 17), (28, 18)):
-        src = cards[key]
         ink, left = unit_glyph(key)
-        dx = left5 - left
         out = clean.copy()
-        for y, x in zip(*np.nonzero(_dilate(ink, 5))):
-            tx = x + dx
-            if not (0 <= tx < out.shape[1]):
-                continue
-            d = src[y, x, :3] - bg[y, x, :3]
-            c = np.full(3, 255.0) if d.mean() >= 0 else np.zeros(3)   # white text or dark shadow
-            denom = np.abs(c - bg[y, x, :3]).max()
-            alpha = 0.0 if denom < 1 else min(1.0, np.abs(d).max() / denom)
-            out[y, tx, :3] = out[y, tx, :3] * (1 - alpha) + c * alpha
-        Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA").save(os.path.join(ch, "C_DLV_%02d.png" % n))
+        _paste_text(out, cards[key], bg, _dilate(ink, 5), left5 - left)
+        _save(out, ch, "C_DLV_%02d" % n)
+
+
+def _components(mask):
+    """4-connected pixel groups of a mask, as (rows, cols) arrays."""
+    seen = np.zeros(mask.shape, bool)
+    groups = []
+    for y, x in zip(*np.nonzero(mask)):
+        if seen[y, x]:
+            continue
+        seen[y, x] = True
+        todo, pts = deque([(y, x)]), []
+        while todo:
+            cy, cx = todo.popleft()
+            pts.append((cy, cx))
+            for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
+                if 0 <= ny < mask.shape[0] and 0 <= nx < mask.shape[1] and mask[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True
+                    todo.append((ny, nx))
+        pts = np.array(pts)
+        groups.append((pts[:, 0], pts[:, 1]))
+    return groups
+
+
+def _last_digit(a, y0, y1):
+    """Ink of the last digit of a card's "Lv. NN" line, the column it starts at and
+    the other ink around the line. The digits are italic and share columns, so they
+    are told apart by connected pixels; frame lines are thinner or shorter."""
+    ink = _ink(a)
+    band = np.zeros(ink.shape, bool); band[y0:y1] = True
+    tall = [g for g in _components(ink & band) if np.ptp(g[0]) >= (y1 - y0) * 0.8 and np.ptp(g[1]) >= 8]
+    rows, cols = max(tall, key=lambda g: g[1].min())
+    digit = np.zeros(ink.shape, bool); digit[rows, cols] = True
+    near = np.zeros(ink.shape, bool); near[y0 - 6:y1 + 8] = True
+    return digit, cols.min(), ink & near & ~digit
+
+
+def _own_area(glyph, others, r):
+    """Pixels up to r away from glyph that are not closer to the other ink: the
+    glyph's edge and shadow without its neighbor's (the "1" of "Lv. 15" is 1 px
+    away from the 5)."""
+    mine, theirs = glyph.copy(), others.copy()
+    for _ in range(r):
+        grown = _dilate(mine, 1) & ~theirs
+        theirs = theirs | (_dilate(theirs, 1) & ~grown)
+        mine = mine | grown
+    return mine
+
+
+def _cast(glyph, right, down):
+    """Where a glyph's drop shadow can fall: the level digits cast it to the right
+    and down."""
+    out = glyph.copy()
+    h, w = glyph.shape
+    for dy in range(down + 1):
+        for dx in range(right + 1):
+            out[dy:, dx:] |= glyph[:h - dy, :w - dx]
+    return out
+
+
+def single_high_levels(ch):
+    """Single Lv. 24-26: the Single Lv. 23 card over the clean background, with the
+    4 of the Lv. 24 (over) card or the 5 and 6 of the Lv. 15 and 16 cards as the last
+    digit (Phoenix only has one "over 24" card)."""
+    cards = {n: np.asarray(load(ch, "C_LV_%02d" % n)).astype(np.float64) for n in (14, 15, 16, 23)}
+    cards["24O"] = np.asarray(load(ch, "C_LV_24O")).astype(np.float64)
+    # every Single card has a digit around x 205-250, so the background can't be
+    # rebuilt from them as for Double; the red blank card is that same background
+    bg = np.asarray(load(ch, "BLANK_RED").resize(CARD, Image.LANCZOS)).astype(np.float64)
+    y0, y1 = 172, 206                     # the "Lv. NN" line
+    digit3, _, rest3 = _last_digit(cards[23], y0, y1)
+    clean = cards[23].copy()
+    erase = _own_area(digit3, rest3, 6)
+    clean[erase] = bg[erase]
+    # "Lv. 1N" is centered, so its last digit sits further left than in "Lv. 2N";
+    # the 4, which both the 14 and the 24 cards have, gives the distance
+    shift = _last_digit(cards["24O"], y0, y1)[1] - _last_digit(cards[14], y0, y1)[1]
+    for n, key, dx in ((24, "24O", 0), (25, 15, shift), (26, 16, shift)):
+        digit, _, rest = _last_digit(cards[key], y0, y1)
+        out = clean.copy()
+        # only the digit's own shadow: left of the 5 and the 6 lies the shadow of the "1"
+        _paste_text(out, cards[key], bg, _own_area(digit, rest, 6), dx, shadow=_cast(digit, 6, 4))
+        _save(out, ch, "C_LV_%02d" % n)
 
 
 def half_double_levels(ch, font_path):
@@ -222,6 +325,7 @@ def main():
     a = ap.parse_args()
     double_low_levels(a.channels)
     double_high_levels(a.channels)
+    single_high_levels(a.channels)
     half_double_levels(a.channels, a.font)
     category_cards(a.channels, a.font)
     print("cards written to", a.channels)

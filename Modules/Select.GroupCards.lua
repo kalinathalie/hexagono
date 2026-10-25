@@ -52,14 +52,14 @@ local VERSION_CARDS = {
 }
 local SPECIAL_CARDS = { ["All Tunes"] = "C_ATUNES", ["Full Song"] = "C_FSONG", ["Shortcut"] = "C_SC", ["Remix"] = "C_RMX", ["Co-op"] = "C_COOP" }
 
--- Category cards and the Double 1-4 / Half-Double level cards are made locally by
+-- Category cards and the Single 24-26 / Double 1-4, 26-28 / Half-Double level cards are made locally by
 -- tools/make_phoenix_cards.py in the style of the Phoenix channel cards
 local CATEGORY_CARDS = {
     ["Group"] = "CAT_VERSIONS", ["Single"] = "CAT_SINGLE", ["Double"] = "CAT_DOUBLE", ["Half-Double"] = "CAT_HALFDOUBLE",
     ["Special"] = "CAT_SPECIAL", ["Title"] = "CAT_TITLE", ["Artist"] = "CAT_ARTIST",
 }
 local LEVEL_CARDS = {   -- prefix, first level with a card, card for that level and over
-    ["Single"] = { "C_LV_%02d", 24, "C_LV_24O" },
+    ["Single"] = { "C_LV_%02d", 27, "C_LV_24O" },          -- 24-26 generated, Phoenix only has "over 24"
     ["Double"] = { "C_DLV_%02d", 29, "C_DLV_26O" },        -- 26-28 generated, Phoenix only has "over 26"
     ["Half-Double"] = { "C_HDLV_%02d", 29, "C_HDLV_26O" },
 }

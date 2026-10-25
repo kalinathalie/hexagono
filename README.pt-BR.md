@@ -16,7 +16,7 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 - **Seleção de músicas no layout do Phoenix:** faixa de preview com o BGA no centro e cópias espelhadas nas laterais, título com artista e BPM, roda de jaquetas 4:3 com setas amarelas na música selecionada e 13 bolinhas de dificuldade com a nota recorde de cada chart.
 - **Cronômetro no centro:** as barras de perfil do P1 e do P2 ficam dos lados do cronômetro, com nível, nome e vidas.
 - **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY. Os vermelhos no READY tiram só o READY; de novo, voltam para a roda.
-- **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single, Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
+- **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single (do 1 ao 26), Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
 - **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display e Note Skin, com prévia da nota.
 - **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
 - **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, sem tela de notas depois; brilho no receptor do painel pisado e explosão em todo acerto, com qualquer noteskin; notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
@@ -80,7 +80,8 @@ Todas essas pastas estão no `.gitignore`.
   python3 tools/make_thumbs.py
   ```
 
-- `tools/make_phoenix_cards.py`: gera, a partir da arte local do Phoenix, os cartões de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
+- `tools/make_phoenix_cards.py`: gera, a partir da arte local do Phoenix, os cartões de Single Lv. 24 a 26, de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
+- `tools/make_phoenix_labels.py`: redesenha em 4x, com a fonte do tema, os nomes das categorias da command window (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...), para ficarem nítidos quando ampliados.
 
 ## Herdado do Infinitesimal
 

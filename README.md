@@ -16,7 +16,7 @@ It was made to run on a Raspberry Pi 5 with a USB pad, locked at 60 FPS.
 - **Song select in the Phoenix layout:** a preview strip with the BGA in the middle and mirrored copies on the sides, title with artist and BPM, a wheel of 4:3 jackets with yellow arrows on the selected song, and 13 difficulty balls showing your record score for each chart.
 - **Timer in the middle:** the P1 and P2 profile bars sit on both sides of the timer, with level, name and hearts.
 - **Transition when a song is chosen:** the wheel slides away, the balls move up and each player gets the MY BEST panel with score, grade and plate, the chart's big ball and the READY stamp. The red panels on READY only take READY back; pressed again, they return to the wheel.
-- **Group wheel with Phoenix cards:** game versions, Single, Double (1 to 28) and Half-Double levels, specials and a categories screen, each with its own card.
+- **Group wheel with Phoenix cards:** game versions, Single (1 to 26), Double (1 to 28) and Half-Double levels, specials and a categories screen, each with its own card.
 - **Graphical command window:** opens with the panel code (down-left, down-right, three times), also while choosing the difficulty, and is driven only by the pad. It has Speed, Auto Velocity, Display and Note Skin, with a note preview.
 - **PIU-style Auto Velocity:** the speed follows the BPM, so gimmicks keep working. Constant speed is still available as an option.
 - **Arcade gameplay:** a song is lost only after 40 misses in a row, with no score screen afterwards. Emptying the life bar does not end the song but gives a broken (grey) grade. The receptor of the pressed panel glows and every hit shows an explosion, with any noteskin. Notes that a chart marks as hidden (gimmicks) stay invisible.
@@ -80,7 +80,8 @@ All of these folders are in `.gitignore`.
   python3 tools/make_thumbs.py
   ```
 
-- `tools/make_phoenix_cards.py`: builds, from the local Phoenix art, the cards for Double Lv. 1 to 4 and 26 to 28, Half-Double and the categories.
+- `tools/make_phoenix_cards.py`: builds, from the local Phoenix art, the cards for Single Lv. 24 to 26, Double Lv. 1 to 4 and 26 to 28, Half-Double and the categories.
+- `tools/make_phoenix_labels.py`: redraws the command window category labels (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...) at 4x with the theme font, so they stay sharp when enlarged.
 
 ## Inherited from Infinitesimal
 
