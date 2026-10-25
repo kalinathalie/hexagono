@@ -8,7 +8,7 @@
 -- With two players, the red panels drop a player (the center brings them back).
 -- Blue left, blue right, three times, opens profile editing (Modules/Profile.Editor.lua):
 -- pick a profile, then EDIT NAME (the same keyboard) or EDIT PHOTO (the avatars in
--- /Appearance/Avatars, or no photo).
+-- /Appearance/Avatars and the Phoenix player icons, or no photo).
 local Slots = LoadModule("Profile.Slots.lua")
 local Keyboard = LoadModule("Profile.Keyboard.lua")
 local Confirm = LoadModule("Profile.Confirm.lua")

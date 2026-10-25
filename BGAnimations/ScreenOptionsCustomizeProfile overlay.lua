@@ -84,7 +84,8 @@ if #char_list > 0 then
 end
 menu_items[#menu_items+1]= {name= "avatimg_edit", item_type= "menu", get=function()
 	local ProfileImage = LoadModule("Config.Load.lua")( "AvatarImage", "/Save/LocalProfiles/"..profile_id.."/OutFoxPrefs.ini" )
-	return ProfileImage and string.gsub(ProfileImage, "/Appearance/Avatars/","") or "default"
+	-- the file name, from Appearance/Avatars or the theme's Phoenix icons
+	return ProfileImage and ProfileImage:match("([^/]+)$") or "default"
 end,
 screen_name= "ScreenAvatarImageSelection"}
 menu_items[#menu_items+1]= {name= "exit", item_type= "exit"}

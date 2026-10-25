@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Downloads the Pump It Up Phoenix player icons (the avatars of piugame.com) into
-OutFox's Appearance/Avatars, where profile select offers them under EDIT PHOTO.
+"""Downloads the Pump It Up Phoenix player icons (the avatars of piugame.com) into the
+theme's Graphics/Phoenix/Avatars, where profile select offers them under EDIT PHOTO
+(Modules/Profile.GetAvatarImageArray.lua; OutFox reads Appearance only from its
+install folder, which an update replaces).
 They are saved as "PIU 001.png" .. in the site's order; icons already there are kept.
 
 piugame.com does not send the intermediate certificate of its chain, so it is fetched
