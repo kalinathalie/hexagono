@@ -3,7 +3,7 @@
 -- cursor; the upper panels erase (and cancel when the name is empty).
 -- Pure Lua, no engine calls.
 --
---   New() -> state { Name, Index, Lower }
+--   New(name) -> state { Name, Index, Lower }  (name: text to start with, optional)
 --   Current(state) -> key under the cursor ("A".."Z" / "a".."z", digits, "-", "_", ".", "SPACE", "Aa", "DEL", "OK")
 --   Label(state, key) -> character typed by that key (nil for the special keys)
 --   Move(state, dir)  -- dir -1 / +1, wraps around
@@ -20,8 +20,8 @@ for _, k in ipairs({ "-", "_", ".", "SPACE", "Aa", "DEL", "OK" }) do KEYS[#KEYS 
 Keyboard.KEYS = KEYS
 Keyboard.MAX = MAX
 
-function Keyboard.New()
-    return { Name = "", Index = 1, Lower = false }
+function Keyboard.New(Name)
+    return { Name = Name or "", Index = 1, Lower = false }
 end
 
 local function Key(S, i)

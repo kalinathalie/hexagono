@@ -5,9 +5,18 @@
 -- keyboard (Modules/Profile.Keyboard.lua); the name goes to one of the hidden
 -- reserved profiles (Modules/Profile.Slots.lua), since OutFox's Lua cannot
 -- create a profile, only rename and save one.
+-- With two players, the red panels drop a player (the center brings them back).
+-- Blue left, blue right, three times, opens profile editing (Modules/Profile.Editor.lua):
+-- pick a profile, then EDIT NAME (the same keyboard) or EDIT PHOTO (the avatars in
+-- /Appearance/Avatars, or no photo).
 local Slots = LoadModule("Profile.Slots.lua")
 local Keyboard = LoadModule("Profile.Keyboard.lua")
 local Confirm = LoadModule("Profile.Confirm.lua")
+local Code = LoadModule("Pad.Code.lua")
+local Editor = LoadModule("Profile.Editor.lua")
+local Avatars = LoadModule("Profile.GetAvatarImageArray.lua")()
+local EditCode = Code.New({ "DownLeft", "DownRight", "DownLeft", "DownRight", "DownLeft", "DownRight" }, 2)
+local GenericIcon = THEME:GetPathG("UserProfile", "generic icon")
 local ReadyArt = { PlayerNumber_P1 = LoadModule("Select.Art.lua")("Phoenix/READY_P1"), PlayerNumber_P2 = LoadModule("Select.Art.lua")("Phoenix/READY_P2") }
 
 local CardItemW = 268
@@ -58,6 +67,12 @@ end
 local Cursor = { PlayerNumber_P1 = 1, PlayerNumber_P2 = 1 }
 local KB = {}
 local Ready = {}   -- players who confirmed their choice
+local Edit = {}    -- profile editor per player (nil when closed)
+
+local function AvatarPath(Path)
+    if Path and Path ~= "" and FILEMAN:DoesFileExist(Path) then return Path end
+    return nil
+end
 local function Visible() return Slots.VisibleList(ReadProfiles()) end
 
 local function SongsPlayedString(NumSongs)
@@ -71,7 +86,7 @@ local function Card(Name, Icon, Title, Sub)
         Def.Sprite {
             Name="Icon", Texture=THEME:GetPathG("UserProfile", "generic icon"),
             InitCommand=function(self)
-                if Icon then self:Load(Icon) end
+                if AvatarPath(Icon) then self:Load(Icon) end
                 self:scaletofit(0, 0, 64, 64):xy(-CardItemW / 2 + 32, -3):ztest(true)
             end
         },
@@ -122,7 +137,7 @@ local function KeyboardFrame()
     local t = Def.ActorFrame {
         Name="KB",
         InitCommand=function(self) self:visible(false) end,
-        Def.BitmapText { Font="Montserrat extrabold 40px", Text=S("NewProfile"), InitCommand=function(self) self:y(-78):zoom(0.6):diffuse(color("#46e0ff")):shadowlength(1) end },
+        Def.BitmapText { Name="Title", Font="Montserrat extrabold 40px", Text=S("NewProfile"), InitCommand=function(self) self:y(-78):zoom(0.6):diffuse(color("#46e0ff")):shadowlength(1) end },
         Def.Quad { InitCommand=function(self) self:y(-25):zoomto(CardItemW - 10, 46):diffuse(color("#05070d")):diffusealpha(0.85) end },
         Def.Quad { InitCommand=function(self) self:y(-2):zoomto(CardItemW - 30, 2):diffuse(color("#3cff5c")) end },
         Def.BitmapText { Name="Name", Font="Montserrat semibold 40px", InitCommand=function(self) self:y(-26):zoom(0.8):maxwidth((CardItemW - 20) / 0.8):shadowlength(1) end },
@@ -156,6 +171,97 @@ local function KeyText(Key)
     return Key
 end
 
+-- The profile editor inside the card: choose a profile, then a menu, then the photo row
+local PhotoOffsets = { -2, -1, 0, 1, 2 }
+local function EditorFrame()
+    local t = Def.ActorFrame {
+        Name="Editor",
+        InitCommand=function(self) self:visible(false) end,
+        Def.BitmapText { Name="Title", Font="Montserrat extrabold 40px", InitCommand=function(self) self:y(-78):zoom(0.6):maxwidth((CardItemW - 20) / 0.6):diffuse(color("#46e0ff")):shadowlength(1) end },
+        Def.ActorFrame {
+            Name="Pick",
+            Def.Sprite { Name="Avatar", Texture=GenericIcon, InitCommand=function(self) self:y(-12) end },
+            Def.BitmapText { Name="Name", Font="Montserrat semibold 40px", InitCommand=function(self) self:y(48):zoom(0.75):maxwidth((CardItemW - 60) / 0.75):shadowlength(1) end },
+            Def.BitmapText { Name="Count", Font="Montserrat normal 20px", InitCommand=function(self) self:y(74):zoom(0.7):diffusealpha(0.7) end },
+            Def.BitmapText { Font="Montserrat extrabold 40px", Text="<", InitCommand=function(self) self:xy(-108, -12):zoom(0.8):diffuse(color("#ffe600")) end },
+            Def.BitmapText { Font="Montserrat extrabold 40px", Text=">", InitCommand=function(self) self:xy(108, -12):zoom(0.8):diffuse(color("#ffe600")) end },
+        },
+        Def.ActorFrame {
+            Name="Menu",
+            Def.Quad { Name="Cursor", InitCommand=function(self) self:zoomto(CardItemW - 30, 40):diffuse(color("#ffe600")):diffusealpha(0.25) end },
+            Def.BitmapText { Name="Option1", Font="Montserrat extrabold 40px", Text=S("EditName"), InitCommand=function(self) self:y(-12):zoom(0.6):shadowlength(1) end },
+            Def.BitmapText { Name="Option2", Font="Montserrat extrabold 40px", Text=S("EditPhoto"), InitCommand=function(self) self:y(42):zoom(0.6):shadowlength(1) end },
+        },
+        Def.ActorFrame {
+            Name="Photo",
+            Def.Quad { InitCommand=function(self) self:y(-8):zoomto(84, 84):diffuse(color("#ffe600")) end },
+            Def.Quad { InitCommand=function(self) self:y(-8):zoomto(78, 78):diffuse(color("#202838")) end },
+            Def.BitmapText { Name="Label", Font="Montserrat semibold 20px", InitCommand=function(self) self:y(52):zoom(0.8):maxwidth((CardItemW - 20) / 0.8):shadowlength(1) end },
+        },
+        Def.BitmapText { Name="Msg", Font="Montserrat semibold 20px", InitCommand=function(self) self:y(90):zoom(0.7):diffuse(color("#ff6a5c")):shadowlength(1) end },
+        Def.BitmapText { Font="Montserrat normal 20px", Text=S("EditHint"), InitCommand=function(self) self:y(118):zoom(0.62):wrapwidthpixels((CardItemW - 10) / 0.62):shadowlength(1) end },
+    }
+    local Photo = t[4]
+    for _, o in ipairs(PhotoOffsets) do
+        Photo[#Photo + 1] = Def.Sprite { Name="Photo" .. o, Texture=GenericIcon, InitCommand=function(self) self:diffusealpha(o == 0 and 1 or 0.55) end }
+    end
+    return t
+end
+
+local function FitIcon(Sprite, Path, Size, X, Y)
+    Sprite:Load(AvatarPath(Path) or GenericIcon)
+    Sprite:scaletofit(-Size / 2, -Size / 2, Size / 2, Size / 2):xy(X, Y)
+end
+
+local function DrawKeyboard(KBFrame, State, Title, Msg)
+    KBFrame:GetChild("Title"):settext(Title)
+    KBFrame:GetChild("Name"):settext(State.Name)
+    local Width = KBFrame:GetChild("Name"):GetZoomedWidth()
+    KBFrame:GetChild("Caret"):x(Width / 2 + 4)
+    for _, o in ipairs(KeyOffsets) do KBFrame:GetChild("Key" .. o):settext(KeyText(Keyboard.At(State, o))) end
+    KBFrame:GetChild("Msg"):settext(Msg or "")
+end
+
+local function MsgText(Msg)
+    if Msg == "empty" then return S("NameEmpty") end
+    if Msg == "full" then return S("NameFull") end
+    return Msg
+end
+
+local function DrawEditor(Frame, E)
+    local KBFrame, EdFrame = Frame:GetChild("KB"), Frame:GetChild("Editor")
+    if E.Mode == "name" then
+        EdFrame:visible(false)
+        KBFrame:visible(true)
+        DrawKeyboard(KBFrame, E.KB, S("EditName"), MsgText(E.Msg))
+        return
+    end
+    KBFrame:visible(false)
+    EdFrame:visible(true)
+    local P = Editor.Profile(E)
+    EdFrame:GetChild("Title"):settext(E.Mode == "pick" and S("EditProfile") or P.Name)
+    EdFrame:GetChild("Msg"):settext(MsgText(E.Msg) or "")
+    local Pick, Menu, Photo = EdFrame:GetChild("Pick"), EdFrame:GetChild("Menu"), EdFrame:GetChild("Photo")
+    Pick:visible(E.Mode == "pick"); Menu:visible(E.Mode == "menu"); Photo:visible(E.Mode == "photo")
+    if E.Mode == "pick" then
+        FitIcon(Pick:GetChild("Avatar"), P.Avatar, 84, 0, -12)
+        Pick:GetChild("Name"):settext(P.Name)
+        Pick:GetChild("Count"):settext(E.Pick .. "/" .. #E.Profiles)
+    elseif E.Mode == "menu" then
+        Menu:GetChild("Cursor"):y(E.Menu == 1 and -12 or 42)
+    else
+        local n = #E.Photos
+        for _, o in ipairs(PhotoOffsets) do
+            local Choice = E.Photos[((E.Photo - 1 + o) % n) + 1]
+            local Size = o == 0 and 72 or 44
+            local X = o == 0 and 0 or ((o < 0 and -1 or 1) * (66 + (math.abs(o) - 1) * 46))
+            FitIcon(Photo:GetChild("Photo" .. o), Choice.Path, Size, X, -8)
+        end
+        local Choice = E.Photos[E.Photo]
+        Photo:GetChild("Label"):settext(Choice.Path == "" and S("NoPhoto") or (Choice.Name:gsub("%.%w+$", "")))
+    end
+end
+
 local function LoadPlayerStuff(Player)
     return {
         Def.ActorFrame { Name="BigFrame", LoadCard(Color("Black")) },
@@ -168,6 +274,7 @@ local function LoadPlayerStuff(Player)
         },
         Def.ActorFrame { Name="List", InitCommand=function(self) self:y(ListY) end, children=ListCards() },
         KeyboardFrame(),
+        EditorFrame(),
         -- READY over the chosen row once the player confirmed (red panels take it back)
         Def.ActorFrame {
             Name="ReadyStamp",
@@ -193,16 +300,20 @@ local function Update(Root, Player)
     if not Joined then return end
     local List, KBFrame = Frame:GetChild("List"), Frame:GetChild("KB")
     local State = KB[Player]
-    List:visible(State == nil)
-    Frame:GetChild("SmallFrame"):visible(State == nil)
+    local E = Edit[Player]
+    List:visible(State == nil and E == nil)
+    Frame:GetChild("SmallFrame"):visible(State == nil and E == nil)
     KBFrame:visible(State ~= nil)
+    Frame:GetChild("Editor"):visible(false)
 
+    if E then
+        Frame:GetChild("ReadyStamp"):visible(false)
+        DrawEditor(Frame, E)
+        return
+    end
     if State then
-        KBFrame:GetChild("Name"):settext(State.Name)
-        local Width = KBFrame:GetChild("Name"):GetZoomedWidth()
-        KBFrame:GetChild("Caret"):x(Width / 2 + 4)
-        for _, o in ipairs(KeyOffsets) do KBFrame:GetChild("Key" .. o):settext(KeyText(Keyboard.At(State, o))) end
-        KBFrame:GetChild("Msg"):settext(State.Msg or "")
+        Frame:GetChild("ReadyStamp"):visible(false)
+        DrawKeyboard(KBFrame, State, S("NewProfile"), State.Msg)
         return
     end
 
@@ -316,6 +427,64 @@ local function KeyboardInput(pn, Button, First)
     end
 end
 
+-- Profile editor: open with the editable profiles, apply its actions
+local function OpenEditor(pn)
+    local Profiles = {}
+    for _, Item in ipairs(Visible()) do
+        if Item.Kind == "profile" then
+            local ID = PROFILEMAN:GetLocalProfileIDFromIndex(Item.Engine - 1)
+            Profiles[#Profiles + 1] = { Index = Item.Engine - 1, Name = Item.Name,
+                Avatar = LoadModule("Config.Load.lua")("AvatarImage", "/Save/LocalProfiles/" .. ID .. "/OutFoxPrefs.ini") or "" }
+        end
+    end
+    if #Profiles == 0 then return end
+    Edit[pn] = Editor.New(Profiles, Avatars)
+    MESSAGEMAN:Broadcast("StartButton")
+end
+
+local function ApplyEdit(Action)
+    local ID = PROFILEMAN:GetLocalProfileIDFromIndex(Action.Index)
+    if Action.Do == "rename" then
+        PROFILEMAN:GetLocalProfileFromIndex(Action.Index):SetDisplayName(Action.Name)
+        PROFILEMAN:SaveLocalProfile(ID)
+    elseif Action.Do == "photo" then
+        LoadModule("Config.Save.lua")("AvatarImage", Action.Path, "/Save/LocalProfiles/" .. ID .. "/OutFoxPrefs.ini")
+        -- the photo in both players' lists
+        for _, Name in ipairs({ "P1Frame", "P2Frame" }) do
+            local Card = Root:GetChild(Name):GetChild("List"):GetChild("Profile" .. Action.Index)
+            if Card then FitIcon(Card:GetChild("Icon"), Action.Path, 64, -CardItemW / 2 + 32, -3) end
+        end
+    end
+end
+
+local function EditorInput(pn, Button, First)
+    local E = Edit[pn]
+    if LOWER_LEFT[Button] then Editor.Move(E, -1) MESSAGEMAN:Broadcast("DirectionButton")
+    elseif LOWER_RIGHT[Button] then Editor.Move(E, 1) MESSAGEMAN:Broadcast("DirectionButton")
+    elseif not First then return
+    elseif UPPER[Button] or Button == "Back" then
+        if Editor.Back(E) == "close" then Edit[pn] = nil end
+        MESSAGEMAN:Broadcast("BackButton")
+    elseif CENTER[Button] then
+        local Action = Editor.Press(E)
+        if Action then
+            ApplyEdit(Action)
+            MESSAGEMAN:Broadcast("ProfileCreated", { Player = pn })
+        else
+            MESSAGEMAN:Broadcast(E.Msg and "BackButton" or "StartButton")
+        end
+    end
+end
+
+-- With two players the red panels drop one; the other one moves on if already READY
+local function DropPlayer(pn)
+    if #GAMESTATE:GetHumanPlayers() < 2 then return end
+    Ready[pn], KB[pn], Edit[pn] = nil, nil, nil
+    SCREENMAN:GetTopScreen():SetProfileIndex(pn, -2)
+    MESSAGEMAN:Broadcast("BackButton")
+    Proceed()
+end
+
 local function InputHandler(event)
     local pn = event.PlayerNumber
     if not pn or event.type == "InputEventType_Release" then return end
@@ -323,12 +492,18 @@ local function InputHandler(event)
     local Button = event.button or event.GameButton
     local First = event.type == "InputEventType_FirstPress"
 
+    if Edit[pn] then
+        EditorInput(pn, Button, First)
+        Root:queuecommand("UpdateInternal2")
+        return
+    end
     if KB[pn] then
         KeyboardInput(pn, Button, First)
         Root:queuecommand("UpdateInternal2")
         return
     end
     if not First then return end
+    local CodeDone = GAMESTATE:IsHumanPlayer(pn) and Code.Press(EditCode, pn, Button, GetTimeSinceStart())
 
     if CENTER[Button] then
         if not GAMESTATE:IsHumanPlayer(pn) then
@@ -349,6 +524,9 @@ local function InputHandler(event)
         Ready[pn] = nil
         MESSAGEMAN:Broadcast("BackButton")
         Root:queuecommand("UpdateInternal2")
+    elseif UPPER[Button] and GAMESTATE:IsHumanPlayer(pn) then
+        DropPlayer(pn)
+        Root:queuecommand("UpdateInternal2")
     elseif Ready[pn] then
         return
     elseif LOWER_LEFT[Button] and GAMESTATE:IsHumanPlayer(pn) then
@@ -357,6 +535,10 @@ local function InputHandler(event)
         if MoveCursor(pn, 1) then MESSAGEMAN:Broadcast("DirectionButton") end
     elseif Button == "Back" or event.GameButton == "Back" then
         SCREENMAN:GetTopScreen():Cancel()
+    end
+    if CodeDone and not Ready[pn] and not KB[pn] then
+        OpenEditor(pn)
+        Root:queuecommand("UpdateInternal2")
     end
 end
 
