@@ -7,6 +7,8 @@
 -- create a profile, only rename and save one.
 local Slots = LoadModule("Profile.Slots.lua")
 local Keyboard = LoadModule("Profile.Keyboard.lua")
+local Confirm = LoadModule("Profile.Confirm.lua")
+local ReadyArt = { PlayerNumber_P1 = LoadModule("Select.Art.lua")("Phoenix/READY_P1"), PlayerNumber_P2 = LoadModule("Select.Art.lua")("Phoenix/READY_P2") }
 
 local CardItemW = 268
 local CardItemH = 64
@@ -55,6 +57,7 @@ end
 -- Per player: position in the visible list and the keyboard (nil when closed)
 local Cursor = { PlayerNumber_P1 = 1, PlayerNumber_P2 = 1 }
 local KB = {}
+local Ready = {}   -- players who confirmed their choice
 local function Visible() return Slots.VisibleList(ReadProfiles()) end
 
 local function SongsPlayedString(NumSongs)
@@ -165,6 +168,13 @@ local function LoadPlayerStuff(Player)
         },
         Def.ActorFrame { Name="List", InitCommand=function(self) self:y(ListY) end, children=ListCards() },
         KeyboardFrame(),
+        -- READY over the chosen row once the player confirmed (red panels take it back)
+        Def.ActorFrame {
+            Name="ReadyStamp",
+            InitCommand=function(self) self:xy(CardItemW / 2 - 40, 27):visible(false) end,
+            ReadyArt[Player] and Def.Sprite { Texture=ReadyArt[Player], InitCommand=function(self) self:zoom(0.45) end }
+                or Def.BitmapText { Font="Montserrat extrabold 40px", Text="READY", InitCommand=function(self) self:zoom(0.6):diffuse(color("#ffe600")):shadowlength(2) end },
+        },
         Def.ActorFrame {
             Name="EffectFrame",
             Def.Quad {
@@ -196,6 +206,9 @@ local function Update(Root, Player)
         return
     end
 
+    Frame:GetChild("ReadyStamp"):visible(Ready[Player] == true)
+    List:diffusealpha(Ready[Player] and 0.6 or 1)
+
     -- list: place the visible cards around the cursor, hide reserved profiles
     local Items = Visible()
     Cursor[Player] = math.max(1, math.min(Cursor[Player], #Items))
@@ -212,6 +225,12 @@ local function Update(Root, Player)
 end
 
 -- Move the cursor; profiles taken by the other player are skipped
+local function OtherIndex(pn)
+    local Other = pn == PLAYER_1 and PLAYER_2 or PLAYER_1
+    if not GAMESTATE:IsHumanPlayer(Other) then return nil end
+    return SCREENMAN:GetTopScreen():GetProfileIndex(Other)
+end
+
 local function MoveCursor(pn, Dir)
     local Items = Visible()
     local i = Cursor[pn]
@@ -220,14 +239,38 @@ local function MoveCursor(pn, Dir)
         local Item = Items[i]
         if not Item then return false end
         if Item.Kind == "create" then Cursor[pn] = i return true end
-        if SCREENMAN:GetTopScreen():SetProfileIndex(pn, Item.Engine) then Cursor[pn] = i return true end
+        -- a profile the other player holds is skipped (guest is always allowed)
+        if Confirm.Allowed(Item.Engine, OtherIndex(pn)) and SCREENMAN:GetTopScreen():SetProfileIndex(pn, Item.Engine) then
+            Cursor[pn] = i return true
+        end
     end
+end
+
+-- Everyone confirmed: load the chosen profiles (guests stay without one) and move on
+local function Proceed()
+    local Screen = SCREENMAN:GetTopScreen()
+    local Players = {}
+    for _, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+        local Index = Screen:GetProfileIndex(pn)
+        Players[pn] = { Ready = Ready[pn] == true, Index = Index, ID = Index > 0 and PROFILEMAN:GetLocalProfileIDFromIndex(Index - 1) or nil }
+    end
+    local Plan = Confirm.Plan(Players)
+    if not Plan then return end
+    setenv("IsBasicMode", Plan.AllGuest)
+    if not Plan.AllGuest then
+        for pn, ID in pairs(Plan.DefaultIDs) do
+            PREFSMAN:SetPreference("DefaultLocalProfileID" .. ToEnumShortString(pn), ID)
+        end
+        GAMESTATE:LoadProfiles(true)
+    end
+    Screen:StartTransitioningScreen("SM_GoToNextScreen")
 end
 
 -- Put the cursor on the profile the engine has for this player
 local function SyncCursor(pn)
     local Engine = SCREENMAN:GetTopScreen():GetProfileIndex(pn)
-    if Engine < 0 then
+    -- nothing chosen yet, or the profile the other player already starts on: guest
+    if Engine < 0 or not Confirm.Allowed(Engine, OtherIndex(pn)) then
         SCREENMAN:GetTopScreen():SetProfileIndex(pn, 0)
         Engine = 0
     end
@@ -292,18 +335,22 @@ local function InputHandler(event)
             SCREENMAN:GetTopScreen():SetProfileIndex(pn, -1)
             return
         end
+        if Ready[pn] then return end
         local Item = Visible()[Cursor[pn]]
         MESSAGEMAN:Broadcast("StartButton")
         if Item and Item.Kind == "create" then
             KB[pn] = Keyboard.New()
-            Root:queuecommand("UpdateInternal2")
-        elseif SCREENMAN:GetTopScreen():GetProfileIndex(pn) == 0 then
-            setenv("IsBasicMode", true)
-            SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
         else
-            setenv("IsBasicMode", false)
-            SCREENMAN:GetTopScreen():Finish()
+            Ready[pn] = true
+            Proceed()
         end
+        Root:queuecommand("UpdateInternal2")
+    elseif UPPER[Button] and Ready[pn] then
+        Ready[pn] = nil
+        MESSAGEMAN:Broadcast("BackButton")
+        Root:queuecommand("UpdateInternal2")
+    elseif Ready[pn] then
+        return
     elseif LOWER_LEFT[Button] and GAMESTATE:IsHumanPlayer(pn) then
         if MoveCursor(pn, -1) then MESSAGEMAN:Broadcast("DirectionButton") end
     elseif LOWER_RIGHT[Button] and GAMESTATE:IsHumanPlayer(pn) then
