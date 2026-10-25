@@ -138,7 +138,7 @@ local function KeyboardFrame()
             InitCommand=function(self)
                 local Center = o == 0
                 -- the center key sits in the highlight box; neighbours shrink so DEL / OK / SPC never touch
-                local X = Center and 0 or ((o < 0 and -1 or 1) * (36 + (math.abs(o) - 1) * 34))
+                local X = Center and 0 or ((o < 0 and -1 or 1) * (48 + (math.abs(o) - 1) * 33))
                 self:xy(X, 50):zoom(Center and 0.62 or 0.4):diffusealpha(Center and 1 or (1 - math.abs(o) * 0.22)):shadowlength(1)
                     :maxwidth((Center and 46 or 28) / (Center and 0.62 or 0.4))
                 if Center then self:diffuse(color("#ffe600")) end
