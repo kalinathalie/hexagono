@@ -26,6 +26,9 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
         t[#t+1] = Def.ActorFrame { LoadActor("MeasureCount.lua", {Player = pn, NoteData = NPSData}) }
     end
     
+    -- fail only after 40 misses in a row
+    t[#t+1] = LoadModule("PIU/Gameplay.StageBreak.lua")(pn)
+
     if string.find(TimingMode, "Pump") then
         t[#t+1] = Def.ActorFrame { LoadModule("PIU/Gameplay.Life.lua")(pn) }
     end
