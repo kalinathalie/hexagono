@@ -4,12 +4,14 @@
 --
 -- Keys looked up, in order:
 --   "Group_<folder>"      version groups ("Group_14 - XX")
+--   "Genre_<genre>"       genre groups   ("Genre_K-POP")
 --   "Level_<sub>"         level groups   ("Level_Single 17")
 --   "Special_<name>"      special groups ("Special_Co-op")
 --   "Letter"              title/artist letters
 --   "Category_<name>"     category cards ("Category_Double")
--- Fallbacks: "Fallback_Version" with the version name, "Fallback_Level" with the
--- level name in upper case, otherwise the subgroup name itself.
+-- Fallbacks: "Fallback_Version" with the version name, "Fallback_Genre" with the
+-- genre, "Fallback_Level" with the level name in upper case, otherwise the
+-- subgroup name itself.
 
 return function(Text)
     local Info = {}
@@ -26,6 +28,8 @@ return function(Text)
         elseif Category == "Group" then
             local Name = (SubName:gsub("^%d+%s*%-%s*", ""))
             return Str("Group_" .. SubName) or string.format(Str("Fallback_Version") or "%s", Name)
+        elseif Category == "Genre" then
+            return Str("Genre_" .. SubName) or string.format(Str("Fallback_Genre") or "%s", SubName)
         elseif Category == "Single" or Category == "Double" or Category == "Half-Double" then
             return Str("Level_" .. SubName) or string.format(Str("Fallback_Level") or "%s", string.upper(SubName))
         elseif Category == "Title" or Category == "Artist" then

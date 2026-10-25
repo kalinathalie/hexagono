@@ -209,20 +209,55 @@ return function(Deps)
         return 2
     end
 
+    -- ================== JUDGE TIMING ==================
+    -- Per-player offset of the judgment in ms (JudgeOffset preference): positive
+    -- judges later, for players who step late. Applied by Options.SmartTiming.
+    local OFFSET_LIMIT = 100
+    local function CurrentOffset(pn) return tonumber(Deps.GetPref(pn, "JudgeOffset")) or 0 end
+    local JudgeTiming = {
+        Name = "JudgeTiming", Kind = "items", Title = nil,
+        Label = Deps.Text("JudgeTiming"), Description = Deps.Text("JudgeTiming_Desc"),
+        Items = {},
+        Value = function(pn)
+            local Offset = CurrentOffset(pn)
+            return (Offset > 0 and "+" or "") .. Offset .. " ms"
+        end,
+    }
+    for i, Step in ipairs({ 10, 1, -1, -10 }) do
+        JudgeTiming.Items[#JudgeTiming.Items + 1] = {
+            Label = (Step > 0 and "+" or "") .. Step, Sheet = AVSheet, Frame = i,
+            Description = Deps.Text("JudgeTiming_Step"),
+            Apply = function(pn)
+                local Offset = math.max(-OFFSET_LIMIT, math.min(OFFSET_LIMIT, CurrentOffset(pn) + Step))
+                Deps.SetPref(pn, "JudgeOffset", Offset)
+            end,
+            IsActive = function(pn) return false end,
+        }
+    end
+    JudgeTiming.Items[#JudgeTiming.Items + 1] = {
+        Label = "RESET", Sheet = nil, Frame = 0,
+        Description = Deps.Text("JudgeTiming_Reset"),
+        Apply = function(pn) Deps.SetPref(pn, "JudgeOffset", 0) end,
+        IsActive = function(pn) return CurrentOffset(pn) == 0 end,
+    }
+    JudgeTiming.DefaultItem = function(pn) return 1 end
+
     -- Order follows the XSanity command window. Closing is done with the
     -- upper pad panels, so there is no Exit category.
-    local List = { Speed, AutoVelocity, Display, NoteSkin, Judge }
+    local List = { Speed, AutoVelocity, Display, NoteSkin, Judge, JudgeTiming }
 
     -- Phoenix skin (phyrebird OptionList art, local only): PhoenixTitle is the frame of
-    -- "MenuIcons 1x9", PhoenixFrame the frame of "icons 11x11"; items without one are
+    -- "MenuIcons 1x9" (JUDGE TIMING only exists as the tenth frame of the redrawn
+    -- "labels 1x10"), PhoenixFrame the frame of "icons 11x11"; items without one are
     -- drawn as a text badge
-    local PhoenixTitle = { Speed = 0, AutoVelocity = 8, Display = 1, NoteSkin = 2, Judge = 5 }
+    local PhoenixTitle = { Speed = 0, AutoVelocity = 8, Display = 1, NoteSkin = 2, Judge = 5, JudgeTiming = 9 }
     local PhoenixFrame = {
         Speed = { ["1x"] = 0, ["2x"] = 1, ["3x"] = 2, ["4x"] = 3, ["5x"] = 4, ["6x"] = 5,
             ["+0.25"] = 87, ["+0.5"] = 6, EW = 7, RV = 8, AV = 116, AC = 10, DC = 11 },
         AutoVelocity = { ["+100"] = 110, ["+10"] = 111, ["+1"] = 112, ["-1"] = 113, ["-10"] = 114, ["-100"] = 115 },
         Display = { V = 12, AP = 13, NS = 14, FD = 15, ["BGA OFF"] = 18, ["BGA DARK"] = 117 },
         Judge = { EJ = 61, NJ = 62, HJ = 63, VJ = 64 },
+        JudgeTiming = { ["+10"] = 111, ["+1"] = 112, ["-1"] = 113, ["-10"] = 114 },
     }
     for _, Category in ipairs(List) do
         Category.PhoenixTitle = PhoenixTitle[Category.Name]

@@ -16,6 +16,36 @@ Test("GroupCards classifies and titles subgroups", function()
     CheckEq(Cards.Image("Group", "14 - XX", ""), nil, "empty banner path")
 end)
 
+Test("Genres group songs by #GENRE in the Phoenix channel order", function()
+    local Genres = LoadModule("Select.Genres.lua")
+    CheckEq(Genres.Name("  k-pop "), "K-POP", "upper case, trimmed")
+    CheckEq(Genres.Name(""), nil, "empty genre")
+    CheckEq(Genres.Name(nil), nil, "no genre")
+    local Songs = { { g = "WORLD MUSIC" }, { g = "Original" }, { g = "" }, { g = "XROSS" }, { g = "K-POP" },
+        { g = "ORIGINAL" }, { g = "ROCK" }, { g = "J-MUSIC" }, { g = "AMBIENT" } }
+    local Groups = Genres.Group(Songs, function(Song) return Song.g end)
+    local Names = {}
+    for i, G in ipairs(Groups) do Names[i] = G.Name end
+    CheckEq(table.concat(Names, ","), "ORIGINAL,K-POP,WORLD MUSIC,J-MUSIC,XROSS,AMBIENT,ROCK", "Phoenix order, then others A-Z")
+    CheckEq(#Groups[1].Songs, 2, "both ORIGINAL songs")
+    CheckEq(Groups[1].Songs[1], Songs[2], "songs keep their order")
+end)
+
+Test("GroupCards and GroupInfo for genre groups", function()
+    CheckEq(Cards.Kind("Genre", "K-POP"), "genre", "kind"); CheckEq(Cards.Title("Genre", "WORLD MUSIC"), "WORLD MUSIC", "title")
+    CheckEq(Cards.PhoenixCard("Genre", "ORIGINAL"), "C_OT", "original")
+    CheckEq(Cards.PhoenixCard("Genre", "K-POP"), "C_KP", "k-pop")
+    CheckEq(Cards.PhoenixCard("Genre", "WORLD MUSIC"), "C_WM", "world music")
+    CheckEq(Cards.PhoenixCard("Genre", "J-MUSIC"), "C_JM", "j-music")
+    CheckEq(Cards.PhoenixCard("Genre", "XROSS"), "C_XR", "xross")
+    CheckEq(Cards.PhoenixCard("Genre", "ROCK"), nil, "no card: text")
+    CheckEq(Cards.PhoenixCard(nil, "Genre"), "CAT_GENRE", "category card")
+    local Known = { ["Genre_K-POP"] = "Korean pop", Fallback_Genre = "%s songs" }
+    local Info = LoadModule("GroupInfo.lua")(function(k) return Known[k] or "" end)
+    CheckEq(Info.Describe("Genre", "K-POP"), "Korean pop", "known genre")
+    CheckEq(Info.Describe("Genre", "ROCK"), "ROCK songs", "genre fallback")
+end)
+
 Test("GroupCards titles unrated and unnumbered level groups like the bubbles do", function()
     CheckEq(Cards.Title("Single", "Single 99"), "S??", "99 is unrated, as on the bubble")
     CheckEq(Cards.Title("Double", "Double ??"), "Double ??", "no digits: the name itself")
@@ -67,7 +97,7 @@ Test("GroupCards.PhoenixCard maps groups to the Phoenix channel card files", fun
     CheckEq(Cards.PhoenixCard(nil, "Special"), "CAT_SPECIAL", "category: special")
     CheckEq(Cards.PhoenixCard(nil, "Title"), "CAT_TITLE", "category: title")
     CheckEq(Cards.PhoenixCard(nil, "Artist"), "CAT_ARTIST", "category: artist")
-    CheckEq(Cards.PhoenixCard(nil, "Genre"), nil, "unknown category uses text")
+    CheckEq(Cards.PhoenixCard(nil, "Mood"), nil, "unknown category uses text")
 end)
 
 local Filter = LoadModule("Select.GroupFilter.lua")

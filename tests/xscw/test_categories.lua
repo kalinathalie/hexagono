@@ -31,9 +31,12 @@ local function FakeDeps(Overrides)
     return D
 end
 
-Test("Five categories in order with their kinds", function()
+Test("Six categories in order with their kinds", function()
     local C = BuildCategories(FakeDeps())
-    CheckEq(#C, 5, "count")
+    CheckEq(#C, 6, "count")
+    CheckEq(C[6].Name, "JudgeTiming", "6")
+    CheckEq(C[6].Kind, "items", "Judge Timing kind")
+    CheckEq(C[6].Title, nil, "no XSanity title art: drawn as text")
     CheckEq(C[1].Name, "Speed", "1")
     CheckEq(C[2].Name, "AutoVelocity", "2")
     CheckEq(C[3].Name, "Display", "3")
@@ -310,6 +313,55 @@ Test("Descriptions come from Text keys", function()
     CheckEq(C[3].Description, "Display_Desc", "Display")
     CheckEq(C[3].Items[7].Description, "Display_BGADark", "BGA DARK item")
     CheckEq(C[4].Items[1].Description, "NoteSkin_Desc", "noteskin items share the category description")
+end)
+
+Test("Judge Timing steps move the player's offset in ms, between -100 and +100", function()
+    local D = FakeDeps()
+    local JT = BuildCategories(D)[6]
+    local Labels = {}
+    for i, Item in ipairs(JT.Items) do Labels[i] = Item.Label end
+    CheckEq(table.concat(Labels, ","), "+10,+1,-1,-10,RESET", "labels")
+    JT.Items[1].Apply(P1)
+    CheckEq(D.Prefs[P1].JudgeOffset, 10, "+10 from unset")
+    JT.Items[3].Apply(P1)
+    CheckEq(D.Prefs[P1].JudgeOffset, 9, "-1")
+    D.Prefs[P1].JudgeOffset = "95"
+    JT.Items[1].Apply(P1)
+    CheckEq(D.Prefs[P1].JudgeOffset, 100, "clamp high, string value from the prefs file")
+    D.Prefs[P1].JudgeOffset = -95
+    JT.Items[4].Apply(P1)
+    CheckEq(D.Prefs[P1].JudgeOffset, -100, "clamp low")
+    CheckEq(JT.Items[1].IsActive(P1), false, "steps are never active")
+    CheckEq(JT.Items[5].IsActive(P1), false, "RESET inactive away from 0")
+    JT.Items[5].Apply(P1)
+    CheckEq(D.Prefs[P1].JudgeOffset, 0, "RESET -> 0")
+    CheckEq(JT.Items[5].IsActive(P1), true, "RESET active at 0")
+end)
+
+Test("Judge Timing Value shows the offset in ms", function()
+    local D = FakeDeps()
+    local JT = BuildCategories(D)[6]
+    CheckEq(JT.Value(P1), "0 ms", "unset")
+    D.Prefs[P1].JudgeOffset = 12
+    CheckEq(JT.Value(P1), "+12 ms", "later")
+    D.Prefs[P1].JudgeOffset = "-5"
+    CheckEq(JT.Value(P1), "-5 ms", "earlier")
+    CheckEq(JT.ValuePrefix, nil, "no prefix")
+    CheckEq(JT.DefaultItem(P1), 1, "opens on +10")
+end)
+
+Test("Judge Timing badges: AV step art for the steps, RESET as text", function()
+    local JT = BuildCategories(FakeDeps())[6]
+    CheckEq(JT.PhoenixTitle, 9, "JUDGE TIMING label (tenth frame of the redrawn sheet)")
+    local Phoenix = { ["+10"] = 111, ["+1"] = 112, ["-1"] = 113, ["-10"] = 114 }
+    for _, Item in ipairs(JT.Items) do CheckEq(Item.PhoenixFrame, Phoenix[Item.Label], "phoenix " .. Item.Label) end
+    for i, Frame in ipairs({ 1, 2, 3, 4 }) do
+        CheckEq(JT.Items[i].Sheet, "Icons11 6x1", "xsanity sheet " .. i); CheckEq(JT.Items[i].Frame, Frame, "xsanity frame " .. i)
+    end
+    CheckEq(JT.Items[5].Sheet, nil, "RESET text badge")
+    CheckEq(JT.Description, "JudgeTiming_Desc", "category description")
+    CheckEq(JT.Items[1].Description, "JudgeTiming_Step", "step description")
+    CheckEq(JT.Items[5].Description, "JudgeTiming_Reset", "reset description")
 end)
 
 -- Phoenix skin (phyrebird OptionList art): category labels from "MenuIcons 1x9",

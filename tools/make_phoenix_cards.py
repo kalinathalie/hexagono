@@ -297,6 +297,7 @@ CATEGORIES = {
     "CAT_VERSIONS": (305, "PUMP IT UP", "VERSIONS", None, None),
     "CAT_TITLE": (215, "TITLE", "A ~ Z", None, None),
     "CAT_ARTIST": (28, "ARTIST", "A ~ Z", None, None),
+    "CAT_GENRE": (50, "MUSIC", "GENRE", None, None),
 }
 
 

@@ -15,8 +15,17 @@ local TNS = {
     ['TapNoteScore_Roll'] = {"Roll","Timing"},
     ['TapNoteScore_Checkpoint'] = {"Checkpoint","Timing"}
 }
+local JudgeOffset = LoadModule("Gameplay.JudgeOffset.lua")
 return Def.ActorFrame{
     InitCommand=function(self)
+        -- Judge Timing of the command window, per player (ms in the player's prefs)
+        self.Humans = GAMESTATE:GetHumanPlayers()
+        self.Offsets = {}
+        for _, pn in ipairs(self.Humans) do
+            local Prefs = CheckIfUserOrMachineProfile(string.sub(pn, -1) - 1) .. "/OutFoxPrefs.ini"
+            self.Offsets[pn] = JudgeOffset.Seconds(LoadModule("Config.Load.lua")("JudgeOffset", Prefs))
+        end
+
         self.mode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Original"
         self.PadRelation = LoadModule("Config.Load.lua")("DisableLowerWindows","Save/OutFoxPrefs.ini") or false
         self.TimingTable = nil
@@ -53,12 +62,13 @@ return Def.ActorFrame{
     JudgmentWindowMessageCommand=function(self, params)
         local score = 'TapNoteScore_None'
         local bPumpTiming = (string.find(self.mode, "Pump") and true) or false
-        local Window = OFMath.xabs(params.Window)
+        local Offset = JudgeOffset.For(self.Offsets, params.Player, self.Humans)
+        local Window = OFMath.xabs(JudgeOffset.Shift(params.Window, Offset))
 
         -- START OF ASYMETRICAL TIMING IMPLEMENTATION FOR PUMP - by Daryen --
         
         if bPumpTiming == true then -- Only if using a K-Pump timing (EJ, NJ, HJ, VJ), do the asymetrical timing adjustments
-            Window = params.Window -- This is not actually a window, but how many seconds you're off, just like params.TapNoteOffset in JudgementMessageCommand. Will return negative values for LATE presses!
+            Window = JudgeOffset.Shift(params.Window, Offset) -- This is not actually a window, but how many seconds you're off, just like params.TapNoteOffset in JudgementMessageCommand. Will return negative values for LATE presses!
             local bLate = (Window < 0)
             local AdjustedWindow = 0
             local LateBonus = 0.041666

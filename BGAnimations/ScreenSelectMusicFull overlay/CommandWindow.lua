@@ -70,11 +70,12 @@ local Categories = BuildCategories(Deps)
 -- Phoenix skin: the phyrebird OptionList art (local Graphics/Phoenix/CommandWindow,
 -- never in the public repo). Without it the XSanity panel below is used.
 local Art = LoadModule("Select.Art.lua")
+-- SPEED, DISPLAY, NOTESKIN, ... AUTO VELOCITY; "labels" is the same sheet redrawn at 4x
+-- by tools/make_phoenix_labels.py (the Phoenix one is blurry when enlarged) plus JUDGE TIMING
+local HDLabels = Art("Phoenix/CommandWindow/labels 1x10")
 local PX = {
     Bg = Art("Phoenix/CommandWindow/bg"),                 -- teal "COMMAND" panel with the inner box
-    -- SPEED, DISPLAY, NOTESKIN, ... AUTO VELOCITY; "labels" is the same sheet redrawn
-    -- at 4x by tools/make_phoenix_labels.py (the Phoenix one is blurry when enlarged)
-    Titles = Art("Phoenix/CommandWindow/labels 1x9") or Art("Phoenix/CommandWindow/MenuIcons 1x9"),
+    Titles = HDLabels or Art("Phoenix/CommandWindow/MenuIcons 1x9"),
     Icons = Art("Phoenix/CommandWindow/icons 11x11"),     -- option badges
     Badge = Art("Phoenix/CommandWindow/frame"),           -- empty badge for options without art
     Brackets = Art("Phoenix/CommandWindow/arrows_big"),   -- yellow brackets around the cursor
@@ -93,23 +94,34 @@ local PSlotX = { [-2] = -128, [-1] = -72, [0] = 0, [1] = 72, [2] = 128 }
 local PSlotZoom = { [-2] = 0.55, [-1] = 0.8, [0] = 1.12, [1] = 0.8, [2] = 0.55 }
 local PSlotAlpha = { [-2] = 0.3, [-1] = 0.75, [0] = 1, [1] = 0.75, [2] = 0.3 }
 local PSlotOrder = { 0, -1, 1, -2, 2 }   -- with few options the cursor's own slot wins
-local PLabelW = 104                      -- label width at zoom 1, as on the Phoenix sheet
+local PTitleFrames = HDLabels and 10 or 9
+local PTitleW = 140                      -- category name on top, inside a category
+local PCatW, PSideW, PSideX = 136, 64, 119   -- category row in the box: current and neighbors
 local PSkinZoom = 0.94                   -- noteskin preview zoom relative to a badge
 local PYellow = color("#ffe600")
+local PDim = { 0.55, 0.6, 0.75, 0.9 }    -- neighbor names, greyed like on Phoenix
 
-local function PTriangle(Dir, X, Y)
+-- A category name: its frame of the label sheet, or text when the sheet has none
+local function PLabelSlot(Name, X, Y)
     return Def.ActorFrame {
-        Name=Dir < 0 and "PxArrowL" or "PxArrowR",
-        InitCommand=function(self) self:xy(X, Y):bounce():effectmagnitude(Dir * 4, 0, 0):effectperiod(0.8) end,
-        Def.ActorMultiVertex {
-            InitCommand=function(self)
-                self:SetDrawState{ Mode="DrawMode_Triangles" }
-                self:SetVertices({
-                    { { -Dir * 7, -12, 0 }, PYellow }, { { Dir * 7, 0, 0 }, PYellow }, { { -Dir * 7, 12, 0 }, PYellow },
-                })
-            end,
-        },
+        Name=Name, InitCommand=function(self) self:xy(X, Y) end,
+        Def.Sprite { Name="Art", Texture=PX.Titles, InitCommand=function(self) self:animate(false) end },
+        Def.BitmapText { Name="Text", Font="Montserrat extrabold 40px", InitCommand=function(self) self:shadowlength(1):visible(false) end },
     }
+end
+
+local function PSetLabel(Slot, Category, Width, Dim)
+    local Frame = Category.PhoenixTitle
+    local HasArt = Frame ~= nil and Frame < PTitleFrames
+    local Sprite, Text = Slot:GetChild("Art"), Slot:GetChild("Text")
+    Sprite:visible(HasArt)
+    Text:visible(not HasArt)
+    if HasArt then
+        Sprite:setstate(Frame):zoom(Width / Sprite:GetWidth()):diffuse(Dim and PDim or color("1,1,1,1"))
+    else
+        Text:settext(string.upper(Category.Label or Category.Name)):zoom(1)
+        Text:zoom(math.min(0.75, Width / math.max(1, Text:GetWidth()))):diffuse(Dim and PDim or PYellow)
+    end
 end
 
 -- Distinct icon sheets used by the categories (one sprite per sheet per slot)
@@ -460,9 +472,12 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
     else
         -- ===================== Phoenix skin =====================
         Window[#Window + 1] = Def.Sprite { Texture=PX.Bg, InitCommand=function(self) self:zoom(PZ) end }
-        Window[#Window + 1] = Def.Sprite { Name="PxLabel", Texture=PX.Titles, InitCommand=function(self) self:animate(false):y(PLabelY) end }
-        Window[#Window + 1] = PTriangle(-1, -122, PLabelY)
-        Window[#Window + 1] = PTriangle(1, 122, PLabelY)
+        Window[#Window + 1] = PLabelSlot("PxTitle", 0, PLabelY)
+        -- while choosing a category the box shows its name between the neighbors' names
+        Window[#Window + 1] = Def.ActorFrame {
+            Name="PxCats", InitCommand=function(self) self:y(PBoxY) end,
+            PLabelSlot("Cat-1", -PSideX, 0), PLabelSlot("Cat0", 0, 0), PLabelSlot("Cat1", PSideX, 0),
+        }
         Window[#Window + 1] = Def.BitmapText {
             Name="PxValue", Font="Montserrat extrabold 40px",
             InitCommand=function(self) self:y(PValueY):zoom(0.55):maxwidth(250 / 0.55):diffuse(PYellow):shadowlength(1) end,
@@ -517,13 +532,19 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             local AtItems = S.Level == "item" and Category.Kind ~= "exit"
             local IsSkin = Category.Kind == "noteskin"
 
-            -- Category label: big with side arrows while choosing the category
-            local Label = self:GetChild("PxLabel"):setstate(Category.PhoenixTitle or 0)
-            Label:zoom((AtItems and 1.35 or 1.75) * PLabelW / Label:GetWidth())
-            self:GetChild("PxArrowL"):visible(not AtItems)
-            self:GetChild("PxArrowR"):visible(not AtItems)
+            -- Category name on top inside a category; while choosing one, the box shows
+            -- it between the previous and next categories
+            local Title = self:GetChild("PxTitle"):visible(AtItems)
+            if AtItems then PSetLabel(Title, Category, PTitleW) end
+            local Row = self:GetChild("PxCats"):visible(not AtItems)
+            if not AtItems then
+                for _, Off in ipairs({ -1, 0, 1 }) do
+                    PSetLabel(Row:GetChild("Cat" .. Off), S.Categories[Wrap(S.Cat + Off, #S.Categories)],
+                        Off == 0 and PCatW or PSideW, Off ~= 0)
+                end
+            end
 
-            -- Badges: the category's options around the cursor (dimmed preview while choosing the category)
+            -- Badges: the category's options around the cursor
             local Items = Category.Items or {}
             local Center = AtItems and S.Item or (Category.DefaultItem and Category.DefaultItem(pn) or 1)
             local Shown = {}
@@ -531,7 +552,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                 local Slot = self:GetChild("PxSlot" .. Off)
                 local Index = Wrap(Center + Off, #Items)
                 local Item = Items[Index]
-                local Visible = Item ~= nil and not Shown[Index] and not IsSkin
+                local Visible = AtItems and Item ~= nil and not Shown[Index] and not IsSkin
                 if Visible then Shown[Index] = true end
                 Slot:visible(Visible)
                 if Visible then
@@ -547,32 +568,34 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
                         Label:visible(true):settext(string.upper(Item.Label)):diffuse(Shade, Shade, Shade, 1)
                     end
                     Slot:GetChild("Active"):visible(Active)
-                    Slot:diffusealpha(PSlotAlpha[Off] * (AtItems and 1 or 0.55))
+                    Slot:diffusealpha(PSlotAlpha[Off])
                 end
             end
-            self:GetChild("PxBrackets"):visible(AtItems)
+            -- the brackets frame the badge under the cursor, or the current category's name
+            local Brackets = self:GetChild("PxBrackets")
+            if AtItems then Brackets:zoom(0.8) else Brackets:zoomx(1.12):zoomy(0.85) end
             self:GetChild("PxGlow"):visible(AtItems)
 
-            -- Noteskin previews (2 on each side of the cursor), AV value
+            -- Noteskin previews (2 on each side of the cursor), value above the box
             local ValueText = nil
             local Preview = self:GetChild("PxSkin")
+            Preview:visible(IsSkin and AtItems)
             if IsSkin then
-                local Screen = SCREENMAN:GetTopScreen()
-                local ShownSkin = {}
-                for _, Off in ipairs(PSlotOrder) do
-                    local Index = Wrap(Center + Off, #Items)
-                    local Item = not ShownSkin[Index] and Items[Index]
-                    local Target = Item and Screen and Screen:GetChild("NS" .. string.lower(Item.Label))
-                    if Item then ShownSkin[Index] = true end
-                    local Proxy = Preview:GetChild("Proxy" .. Off)
-                    if Target then Proxy:SetTarget(Target) end
-                    Proxy:visible(Target ~= nil):diffusealpha(PSlotAlpha[Off] * (AtItems and 1 or 0.55))
+                if AtItems then
+                    local Screen = SCREENMAN:GetTopScreen()
+                    local ShownSkin = {}
+                    for _, Off in ipairs(PSlotOrder) do
+                        local Index = Wrap(Center + Off, #Items)
+                        local Item = not ShownSkin[Index] and Items[Index]
+                        local Target = Item and Screen and Screen:GetChild("NS" .. string.lower(Item.Label))
+                        if Item then ShownSkin[Index] = true end
+                        local Proxy = Preview:GetChild("Proxy" .. Off)
+                        if Target then Proxy:SetTarget(Target) end
+                        Proxy:visible(Target ~= nil):diffusealpha(PSlotAlpha[Off])
+                    end
                 end
-                Preview:visible(true)
                 local Item = Items[Center]
                 ValueText = Item and string.upper(Item.Label) or ""
-            else
-                Preview:visible(false)
             end
             if Category.Value then ValueText = (Category.ValuePrefix or "") .. Category.Value(pn) end
             self:GetChild("PxValue"):visible(ValueText ~= nil):settext(ValueText or "")

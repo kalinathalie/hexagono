@@ -2,11 +2,11 @@
 -- Pure Lua, no engine calls.
 --
 -- Category is the sorting category name from Scripts/01 Sorting.lua ("Special",
--- "Group", "Title", "Artist", "Single", "Half-Double", "Double") or nil when the
--- card itself represents a category. SubName is the subgroup name.
+-- "Group", "Genre", "Title", "Artist", "Single", "Half-Double", "Double") or nil when
+-- the card itself represents a category. SubName is the subgroup name.
 --
---   Kind(Category, SubName)  -> "version" | "level" | "letter" | "special" | "category"
---   Title(Category, SubName) -> text drawn on the card ("XX", "S17", "D22", "HD10", "A", "Co-op", "Group")
+--   Kind(Category, SubName)  -> "version" | "genre" | "level" | "letter" | "special" | "category"
+--   Title(Category, SubName) -> text drawn on the card ("XX", "K-POP", "S17", "D22", "HD10", "A", "Co-op", "Group")
 --   Image(Category, SubName, BannerPath) -> BannerPath for version cards (nil when empty), nil otherwise
 --   PhoenixCard(Category, SubName) -> base name of the Phoenix channel card for that group
 --       (Graphics/Phoenix/Channels/<name>.png, copied locally), or nil when Phoenix has none
@@ -18,6 +18,7 @@ local LEVEL_PREFIX = { ["Single"] = "S", ["Double"] = "D", ["Half-Double"] = "HD
 function Cards.Kind(Category, SubName)
     if Category == nil then return "category" end
     if Category == "Group" then return "version" end
+    if Category == "Genre" then return "genre" end
     if LEVEL_PREFIX[Category] then return "level" end
     if Category == "Title" or Category == "Artist" then return "letter" end
     return "special"
@@ -51,11 +52,12 @@ local VERSION_CARDS = {
     ["13 - PRIME 2"] = "C_PR2", ["14 - XX"] = "C_XX", ["15 - MOBILE EDITION"] = "C_ME", ["16 - PHOENIX"] = "C_PHOENIX",
 }
 local SPECIAL_CARDS = { ["All Tunes"] = "C_ATUNES", ["Full Song"] = "C_FSONG", ["Shortcut"] = "C_SC", ["Remix"] = "C_RMX", ["Co-op"] = "C_COOP" }
+local GENRE_CARDS = { ["ORIGINAL"] = "C_OT", ["K-POP"] = "C_KP", ["WORLD MUSIC"] = "C_WM", ["J-MUSIC"] = "C_JM", ["XROSS"] = "C_XR" }
 
 -- Category cards and the Single 24-26 / Double 1-4, 26-28 / Half-Double level cards are made locally by
 -- tools/make_phoenix_cards.py in the style of the Phoenix channel cards
 local CATEGORY_CARDS = {
-    ["Group"] = "CAT_VERSIONS", ["Single"] = "CAT_SINGLE", ["Double"] = "CAT_DOUBLE", ["Half-Double"] = "CAT_HALFDOUBLE",
+    ["Group"] = "CAT_VERSIONS", ["Genre"] = "CAT_GENRE", ["Single"] = "CAT_SINGLE", ["Double"] = "CAT_DOUBLE", ["Half-Double"] = "CAT_HALFDOUBLE",
     ["Special"] = "CAT_SPECIAL", ["Title"] = "CAT_TITLE", ["Artist"] = "CAT_ARTIST",
 }
 local LEVEL_CARDS = {   -- prefix, first level with a card, card for that level and over
@@ -68,6 +70,7 @@ function Cards.PhoenixCard(Category, SubName)
     local Kind = Cards.Kind(Category, SubName)
     if Kind == "category" then return CATEGORY_CARDS[SubName] end
     if Kind == "version" then return VERSION_CARDS[SubName] end
+    if Kind == "genre" then return GENRE_CARDS[SubName] end
     if Kind == "special" then return SPECIAL_CARDS[SubName] end
     if Kind == "level" then
         local Meter = tonumber(SubName:match("(%d+)$") or "")

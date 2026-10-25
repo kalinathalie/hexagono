@@ -243,10 +243,27 @@ function AssembleGroupSorting()
         MasterGroupsList[#MasterGroupsList].SubGroups[#MasterGroupsList[#MasterGroupsList].SubGroups].Name  .. " - " .. 
         #MasterGroupsList[#MasterGroupsList].SubGroups[#MasterGroupsList[#MasterGroupsList].SubGroups].Songs .. " songs")
 	end
-    
+
     -- If nothing is available, remove the main entry completely
     if #MasterGroupsList[#MasterGroupsList].SubGroups == 0 then table.remove(MasterGroupsList) end
-    
+
+    -- ======================================== Song genres ========================================
+    -- The Phoenix genre channels (ORIGINAL, K-POP, WORLD MUSIC, J-MUSIC, XROSS) from #GENRE
+    MasterGroupsList[#MasterGroupsList + 1] = {
+        Name = "Genre",
+        Banner = THEME:GetPathG("", "Common fallback banner"),
+        SubGroups = {}
+    }
+    for Genre in ivalues(LoadModule("Select.Genres.lua").Group(AllSongs, function(Song) return Song:GetGenre() end)) do
+        MasterGroupsList[#MasterGroupsList].SubGroups[#MasterGroupsList[#MasterGroupsList].SubGroups + 1] = {
+            Name = Genre.Name,
+            Banner = THEME:GetPathG("", "Common fallback banner"),
+            Songs = Genre.Songs,
+        }
+        Trace("Group added: Genre/" .. Genre.Name .. " - " .. #Genre.Songs .. " songs")
+    end
+    if #MasterGroupsList[#MasterGroupsList].SubGroups == 0 then table.remove(MasterGroupsList) end
+
     -- ======================================== Song titles ========================================
     local Alphabet = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "#"}
     local TitleGroups = {}

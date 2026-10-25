@@ -16,6 +16,7 @@ function ResetLuaMods(pn)
     local ProfileDir = "Save/MachineProfile/OutFoxPrefsForPlayerp" .. string.sub(pn,-1) .. "/OutFoxPrefs.ini"
     LoadModule("Config.Save.lua")("AutoVelocity", tostring(200), ProfileDir)
     LoadModule("Config.Save.lua")("AutoVelocityType", tostring(false), ProfileDir)
+    LoadModule("Config.Save.lua")("JudgeOffset", 0, ProfileDir)
     LoadModule("Config.Save.lua")("ScreenFilter", 0, ProfileDir)
     LoadModule("Config.Save.lua")("ScreenFilterColor", 2, ProfileDir)
     LoadModule("Config.Save.lua")("ScreenFilterSize", "Full", ProfileDir)

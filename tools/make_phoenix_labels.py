@@ -7,8 +7,8 @@ them at about 1.75x and a 1080p screen scales them again, so they come out
 blurry. This script draws the same nine labels at 4x with Montserrat ExtraBold
 (the theme's own font) in the Phoenix style: white letters with a colored
 outline and a glow of the same color, slanted and stretched to fill the label.
-The command window uses "labels 1x9.png" instead of the Phoenix sheet when it
-exists; the frames are in the same order.
+The command window uses "labels 1x10.png" instead of the Phoenix sheet when it
+exists; the first nine frames are in the same order, the tenth is JUDGE TIMING.
 
 Usage:  python tools/make_phoenix_labels.py [--out DIR] [--font TTF]
 """
@@ -36,6 +36,7 @@ LABELS = [   # lines, outline/glow color, letter color
     (["RUSH"], (230, 38, 255), WHITE),
     (["RESET"], (255, 28, 51), (255, 226, 21)),
     (["AUTO", "VELOCITY"], (255, 33, 54), WHITE),
+    (["JUDGE", "TIMING"], (255, 40, 130), WHITE),     # not on the Phoenix sheet
 ]
 
 
