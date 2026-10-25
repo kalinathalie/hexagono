@@ -1,6 +1,6 @@
 # Hexágono: Infinitesimal no estilo Pump It Up Phoenix
 
-Tema de Project OutFox que reproduz as telas do **Pump It Up Phoenix** (e do Phoenix 2), feito a partir do [Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal). O Infinitesimal original é inspirado no Pump It Up Infinity. Este fork troca essa base pelo Phoenix: seleção de músicas, roda de grupos, transição ao escolher a música e janela de comandos foram refeitas no layout do Phoenix.
+Tema de Project OutFox que reproduz as telas do **Pump It Up Phoenix** (e do Phoenix 2), feito a partir do [Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal). O Infinitesimal original é inspirado no Pump It Up Infinity. Este fork troca essa base pelo Phoenix: tela inicial, seleção de perfil, seleção de músicas, roda de grupos, janela de comandos e gameplay foram refeitas para funcionar como no fliperama, tudo pelo tapete.
 
 Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 
@@ -12,14 +12,15 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 
 - **Tela inicial de fliperama:** sem menu. O centro do tapete entra o jogador e um segundo toque começa; o outro lado pode entrar antes. Com o vídeo do Phoenix 2 (arte local), a abertura toca uma vez e a espera fica em loop sem emenda. O código vermelho esquerdo, vermelho direito, azul esquerdo, azul direito, duas vezes, abre as opções.
 - **Criar perfil pelo tapete:** na seleção de perfil, CRIAR PERFIL abre um teclado na tela. Os azuis escolhem a tecla, o centro aperta e os vermelhos apagam.
+- **Começa na versão mais nova:** cada jogo novo abre a seleção numa música aleatória da última versão (hoje o PHOENIX 2). Depois de jogar, a seleção volta para a música jogada.
 - **Seleção de músicas no layout do Phoenix:** faixa de preview com o BGA no centro e cópias espelhadas nas laterais, título com artista e BPM, roda de jaquetas 4:3 com setas amarelas na música selecionada e 13 bolinhas de dificuldade com a nota recorde de cada chart.
 - **Cronômetro no centro:** as barras de perfil do P1 e do P2 ficam dos lados do cronômetro, com nível, nome e vidas.
-- **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY.
-- **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single, Double e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
-- **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes) e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display e Note Skin, com prévia da nota.
+- **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY. Os vermelhos no READY tiram só o READY; de novo, voltam para a roda.
+- **Roda de grupos com cartões do Phoenix:** versões do jogo, níveis de Single, Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
+- **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Tem Speed, Auto Velocity, Display e Note Skin, com prévia da nota.
 - **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
 - **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, sem tela de notas depois; brilho no receptor do painel pisado e explosão em todo acerto, com qualquer noteskin; notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
-- **Listas por número de jogadores:** com dois jogadores somem Double, Half-Double e Co-op.
+- **Listas por número de jogadores:** com dois jogadores somem Double, Half-Double e Co-op; os charts de co-op ficam só no grupo Co-op.
 - **Setas BACK e SHIFT nos cantos**, vindas do InfiniteWorlds.
 - **Miniaturas nítidas na roda**, geradas a partir do fundo de cada música.
 - **Fundo estático** no lugar do vídeo animado, para não pesar na navegação.
@@ -28,14 +29,18 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 
 | | |
 |---|---|
-| ![Seleção de músicas](.github/readme/song-select.jpg) | ![Música escolhida](.github/readme/song-chosen.jpg) |
-| Seleção de músicas | Música escolhida, com MY BEST e bola grande |
-| ![Dois jogadores](.github/readme/two-players.jpg) | ![Dois jogadores, música escolhida](.github/readme/two-players-chosen.jpg) |
-| Dois jogadores, cronômetro no centro | Dois jogadores escolhendo a dificuldade |
-| ![Versões](.github/readme/versions.jpg) | ![Categorias](.github/readme/categories.jpg) |
-| Roda de grupos: versões | Roda de grupos: categorias |
-| ![Níveis de Double](.github/readme/double-levels.jpg) | ![Janela de comandos](.github/readme/command-window.jpg) |
-| Níveis de Double | Janela de comandos |
+| ![Jogador 1 entrou](.github/readme/title-ready.jpg) | ![Seleção de perfil](.github/readme/profile-select.jpg) |
+| Tela inicial: o jogador 1 entrou; mais um toque no centro começa | Seleção de perfil com CRIAR PERFIL |
+| ![Teclado do perfil](.github/readme/profile-keyboard.jpg) | ![Seleção de músicas](.github/readme/song-select.jpg) |
+| Nome do perfil digitado pelo tapete | Seleção de músicas, aberta numa música do PHOENIX 2 |
+| ![Música escolhida](.github/readme/song-chosen.jpg) | ![Dois jogadores](.github/readme/two-players.jpg) |
+| Música escolhida: MY BEST, bola grande e READY | Dois jogadores, cronômetro no centro |
+| ![Dois jogadores em READY](.github/readme/two-players-chosen.jpg) | ![Versões](.github/readme/versions.jpg) |
+| Os dois jogadores em READY | Roda de grupos: versões |
+| ![Categorias](.github/readme/categories.jpg) | ![Níveis de Double](.github/readme/double-levels.jpg) |
+| Roda de grupos: categorias | Níveis de Double, do 1 ao 28 |
+| ![Janela de comandos](.github/readme/command-window.jpg) | ![Gameplay](.github/readme/gameplay.jpg) |
+| Janela de comandos: Auto Velocity | Gameplay com dois jogadores: o receptor do painel pisado brilha |
 
 As capturas usam a arte opcional descrita abaixo, que não vem no repositório.
 
@@ -75,7 +80,7 @@ Todas essas pastas estão no `.gitignore`.
   python3 tools/make_thumbs.py
   ```
 
-- `tools/make_phoenix_cards.py`: gera, a partir da arte local do Phoenix, os cartões de Double Lv. 1 a 4, de Half-Double e das categorias.
+- `tools/make_phoenix_cards.py`: gera, a partir da arte local do Phoenix, os cartões de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
 
 ## Herdado do Infinitesimal
 
