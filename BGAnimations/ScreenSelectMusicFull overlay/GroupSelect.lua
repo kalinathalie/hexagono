@@ -41,9 +41,11 @@ local IsSelectingGroup = false
 local IsBusy = false
 local IsFocusedMain = false
 
-LastGroupMainIndex = tonumber(LoadModule("Config.Load.lua")("GroupMainIndex", CheckIfUserOrMachineProfile(string.sub(GAMESTATE:GetMasterPlayerNumber(),-1)-1).."/OutFoxPrefs.ini")) or 0
-LastGroupSubIndex = tonumber(LoadModule("Config.Load.lua")("GroupSubIndex", CheckIfUserOrMachineProfile(string.sub(GAMESTATE:GetMasterPlayerNumber(),-1)-1).."/OutFoxPrefs.ini")) or 0
-LastSongIndex = tonumber(LoadModule("Config.Load.lua")("SongIndex", CheckIfUserOrMachineProfile(string.sub(GAMESTATE:GetMasterPlayerNumber(),-1)-1).."/OutFoxPrefs.ini")) or 0
+-- saved position, or a random newest-version song at the start of a new game (Scripts/04 Main.lua)
+do
+    local Main, Sub, Song = SelectStartPosition()
+    LastGroupMainIndex, LastGroupSubIndex, LastSongIndex = Main or 0, Sub or 0, Song or 0
+end
 --reset LastGroup/Sub/Song if they were deleted since last session to avoid "attempt to index nil" crashes
 if GroupsList[LastGroupMainIndex] == nil then
     LastGroupMainIndex = 1

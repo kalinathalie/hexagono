@@ -79,7 +79,7 @@ local t = Def.ActorFrame {
                 self:sleep(0.3):queuecommand("GoOptions")
             end
         end,
-        GoStartCommand=function(self) PhoenixTitleSeen = true SCREENMAN:SetNewScreen(CustomBranch.StartGame()) end,
+        GoStartCommand=function(self) PhoenixTitleSeen = true HexagonoNewGame = true SCREENMAN:SetNewScreen(CustomBranch.StartGame()) end,
         GoOptionsCommand=function(self) PhoenixTitleSeen = true SCREENMAN:SetNewScreen("ScreenOptionsService") end,
     },
 

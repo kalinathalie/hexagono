@@ -299,3 +299,27 @@ function AssembleBasicMode()
     fHandle:destroy()
     Trace("Done!")
 end
+
+-- Saved position of song select (category, group, song) for the master player.
+-- At the start of a new game (HexagonoNewGame, set by the title screen) it is a
+-- random song of the newest version instead (Modules/Select.StartSong.lua); the
+-- choice is saved, so the wheel and the group wheel, which both call this while
+-- the screen loads, open on the same song.
+HexagonoNewGame = HexagonoNewGame or false
+function SelectStartPosition()
+    local Dir = CheckIfUserOrMachineProfile(string.sub(GAMESTATE:GetMasterPlayerNumber(), -1) - 1) .. "/OutFoxPrefs.ini"
+    if HexagonoNewGame then
+        HexagonoNewGame = false
+        local Main, Sub, Song = LoadModule("Select.StartSong.lua").Pick(GroupsList, math.random)
+        if Main then
+            for _, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+                local PnDir = CheckIfUserOrMachineProfile(string.sub(pn, -1) - 1) .. "/OutFoxPrefs.ini"
+                LoadModule("Config.Save.lua")("GroupMainIndex", Main, PnDir)
+                LoadModule("Config.Save.lua")("GroupSubIndex", Sub, PnDir)
+                LoadModule("Config.Save.lua")("SongIndex", Song, PnDir)
+            end
+        end
+    end
+    local function Get(Key) return tonumber(LoadModule("Config.Load.lua")(Key, Dir)) end
+    return Get("GroupMainIndex"), Get("GroupSubIndex"), Get("SongIndex")
+end
