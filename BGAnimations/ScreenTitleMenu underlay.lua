@@ -41,10 +41,8 @@ local t = Def.ActorFrame {
 
         IsTitle = Screen():GetName() ~= "ScreenLogo"
         if IsTitle then
-            -- coming back from the profile screen or the options: nobody is joined yet
-            for _, pn in ipairs({ PLAYER_1, PLAYER_2 }) do
-                if GAMESTATE:IsSideJoined(pn) then GAMESTATE:UnjoinPlayer(pn) end
-            end
+            -- fresh game state, nobody joined (the engine's ScreenTitleMenu class did this)
+            GAMESTATE:Reset()
             Root = self
             Screen():AddInputCallback(function(event) return Root and Root:GetChild("Input"):playcommand("Pad", event) and Swallowed() end)
         end
