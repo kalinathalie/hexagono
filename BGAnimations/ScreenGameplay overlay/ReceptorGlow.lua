@@ -3,30 +3,19 @@
 -- input; the noteskin's own receptors and explosions are left alone.
 local pn = ...
 
-local ColumnsByButton = { DownLeft = 1, UpLeft = 2, Center = 3, UpRight = 4, DownRight = 5 }
+local ReceptorColumns = LoadModule("Gameplay.ReceptorColumns.lua")
 local ReceptorY = THEME:GetMetric("Player", "ReceptorArrowsYStandard")
 local ReceptorYReverse = THEME:GetMetric("Player", "ReceptorArrowsYReverse")
 
 local Style = GAMESTATE:GetCurrentStyle()
 local NumColumns = Style:ColumnsPerPlayer()
 local IsDouble = Style:GetStyleType() == "StyleType_OnePlayerTwoSides"
-local IsHalf = NumColumns == 6
+local Kind = NumColumns == 6 and "half" or IsDouble and "double" or "single"
 
--- column for a pad press: in double the other pad is columns 6-10; half-double uses
--- the inner 6 panels (UpRight, Center, DownRight of pad 1, then DownLeft, UpLeft, Center of pad 2)
+-- column for a pad press (in double the engine gives both pads to the player: the
+-- controller tells them apart)
 local function Column(event)
-    local Index = ColumnsByButton[event.button]
-    if not Index then return nil end
-    local Pad = event.PlayerNumber
-    if IsDouble and not IsHalf then
-        return Pad == pn and Index or (Index + 5)
-    elseif IsHalf then
-        local Own = Pad == pn
-        local Map = Own and { [3] = 1, [4] = 2, [5] = 3 } or { [1] = 4, [2] = 5, [3] = 6 }
-        return Map[Index]
-    end
-    if Pad ~= pn then return nil end
-    return Index
+    return ReceptorColumns.For(event.button, event.controller, event.PlayerNumber, pn, Kind)
 end
 
 local Frame = Def.ActorFrame {
