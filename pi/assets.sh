@@ -125,7 +125,8 @@ else
 fi
 
 say "Player icons"
-"$PY" "$HERE/assets/avatars.py" "$PX/Avatars" \n    || warn "some player icons could not be downloaded; run this again to fetch the rest"
+"$PY" "$HERE/assets/avatars.py" "$PX/Avatars" \
+    || warn "some player icons could not be downloaded; run this again to fetch the rest"
 
 say "Wheel thumbnails"
 if ls -d "$SONGS"/*/ >/dev/null 2>&1; then
