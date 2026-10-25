@@ -57,8 +57,9 @@ local t = Def.ActorFrame {
             Swallow = false
             local pn = event.PlayerNumber
             if not pn or Leaving then return end
-            local Button = event.GameButton or event.button
-            if Button == "Back" or event.button == "Back" then return end   -- keyboard Esc stays with the engine
+            -- OutFox: event.button is the pad panel (UpLeft, Center...), event.GameButton the menu button (MenuUp, Start...)
+            local Button = event.button or event.GameButton
+            if Button == "Back" or event.GameButton == "Back" then return end   -- keyboard Esc stays with the engine
             Swallow = true
             if event.type ~= "InputEventType_FirstPress" then return end
             local Action = TitleInput.Press(State, pn, Button, GetTimeSinceStart())
