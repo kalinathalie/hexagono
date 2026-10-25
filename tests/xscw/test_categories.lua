@@ -12,7 +12,10 @@ local function FakeDeps(Overrides)
         Skin = { [P1] = "nx2" },
         NoteSkinNames = { "default", "nx2", "Infinity" },
         Prefs = { [P1] = {} },
+        Judge = "Pump Normal",
     }
+    function D.GetJudge() return D.Judge end
+    function D.SetJudge(mode) D.Judge = mode end
     function D.GetPref(pn, key) return D.Prefs[pn][key] end
     function D.SetPref(pn, key, value) D.Prefs[pn][key] = value end
     function D.GetAV(pn) return D.AV[pn] end
@@ -28,21 +31,79 @@ local function FakeDeps(Overrides)
     return D
 end
 
-Test("Four categories in order with their kinds", function()
+Test("Five categories in order with their kinds", function()
     local C = BuildCategories(FakeDeps())
-    CheckEq(#C, 4, "count")
+    CheckEq(#C, 5, "count")
     CheckEq(C[1].Name, "Speed", "1")
     CheckEq(C[2].Name, "AutoVelocity", "2")
     CheckEq(C[3].Name, "Display", "3")
     CheckEq(C[4].Name, "NoteSkin", "4")
+    CheckEq(C[5].Name, "Judge", "5")
     CheckEq(C[1].Kind, "items", "Speed kind")
     CheckEq(C[2].Kind, "items", "AV kind")
     CheckEq(C[3].Kind, "items", "Display kind")
     CheckEq(C[4].Kind, "noteskin", "NoteSkin kind")
+    CheckEq(C[5].Kind, "items", "Judge kind")
     CheckEq(C[1].Title, "01_title", "Speed title")
     CheckEq(C[2].Title, "11_title", "AV title")
     CheckEq(C[3].Title, "02_title", "Display title")
     CheckEq(C[4].Title, "03_title", "NoteSkin title")
+    CheckEq(C[5].Title, "06_title", "Judge title")
+end)
+
+Test("Judge items: EJ, NJ, HJ, VJ set the timing mode, one at a time", function()
+    local D = FakeDeps()
+    local Judge = BuildCategories(D)[5]
+    local Labels = {}
+    for i, Item in ipairs(Judge.Items) do Labels[i] = Item.Label end
+    CheckEq(table.concat(Labels, ","), "EJ,NJ,HJ,VJ", "labels")
+    CheckEq(Judge.Items[2].IsActive(P1), true, "NJ active")
+    CheckEq(Judge.Items[3].IsActive(P1), false, "HJ inactive")
+    Judge.Items[3].Apply(P1)
+    CheckEq(D.Judge, "Pump Hard", "HJ -> Pump Hard")
+    CheckEq(Judge.Items[3].IsActive(P1), true, "HJ active")
+    CheckEq(Judge.Items[2].IsActive(P1), false, "NJ now inactive")
+    Judge.Items[3].Apply(P1)
+    CheckEq(D.Judge, "Pump Hard", "applying the active judge again keeps it")
+    Judge.Items[4].Apply(P1)
+    CheckEq(D.Judge, "Pump Very Hard", "VJ -> Pump Very Hard")
+    Judge.Items[1].Apply(P1)
+    CheckEq(D.Judge, "Pump Easy", "EJ -> Pump Easy")
+end)
+
+Test("Judge Value shows the current judge like the AV value", function()
+    local D = FakeDeps()
+    local C = BuildCategories(D)
+    CheckEq(C[2].ValuePrefix, "AV ", "AV keeps its prefix")
+    CheckEq(C[5].ValuePrefix, nil, "judge has none")
+    CheckEq(C[5].Value(P1), "NJ", "NJ")
+    D.Judge = "Pump Very Hard"
+    CheckEq(C[5].Value(P1), "VJ", "VJ")
+    D.Judge = "ITG"
+    CheckEq(C[5].Value(P1), "ITG", "other timing modes by name")
+    D.Judge = nil
+    CheckEq(C[5].Value(P1), "", "unset")
+end)
+
+Test("Judge opens on the current judge, else NJ", function()
+    local D = FakeDeps({ Judge = "Pump Very Hard" })
+    local Judge = BuildCategories(D)[5]
+    CheckEq(Judge.DefaultItem(P1), 4, "VJ")
+    D.Judge = "ITG"
+    CheckEq(Judge.DefaultItem(P1), 2, "NJ")
+end)
+
+Test("Judge badges: Phoenix frames, XSanity HJ and VJ, descriptions", function()
+    local Judge = BuildCategories(FakeDeps())[5]
+    CheckEq(Judge.PhoenixTitle, 5, "JUDGE label")
+    local Phoenix = { EJ = 61, NJ = 62, HJ = 63, VJ = 64 }
+    for _, Item in ipairs(Judge.Items) do CheckEq(Item.PhoenixFrame, Phoenix[Item.Label], "phoenix " .. Item.Label) end
+    CheckEq(Judge.Items[1].Sheet, nil, "EJ text badge")
+    CheckEq(Judge.Items[2].Sheet, nil, "NJ text badge")
+    CheckEq(Judge.Items[3].Sheet, "Icons07 15x1", "HJ sheet"); CheckEq(Judge.Items[3].Frame, 0, "HJ frame")
+    CheckEq(Judge.Items[4].Sheet, "Icons07 15x1", "VJ sheet"); CheckEq(Judge.Items[4].Frame, 2, "VJ frame")
+    CheckEq(Judge.Description, "Judge_Desc", "category")
+    CheckEq(Judge.Items[3].Description, "Judge_HJ", "HJ item")
 end)
 
 Test("Display items: 8 badges from the Icons03 sheet", function()

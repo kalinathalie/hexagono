@@ -11,12 +11,14 @@
 --   Text(key) -> string               (strings from [XSCommandWindow])
 --
 --   GetPref(pn, key) -> value          SetPref(pn, key, value)   (Infinitesimal prefs)
+--   GetJudge() -> timing mode name     SetJudge(name)   (machine-wide, both players)
 --
 -- Returns a list of categories:
 --   { Name, Kind ("items"|"noteskin"), Title (png base name),
 --     Label, Description, Items = { { Label, Sheet, Frame, InactiveFrame?,
 --     Apply(pn), IsActive(pn), Description } }, DefaultItem(pn),
---     Value(pn) (AV only), PhoenixTitle, and PhoenixFrame per item (Phoenix skin) }
+--     Value(pn) and ValuePrefix (AV and Judge: text shown above the badges),
+--     PhoenixTitle, and PhoenixFrame per item (Phoenix skin) }
 
 local AV_MIN, AV_MAX, AV_DEFAULT = 100, 999, 200
 
@@ -84,7 +86,7 @@ return function(Deps)
         Name = "AutoVelocity", Kind = "items", Title = "11_title",
         Label = Deps.Text("AutoVelocity"), Description = Deps.Text("AutoVelocity_Desc"),
         Items = {},
-        Value = function(pn) return tostring(CurrentAV(pn)) end,
+        Value = function(pn) return tostring(CurrentAV(pn)) end, ValuePrefix = "AV ",
     }
     for i, Step in ipairs({ 100, 10, 1, -1, -10, -100 }) do
         AutoVelocity.Items[#AutoVelocity.Items + 1] = {
@@ -173,19 +175,54 @@ return function(Deps)
         return 1
     end
 
+    -- ===================== JUDGE =====================
+    -- The K-Pump timing windows of the theme (the SmartTimings preference). It is a
+    -- machine setting, so both players share it; a new game goes back to NJ.
+    local JudgeSheet = "Icons07 15x1"   -- XSanity has HJ and VJ badges only
+    local Judge = {
+        Name = "Judge", Kind = "items", Title = "06_title",
+        Label = Deps.Text("Judge"), Description = Deps.Text("Judge_Desc"),
+        Items = {},
+    }
+    local JudgeModes = {   -- badge, timing mode, XSanity frame
+        { "EJ", "Pump Easy" }, { "NJ", "Pump Normal" }, { "HJ", "Pump Hard", 0 }, { "VJ", "Pump Very Hard", 2 },
+    }
+    for _, Mode in ipairs(JudgeModes) do
+        Judge.Items[#Judge.Items + 1] = {
+            Label = Mode[1], Sheet = Mode[3] and JudgeSheet or nil, Frame = Mode[3] or 0,
+            Description = Deps.Text("Judge_" .. Mode[1]),
+            Apply = function(pn) Deps.SetJudge(Mode[2]) end,
+            IsActive = function(pn) return Deps.GetJudge() == Mode[2] end,
+        }
+    end
+    Judge.Value = function(pn)
+        local Current = Deps.GetJudge()
+        for _, Mode in ipairs(JudgeModes) do
+            if Current == Mode[2] then return Mode[1] end
+        end
+        return Current or ""
+    end
+    Judge.DefaultItem = function(pn)
+        for i, Mode in ipairs(JudgeModes) do
+            if Deps.GetJudge() == Mode[2] then return i end
+        end
+        return 2
+    end
+
     -- Order follows the XSanity command window. Closing is done with the
     -- upper pad panels, so there is no Exit category.
-    local List = { Speed, AutoVelocity, Display, NoteSkin }
+    local List = { Speed, AutoVelocity, Display, NoteSkin, Judge }
 
     -- Phoenix skin (phyrebird OptionList art, local only): PhoenixTitle is the frame of
     -- "MenuIcons 1x9", PhoenixFrame the frame of "icons 11x11"; items without one are
     -- drawn as a text badge
-    local PhoenixTitle = { Speed = 0, AutoVelocity = 8, Display = 1, NoteSkin = 2 }
+    local PhoenixTitle = { Speed = 0, AutoVelocity = 8, Display = 1, NoteSkin = 2, Judge = 5 }
     local PhoenixFrame = {
         Speed = { ["1x"] = 0, ["2x"] = 1, ["3x"] = 2, ["4x"] = 3, ["5x"] = 4, ["6x"] = 5,
             ["+0.25"] = 87, ["+0.5"] = 6, EW = 7, RV = 8, AV = 116, AC = 10, DC = 11 },
         AutoVelocity = { ["+100"] = 110, ["+10"] = 111, ["+1"] = 112, ["-1"] = 113, ["-10"] = 114, ["-100"] = 115 },
         Display = { V = 12, AP = 13, NS = 14, FD = 15, ["BGA OFF"] = 18, ["BGA DARK"] = 117 },
+        Judge = { EJ = 61, NJ = 62, HJ = 63, VJ = 64 },
     }
     for _, Category in ipairs(List) do
         Category.PhoenixTitle = PhoenixTitle[Category.Name]

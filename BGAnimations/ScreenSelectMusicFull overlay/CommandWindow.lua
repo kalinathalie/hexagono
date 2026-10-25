@@ -59,6 +59,9 @@ local Deps = {
     -- Infinitesimal per-player preferences (screen filter etc.)
     GetPref = function(pn, key) return LoadModule("Config.Load.lua")(key, PrefsFile(pn)) end,
     SetPref = function(pn, key, value) LoadModule("Config.Save.lua")(key, value, PrefsFile(pn)) end,
+    -- Timing windows: a machine preference read when gameplay starts
+    GetJudge = function() return LoadModule("Config.Load.lua")("SmartTimings", "Save/OutFoxPrefs.ini") end,
+    SetJudge = function(name) LoadModule("Config.Save.lua")("SmartTimings", name, "Save/OutFoxPrefs.ini") end,
     Text = Text,
 }
 
@@ -437,10 +440,10 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             Preview:visible(false)
         end
 
-        -- Value (Auto Velocity)
+        -- Value (Auto Velocity, Judge)
         local Value = self:GetChild("Value")
         if Category.Value then
-            Value:visible(true):settext("AV " .. Category.Value(pn))
+            Value:visible(true):settext((Category.ValuePrefix or "") .. Category.Value(pn))
         else
             Value:visible(false)
         end
@@ -571,7 +574,7 @@ for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
             else
                 Preview:visible(false)
             end
-            if Category.Value then ValueText = "AV " .. Category.Value(pn) end
+            if Category.Value then ValueText = (Category.ValuePrefix or "") .. Category.Value(pn) end
             self:GetChild("PxValue"):visible(ValueText ~= nil):settext(ValueText or "")
 
             -- Description of the category, or of the option under the cursor
