@@ -31,6 +31,15 @@ Test("Genres group songs by #GENRE in the Phoenix channel order", function()
     CheckEq(Groups[1].Songs[1], Songs[2], "songs keep their order")
 end)
 
+Test("Genres leave out the Short Cut, Remix and Full Song versions, like the arcade", function()
+    local Genres = LoadModule("Select.Genres.lua")
+    local Normal, Full, Remix = { g = "K-POP" }, { g = "K-POP", v = true }, { g = "XROSS", v = true }
+    local Groups = Genres.Group({ Normal, Full, Remix }, function(Song) return Song.g end, function(Song) return Song.v end)
+    CheckEq(#Groups, 1, "a genre with only variants is gone")
+    CheckEq(#Groups[1].Songs, 1, "only the normal version")
+    CheckEq(Groups[1].Songs[1], Normal, "the normal song")
+end)
+
 Test("GroupCards and GroupInfo for genre groups", function()
     CheckEq(Cards.Kind("Genre", "K-POP"), "genre", "kind"); CheckEq(Cards.Title("Genre", "WORLD MUSIC"), "WORLD MUSIC", "title")
     CheckEq(Cards.PhoenixCard("Genre", "ORIGINAL"), "C_OT", "original")

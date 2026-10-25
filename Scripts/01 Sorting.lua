@@ -248,13 +248,19 @@ function AssembleGroupSorting()
     if #MasterGroupsList[#MasterGroupsList].SubGroups == 0 then table.remove(MasterGroupsList) end
 
     -- ======================================== Song genres ========================================
-    -- The Phoenix genre channels (ORIGINAL, K-POP, WORLD MUSIC, J-MUSIC, XROSS) from #GENRE
+    -- The Phoenix genre channels (ORIGINAL, K-POP, WORLD MUSIC, J-MUSIC, XROSS) from #GENRE,
+    -- with the normal versions only: Short Cut, Remix and Full Song stay in Special
+    local Variants = {}
+    for List in ivalues({ Shortcuts, Remixes, FullSongs }) do
+        for Song in ivalues(List) do Variants[Song] = true end
+    end
     MasterGroupsList[#MasterGroupsList + 1] = {
         Name = "Genre",
         Banner = THEME:GetPathG("", "Common fallback banner"),
         SubGroups = {}
     }
-    for Genre in ivalues(LoadModule("Select.Genres.lua").Group(AllSongs, function(Song) return Song:GetGenre() end)) do
+    for Genre in ivalues(LoadModule("Select.Genres.lua").Group(AllSongs, function(Song) return Song:GetGenre() end,
+        function(Song) return Variants[Song] end)) do
         MasterGroupsList[#MasterGroupsList].SubGroups[#MasterGroupsList[#MasterGroupsList].SubGroups + 1] = {
             Name = Genre.Name,
             Banner = THEME:GetPathG("", "Common fallback banner"),

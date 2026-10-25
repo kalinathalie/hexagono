@@ -2,9 +2,11 @@
 -- select screen. Pure Lua.
 --
 --   Name(raw) -> genre in upper case without surrounding spaces, nil when empty
---   Group(songs, GetGenre) -> { { Name, Songs }, ... }: the Phoenix channels first
---       (ORIGINAL, K-POP, WORLD MUSIC, J-MUSIC, XROSS), then any other genre A-Z;
---       GetGenre(song) returns the raw genre (Song:GetGenre() in the theme)
+--   Group(songs, GetGenre, IsVariant) -> { { Name, Songs }, ... }: the Phoenix channels
+--       first (ORIGINAL, K-POP, WORLD MUSIC, J-MUSIC, XROSS), then any other genre A-Z;
+--       GetGenre(song) returns the raw genre (Song:GetGenre() in the theme). Songs for
+--       which IsVariant(song) is true (Short Cut, Remix, Full Song) are left out: on
+--       the arcade those have their own channels.
 
 local Genres = {}
 
@@ -16,10 +18,10 @@ function Genres.Name(Raw)
     return Name
 end
 
-function Genres.Group(Songs, GetGenre)
+function Genres.Group(Songs, GetGenre, IsVariant)
     local ByName, Others = {}, {}
     for _, Song in ipairs(Songs) do
-        local Name = Genres.Name(GetGenre(Song))
+        local Name = not (IsVariant and IsVariant(Song)) and Genres.Name(GetGenre(Song))
         if Name then
             if not ByName[Name] then ByName[Name] = {} end
             table.insert(ByName[Name], Song)
