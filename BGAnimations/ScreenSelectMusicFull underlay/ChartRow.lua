@@ -23,16 +23,17 @@ local XS = {
 }
 local UsePhoenix = PX.Balls and PX.Base
 
+local Records
+
 local function BestScore(pn, song, steps)
     if not GAMESTATE:IsHumanPlayer(pn) or not song or not steps then return nil end
     local Profile = PROFILEMAN:GetProfile(pn)
     if not Profile then return nil end
     local List = Profile:GetHighScoreList(song, steps)
-    local Scores = List and List:GetHighScores() or {}
-    return Scores[1]
+    return Records.Best(List and List:GetHighScores())
 end
 
-local Records = LoadModule("Select.Records.lua")({
+Records = LoadModule("Select.Records.lua")({
     Players = { PLAYER_1, PLAYER_2 },
     GetHighScore = function(pn, song, steps)
         local Best = BestScore(pn, song, steps)

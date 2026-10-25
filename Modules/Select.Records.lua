@@ -9,9 +9,18 @@
 -- Returns:
 --   Label(pn, song, steps) -> "878123" or "" (no record, zero or not a number)
 --   LabelsFor(song, stepsList) -> { [i] = { [pn] = label } } for every player in Deps.Players
+--   Best(highScores) -> the first high score that is not a broken play, or nil
 
 return function(Deps)
     local R = {}
+
+    -- a play where the life bar ran out (Grade_Failed) is never a record
+    function R.Best(Scores)
+        for _, Score in ipairs(Scores or {}) do
+            if Score:GetGrade() ~= "Grade_Failed" then return Score end
+        end
+        return nil
+    end
 
     function R.Label(pn, song, steps)
         local Score = Deps.GetHighScore(pn, song, steps)

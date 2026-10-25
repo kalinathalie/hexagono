@@ -1,3 +1,4 @@
+local Records = LoadModule("Select.Records.lua")({ Players = {}, GetHighScore = function() return nil end })
 local CurPrefTiming = LoadModule("Options.ReturnCurrentTiming.lua")().Name
 local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
 local Name, Length = LoadModule("Options.SmartTapNoteScore.lua")()
@@ -29,8 +30,9 @@ local function GetJLineValue(line, pl)
         local PrevHighScore = nil
 
         ProfileScores = PROFILEMAN:GetProfile(pl):GetHighScoreList(GAMESTATE:GetCurrentSong(), GAMESTATE:GetCurrentSteps(pl)):GetHighScores()
-        if ProfileScores[1] ~= nil then
-            PrevHighScore = ProfileScores[1]:GetScore()
+        local Best = Records.Best(ProfileScores)
+        if Best ~= nil then
+            PrevHighScore = Best:GetScore()
         end
 
         if PROFILEMAN:GetProfile(pl) and PrevHighScore and PSS_Score > PrevHighScore then

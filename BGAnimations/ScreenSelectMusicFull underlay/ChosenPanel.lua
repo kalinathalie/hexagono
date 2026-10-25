@@ -39,8 +39,7 @@ local PanelX = SCREEN_CENTER_X + Side * (UsePhoenixPanel and 365 or 330)
 local BallX = UsePhoenixPanel and (-Side * 190) or (-Side * 186)   -- relative to the panel
 
 local function Top(List)
-    local Scores = List and List:GetHighScores() or {}
-    return Scores[1]
+    return Records.Best(List and List:GetHighScores())
 end
 
 -- HighScore exposes GetTapNoteScore; the plate module expects GetTapNoteScores

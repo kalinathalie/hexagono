@@ -4,10 +4,29 @@
 -- so it also gets the screen's own commands when the song starts (On, and Begin, which
 -- the engine plays on every screen): the video, sound and fade use a command of their
 -- own, StageBreakStart, played once when the transition starts on a failed stage.
+
+-- A broken play is not saved as a record: the engine saves the stage's scores when this
+-- transition ends, unless the song options say not to. Saving is turned back on when
+-- the next gameplay screen loads.
+local function SaveScores(Save)
+    for _, Level in ipairs({ "ModsLevel_Song", "ModsLevel_Current" }) do
+        GAMESTATE:GetSongOptionsObject(Level):SaveScore(Save)
+    end
+end
+local function WithoutBrokenScores(Frame)
+    return Def.ActorFrame {
+        InitCommand=function() SaveScores(true) end,
+        StartTransitioningCommand=function()
+            if STATSMAN:GetCurStageStats():AllFailed() then SaveScores(false) end
+        end,
+        Frame,
+    }
+end
+
 local Video = PhoenixStageBreakVideo and PhoenixStageBreakVideo()
 if Video then
     local Started = false
-    return Def.ActorFrame {
+    return WithoutBrokenScores(Def.ActorFrame {
         StartTransitioningCommand=function(self)
             local Failed = STATSMAN:GetCurStageStats():AllFailed()
             Trace("StageBreak: StartTransitioning, all failed: " .. tostring(Failed) .. ", started before: " .. tostring(Started))
@@ -29,7 +48,7 @@ if Video then
             InitCommand=function(self) self:FullScreen():diffuse(0, 0, 0, 0) end,
             StageBreakStartCommand=function(self) self:sleep(Video.Length - 0.3):linear(0.3):diffusealpha(1) end,
         },
-    }
+    })
 end
 
 local t = Def.ActorFrame{
@@ -195,4 +214,4 @@ local t = Def.ActorFrame{
     }
 }
 
-return t
+return WithoutBrokenScores(t)

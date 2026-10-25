@@ -36,3 +36,16 @@ Test("Records.GradeName and PlateName give the Phoenix record icon names", funct
     CheckEq(R.PlateName("MarvelousGame"), "MG", "marvelous"); CheckEq(R.PlateName("PerfectGame"), "PG", "perfect")
     CheckEq(R.PlateName("RoughGame"), "RG", "rough"); CheckEq(R.PlateName("FailGame"), nil, "no plate on fail")
 end)
+
+Test("Records.Best skips broken plays (stage failed) and keeps the best cleared one", function()
+    local R = LoadModule("Select.Records.lua")({ Players = { 1 }, GetHighScore = function() return nil end })
+    local function Score(Grade, Points)
+        return { GetGrade = function() return Grade end, GetScore = function() return Points end }
+    end
+    local Broken, Cleared, Lower = Score("Grade_Failed", 950000), Score("Grade_Tier05", 800000), Score("Grade_Tier07", 600000)
+    CheckEq(R.Best({ Broken, Cleared, Lower }), Cleared, "a broken play above a cleared one")
+    CheckEq(R.Best({ Cleared, Broken }), Cleared, "cleared first")
+    CheckEq(R.Best({ Broken }), nil, "only broken plays: no record")
+    CheckEq(R.Best({}), nil, "no plays")
+    CheckEq(R.Best(nil), nil, "no list")
+end)
