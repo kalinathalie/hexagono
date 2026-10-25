@@ -32,6 +32,8 @@ local t = Def.ActorFrame {
 for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
     -- glow on the receptors of the pressed panels, for any noteskin
     t[#t+1] = LoadActor("ReceptorGlow.lua", pn)
+    -- notes the chart marks as hidden stay invisible (still judged)
+    t[#t+1] = LoadActor("HiddenNotes.lua", pn)
 
     local IsDouble = (GAMESTATE:GetCurrentStyle():GetStyleType() == "StyleType_OnePlayerTwoSides")
     local IsCenter = (IsDouble or Center1Player() or GAMESTATE:GetIsFieldCentered(pn))
