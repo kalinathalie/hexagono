@@ -3,6 +3,9 @@
 -- beside it (P1 left, P2 right) with the avatar at the outer end, level and name,
 -- and the lives next to the timer. A side without a player shows a dim bar with
 -- "PRESS CENTER STEP" (or "INSERT CREDIT" when credits are needed).
+-- LoadActor("../SelectHud", { HideEmpty = true }) hides that side's bar entirely
+-- (the evaluation screen, where nobody can join).
+local Opts = (...) or {}
 local Art = LoadModule("Select.Art.lua")
 local HeartArt = Art("XSanity/SM-HEARTS 2x1")
 
@@ -76,6 +79,7 @@ local function Bar(pn)
         CurrentSongChangedMessageCommand=function(self) self:queuecommand("Refresh") end,
         RefreshCommand=function(self)
             local On = Joined(pn)
+            if Opts.HideEmpty then self:visible(On) end
             self:GetChild("Player"):visible(On)
             self:GetChild("Empty"):visible(not On)
             if not On then

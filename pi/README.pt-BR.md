@@ -63,6 +63,7 @@ As artes pertencem à Andamiro e aos autores do phyrebird e do XSanity, então o
 | `Graphics/Phoenix/Channels` | cartões de canal do [phyrebird](https://github.com/rayden-61/phyrebird), reduzidos para 320 px; Double 1-4 e 26-28, Single 24-26, Half-Double e cartões de categoria feitos pelo `tools/make_phoenix_cards.py` |
 | `Graphics/Phoenix/CommandWindow` | a command window do phyrebird; os nomes nítidos das categorias feitos pelo `tools/make_phoenix_labels.py` |
 | `Graphics/Phoenix` | bolas de dificuldade, MY BEST, READY, cursores e setas do phyrebird; `RecordGrades` também |
+| `Graphics/Phoenix/Evaluation` | notas, placas, rótulos da tabela (com a faixa recolorida de verde), vozes e música de resultado do phyrebird; `info.ini` marca a pasta como completa |
 | `Graphics/Phoenix/Logo` | o logo do Phoenix 2, recortado pelo `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | o vídeo de abertura do Phoenix 2 no YouTube, cortado onde o loop de espera se repete e convertido para a faixa completa de cor, pelo `assets/title.py` |
 | `Graphics/Phoenix/StageBreak` | a animação "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" do Phoenix 2, mostrada quando um jogador estoura, do YouTube, pelo `assets/stagebreak.py` |
@@ -91,7 +92,7 @@ As artes vêm do GitHub (phyrebird), do YouTube, do xsanity.net e do piugame.com
 
 ## Verificações
 
-- `python3 pi/tests/test_<nome>.py`, um por parte: `display60` (escolha do modo de 60 Hz), `display_watch` (vigia de telas), `merge_prefs` (preferências), `title` (tempos do vídeo de abertura), `noteskins` (correção das explosões), `avatars` (ícones de jogador).
+- `python3 pi/tests/test_<nome>.py`, um por parte: `display60` (escolha do modo de 60 Hz), `display_watch` (vigia de telas), `merge_prefs` (preferências), `title` (tempos do vídeo de abertura), `noteskins` (correção das explosões), `avatars` (ícones de jogador), `phyrebird` (arquivos da tela de resultado, duração da música e faixa verde dos rótulos).
 - FPS: com `ShowStats=1` no `Preferences.ini`, o OutFox grava uma linha por segundo com `:Video, , <fps> FPS` em `~/.project-outfox/Logs/ProjectOutfox.MainLog.*.log`.
 - `~/.cache/display-60hz.log` e `~/.cache/outfox-run.log` mostram o que os scripts de tela e de inicialização fizeram.
 

@@ -20,6 +20,7 @@ It was made to run on a Raspberry Pi 5 with a USB pad, locked at 60 FPS.
 - **Graphical command window:** opens with the panel code (down-left, down-right, three times), also while choosing the difficulty, and is driven only by the pad. While choosing a category, its name sits between the previous and next ones. It has Speed, Auto Velocity, Display, Note Skin (the skins around the cursor are previewed), Judge (EJ, NJ, HJ, VJ; back to NJ on every new game) and Judge Timing (moves each player's judgment up to 100 ms later or earlier).
 - **PIU-style Auto Velocity:** the speed follows the BPM, so gimmicks keep working. Constant speed is still available as an option.
 - **Arcade gameplay:** a song is lost only after 40 misses in a row, with Phoenix 2's "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation and no score screen afterwards. Emptying the life bar does not end the song but gives a broken (grey) grade. Broken plays are never saved as records. The receptor of the pressed panel glows with any noteskin (in double, on the pad that was pressed) and every hit shows an explosion, the first note and the one after a miss included (the Pi kit fixes the noteskins that only showed it during a combo). Notes that a chart marks as hidden (gimmicks) stay invisible.
+- **Phoenix 2 result screen:** the song's title in a green neon strip, the chart's ball, the judgment table (PERFECT to MAX COMBO and KCAL) counting up, the score with its difference to your record (gold on a first play, green above it, red below), the big grade with its flash and voice, and the plate, over Phoenix's result music. A broken play shows the cracked silver grade and no plate. The pad only leaves the screen once the grade has landed; the timer gives 20 s. Art, voices and music come from phyrebird (local art); without them the screen uses text.
 - **Lists by number of players:** with two players, Double, Half-Double and Co-op are hidden; co-op charts only appear in the Co-op group.
 - **BACK and SHIFT arrows in the corners**, from InfiniteWorlds.
 - **Sharp wheel thumbnails**, made from each song's background.
@@ -121,7 +122,7 @@ Anything missing falls back to the theme's own graphics. Sources and options: [t
 
 ## Inherited from Infinitesimal
 
-The original theme's features still apply: K-Pump style judgment windows and life bar, other timing windows (StepMania, ITG, Infinity, Pro, Jump), the evaluation announcer, Basic Mode, background filters, appearance modifiers and the theme's own options in the operator menu. See the [Infinitesimal README](https://github.com/Team-Infinitesimal/Infinitesimal) for the full list.
+The original theme's features still apply: K-Pump style judgment windows and life bar, other timing windows (StepMania, ITG, Infinity, Pro, Jump), Basic Mode, background filters, appearance modifiers and the theme's own options in the operator menu. See the [Infinitesimal README](https://github.com/Team-Infinitesimal/Infinitesimal) for the full list.
 
 ## Languages
 

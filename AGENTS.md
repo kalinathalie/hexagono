@@ -20,11 +20,12 @@ Leia só o que a tarefa toca. `docs/` é privado (fora do git) e só existe na m
   - `command-window` — janela de comandos: Speed, Auto Velocity, Display, Note Skin, Judge, Judge Timing
   - `stage-break-and-life` — barra de vida, estouro com 40 erros, animação, jogada quebrada fora dos recordes
   - `gameplay-visuals` — brilho do receptor, explosões das noteskins, notas ocultas
-  - `evaluation-and-hud` — avaliação atual, barras de perfil, cronômetro, setas dos cantos, fundo
-  - `evaluation-screen` — tela de resultado do Phoenix 2 (nova; substitui a avaliação de `evaluation-and-hud`)
+  - `evaluation-and-hud` — HUD das seleções: barras de perfil, cronômetro, setas dos cantos, fundo (a avaliação foi para `evaluation-screen`)
+  - `evaluation-screen` — tela de resultado do Phoenix 2: tabela, score, diferença, nota, placa, voz e música
   - `pi-setup` — kit do Pi: sistema, tela a 60 Hz, inicialização, preferências, tapete, perfis reservados
   - `theme-art` — arte de terceiros: `pi/assets.sh`, `pi/assets/`, `tools/make_*`
-- `docs/plans/` — planos de implementação por ondas.
+- `docs/plans/` — planos de implementação por ondas; cada um tem uma seção "Estado" no topo.
+- `docs/backlog.md` — pendências: o que está em andamento, o que espera o usuário, prováveis bugs e próximas specs. Comece por aqui ao retomar o trabalho.
 
 ## Stack
 

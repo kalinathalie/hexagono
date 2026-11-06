@@ -63,6 +63,7 @@ The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the 
 | `Graphics/Phoenix/Channels` | channel cards from [phyrebird](https://github.com/rayden-61/phyrebird), scaled to 320 px; Double 1-4 and 26-28, Single 24-26, Half-Double and category cards made by `tools/make_phoenix_cards.py` |
 | `Graphics/Phoenix/CommandWindow` | phyrebird's command window; the sharp category labels made by `tools/make_phoenix_labels.py` |
 | `Graphics/Phoenix` | difficulty balls, MY BEST, READY, cursors and arrows from phyrebird; `RecordGrades` too |
+| `Graphics/Phoenix/Evaluation` | the result screen's grades, plates, table labels (their band recolored green), voices and music from phyrebird; `info.ini` marks it complete |
 | `Graphics/Phoenix/Logo` | the Phoenix 2 logo, cut out by `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | the Phoenix 2 title video from YouTube, cut where its attract loop repeats and converted to full-range color, by `assets/title.py` |
 | `Graphics/Phoenix/StageBreak` | the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation shown when a player breaks the stage, from YouTube, by `assets/stagebreak.py` |
@@ -91,7 +92,7 @@ The art comes from GitHub (phyrebird), YouTube, xsanity.net and piugame.com: whe
 
 ## Checks
 
-- `python3 pi/tests/test_<name>.py`, one per part: `display60` (60 Hz mode picker), `display_watch` (screen watcher), `merge_prefs` (preferences), `title` (title video timings), `noteskins` (explosion fix), `avatars` (player icons).
+- `python3 pi/tests/test_<name>.py`, one per part: `display60` (60 Hz mode picker), `display_watch` (screen watcher), `merge_prefs` (preferences), `title` (title video timings), `noteskins` (explosion fix), `avatars` (player icons), `phyrebird` (the result screen's file list, music length and green label band).
 - FPS: OutFox writes one line per second with `:Video, , <fps> FPS` to `~/.project-outfox/Logs/ProjectOutfox.MainLog.*.log` while `ShowStats=1` is set in `Preferences.ini`.
 - `~/.cache/display-60hz.log` and `~/.cache/outfox-run.log` show what the screen and autostart scripts did.
 

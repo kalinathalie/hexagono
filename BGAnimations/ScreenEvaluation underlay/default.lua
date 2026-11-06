@@ -1,19 +1,18 @@
 local CenterPressCount = 0
 local CenterPress3xEnabled = LoadModule("Config.Load.lua")("EvalCenter3xExit", "Save/OutFoxPrefs.ini")
-local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
-local ClassicGrades = LoadModule("Config.Load.lua")("ClassicGrades", "Save/OutFoxPrefs.ini") and Scoring == "Old"
-local AdvScoresShown = false
 local BasicMode = getenv("IsBasicMode")
 
-local GradeZoom = IsUsingWideScreen() and 0.5 or 0.45
-local PlateZoom = IsUsingWideScreen() and 0.8 or 0.65
+local R = LoadModule("Eval.Result.lua")
+local Art = LoadModule("Select.Art.lua")
 
-local Grades = { PlayerNumber_P1 = "FailF", PlayerNumber_P2 = "FailF" }
-local GradePriority = {
-    Pass3S = 1, Fail3S = 2, Pass2S = 3, Fail2S = 4, Pass1S = 5, Fail1S = 6, PassA = 7, FailA = 8,
-    PassB = 9, FailB = 10, PassC = 11, FailC = 12, PassD = 13, FailD = 14, PassF = 15, FailF = 16
-}
-local Plates = { PlayerNumber_P1 = "RoughGame", PlayerNumber_P2 = "RoughGame" }
+-- Seconds since the screen appeared; the update function advances it until the
+-- count-up is over (R.CanExit)
+local Clock = 0
+local NextTick = 0
+local Tick
+
+local Grades = {}
+local Scores = {}
 
 local function InputHandler(event)
     local pn = event.PlayerNumber
@@ -27,6 +26,8 @@ local function InputHandler(event)
 
     local button = event.button
     if button == "Center" then
+        -- Ignore the pad (and do not count presses) until the table has finished
+        if not R.CanExit(Clock) then return false end
         if CenterPressCount == (CenterPress3xEnabled and 2 or 0) then
             SCREENMAN:set_input_redirected(PLAYER_1, false)
             SCREENMAN:set_input_redirected(PLAYER_2, false)
@@ -35,6 +36,7 @@ local function InputHandler(event)
             CenterPressCount = CenterPressCount + 1
         end
     elseif button == "Start" then
+        if not R.CanExit(Clock) then return false end
         SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
     elseif button == "Back" then
         SCREENMAN:set_input_redirected(PLAYER_1, false)
@@ -44,7 +46,37 @@ local function InputHandler(event)
     return false
 end
 
+-- Grade of each player, for the rank voice. Created with the file, never during the animation.
+for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
+    local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+    Grades[pn] = LoadModule("PIU/Score.GradingEval.lua")(pss)
+    Scores[pn] = pss:GetScore()
+end
+
+local Speaker = R.VoicePlayer(Scores)
+local Voice = Speaker and R.Voice(Grades[Speaker])
+local VoicePath = Voice and ("/Themes/" .. THEME:GetCurThemeName() .. "/Graphics/Phoenix/Evaluation/Rank/" .. Voice .. ".mp3")
+-- No voice file: no sound at all (not even the OutFox announcer)
+if VoicePath and not FILEMAN:DoesFileExist(VoicePath) then VoicePath = nil end
+
+local Shine = Art("Phoenix/Evaluation/_shine")
+
 local t = Def.ActorFrame {
+    OnCommand=function(self)
+        Clock = 0
+        NextTick = 0
+        self:SetUpdateFunction(function(self, dt)
+            -- stops advancing once the pad may leave (a flag instead of
+            -- SetUpdateFunction(nil), which the binding may refuse)
+            if R.CanExit(Clock) then return end
+            Clock = Clock + (dt or 1 / 60)
+            if Tick and R.IsCounting(Clock) and Clock >= NextTick then
+                Tick:play()
+                NextTick = Clock + R.TIMES.Tick
+            end
+        end)
+    end,
+
     -- Since we now use an input handler to exit the screen, play the start sound effect here
     Def.Sound {
         File=THEME:GetPathS("Common", "Start"),
@@ -52,15 +84,58 @@ local t = Def.ActorFrame {
         OffCommand=function(self) self:play() end
     },
 
-    LoadActor("EvalLines"),
+    LoadActor("../SelectHud", { HideEmpty = true }),
 
-    -- TODO: Dynamically adjust the Y position relative to the amount of lines on screen?
-    LoadActor("EvalSongInfo") .. {
-        InitCommand=function(self) self:xy(SCREEN_CENTER_X, 140) end,
+    -- Footer, as in Phoenix: FREE PLAY, or the credits in pay mode
+    Def.BitmapText {
+        Font="Montserrat extrabold 20px",
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 12):zoom(0.8):shadowlength(2):queuecommand("Refresh") end,
+        CoinInsertedMessageCommand=function(self) self:queuecommand("Refresh") end,
+        RefreshCommand=function(self)
+            local Free = GAMESTATE:IsEventMode() or GAMESTATE:GetCoinMode() ~= "CoinMode_Pay"
+            self:settext(Free and THEME:GetString("ScreenSelectMusicFull", "FreePlay")
+                or string.format(THEME:GetString("ScreenSelectMusicFull", "Credits"), GAMESTATE:GetCoins()))
+        end,
     },
 
-    LoadActor("../HudPanels")
+    LoadActor("ResultTable"),
 }
+
+for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
+    local X = pn == PLAYER_2 and 1248 or 32
+
+    t[#t+1] = LoadActor("ResultSide", pn)
+
+    -- wrapped, so ModIcons keeps its own InitCommand (it queues the icon refresh)
+    t[#t+1] = Def.ActorFrame {
+        InitCommand=function(self) self:xy(X, 187):visible(not BasicMode) end,
+        OnCommand=function(self) self:diffusealpha(0):linear(0.3):diffusealpha(1) end,
+        LoadActor("../ModIcons", pn),
+    }
+
+    if Shine then
+        t[#t+1] = Def.Sprite {
+            Texture=Shine,
+            InitCommand=function(self) self:xy(X, 187 + 66):zoomto(90, 190):blend("BlendMode_Add") end,
+            OnCommand=function(self) self:diffusealpha(1):linear(0.3):diffusealpha(0) end,
+        }
+    end
+end
+
+-- Count-up tick, played from the update function
+t[#t+1] = Def.Sound {
+    File=THEME:GetPathS("", "Evaluation tick"),
+    InitCommand=function(self) Tick = self end,
+}
+
+-- Rank voice, once, when the grade lands
+if VoicePath then
+    t[#t+1] = Def.Sound {
+        File=VoicePath,
+        OnCommand=function(self) self:sleep(R.TIMES.GradeAt):queuecommand("Play") end,
+        PlayCommand=function(self) self:play() end,
+    }
+end
 
 t[#t+1] = Def.ActorFrame {
     OnCommand=function(self)
@@ -101,118 +176,6 @@ t[#t+1] = Def.ActorFrame {
         SCREENMAN:set_input_redirected(PLAYER_1, false)
         SCREENMAN:set_input_redirected(PLAYER_2, false)
     end
-}
-
-for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
-    t[#t+1] = Def.ActorFrame {
-        LoadActor("../ModIcons", pn) .. {
-            InitCommand=function(self)
-                self:xy(pn == PLAYER_2 and SCREEN_RIGHT + 40 * 2 or -40 * 2, 160)
-                :easeoutexpo(1):x(pn == PLAYER_2 and SCREEN_RIGHT - 40 or 40)
-                :visible(not BasicMode)
-            end,
-        },
-
-        LoadActor("EvalBall", pn) .. {
-            InitCommand=function(self)
-                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and 130 or -130), SCREEN_CENTER_Y + 6)
-            end,
-        },
-
-        Def.Sprite {
-            InitCommand=function(self)
-                local GradeX = IsUsingWideScreen() and 300 or 260
-                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and GradeX or -GradeX), SCREEN_CENTER_Y + 6)
-
-                local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-                Grades[pn] = LoadModule("PIU/Score.GradingEval.lua")(PlayerScore)
-
-                self:Load(THEME:GetPathG("", "LetterGrades/" .. (ClassicGrades and "" or "New/") .. Grades[pn]))
-                :diffusealpha(0):sleep(2):easeoutexpo(0.25)
-                :zoom(GradeZoom):diffusealpha(1)
-            end
-		},
-
-        Def.Sprite {
-            InitCommand=function(self)
-                local GradeX = IsUsingWideScreen() and 300 or 260
-                self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and GradeX or -GradeX), SCREEN_CENTER_Y + 6)
-
-                local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-                Grades[pn] = LoadModule("PIU/Score.GradingEval.lua")(PlayerScore)
-
-                self:Load(THEME:GetPathG("", "LetterGrades/" .. (ClassicGrades and "" or "New/") .. Grades[pn]))
-                :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(GradeZoom):linear(0.75)
-                :zoom(GradeZoom * 1.5):diffusealpha(0)
-            end
-        },
-
-        Def.Sound {
-            File=THEME:GetPathS("", "EvalLetterHit"),
-            InitCommand=function(self) self:sleep(2):queuecommand("Play") end,
-            PlayCommand=function(self) self:play() end,
-        }
-    }
-
-    if Scoring == "New" then
-        t[#t+1] = Def.ActorFrame {
-            Def.Sprite {
-                InitCommand=function(self)
-                    local GradeX = IsUsingWideScreen() and 300 or 260
-                    self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and GradeX or -GradeX), SCREEN_CENTER_Y - 100)
-
-                    local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-                    Plates[pn] = LoadModule("PIU/Score.PlatesEval.lua")(PlayerScore)
-
-                    self:Load(THEME:GetPathG("", "LetterGrades/New/" .. Plates[pn]))
-                    :diffusealpha(0):sleep(2):easeoutexpo(0.25)
-                    :zoom(PlateZoom):diffusealpha(1)
-                end
-            },
-
-            Def.Sprite {
-                InitCommand=function(self)
-                    local GradeX = IsUsingWideScreen() and 300 or 260
-                    self:xy(SCREEN_CENTER_X + (pn == PLAYER_2 and GradeX or -GradeX), SCREEN_CENTER_Y - 100)
-
-                    local PlayerScore = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-                    Plates[pn] = LoadModule("PIU/Score.PlatesEval.lua")(PlayerScore)
-
-                    self:Load(THEME:GetPathG("", "LetterGrades/New/" .. Plates[pn]))
-                    :diffusealpha(0):sleep(2.15):diffusealpha(0.8):zoom(PlateZoom):linear(0.75)
-                    :zoom(PlateZoom * 1.5):diffusealpha(0)
-                end
-            }
-        }
-    end
-end
-
-t[#t+1] = Def.ActorFrame {
-    OnCommand=function(self)
-        self:sleep(2):queuecommand("Announcer")
-    end,
-
-    AnnouncerCommand=function(self)
-        local Grade = "FailF"
-
-        if ClassicGrades then
-            if GradePriority[Grades[PLAYER_1]] < GradePriority[Grades[PLAYER_2]] then
-                Grade = Grades[PLAYER_1]
-            else
-                Grade = Grades[PLAYER_2]
-            end
-        else
-            local ScoreP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1):GetScore() or "0"
-            local ScoreP2 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_2):GetScore() or "0"
-            Grade = (ScoreP1 > ScoreP2 and Grades[PLAYER_1] or Grades[PLAYER_2])
-        end
-        
-        if ANNOUNCER:GetCurrentAnnouncer() ~= nil then
-            SOUND:PlayAnnouncer(Grade)
-        else
-            SOUND:PlayOnce(THEME:GetPathS("", "Announcer/" .. Grade))
-        end
-    end,
 }
 
 return t

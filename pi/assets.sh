@@ -3,7 +3,8 @@
 # belongs to Andamiro and to the authors of phyrebird and XSanity, so the repository
 # keeps the recipe instead of the files:
 #   Graphics/Phoenix   from phyrebird (github.com/rayden-61/phyrebird): channel cards,
-#                      command window, difficulty balls, READY, grades; then the extra
+#                      command window, difficulty balls, READY, grades, the result
+#                      screen's art, voices and music (Evaluation/); then the extra
 #                      cards and the sharp labels made by tools/, the Phoenix 2 logo and
 #                      the title video and the stage break animation (YouTube), cut and
 #                      converted (pi/assets/title.py, pi/assets/stagebreak.py)
@@ -56,7 +57,7 @@ fi
 PY="$VENV/bin/python"
 
 say "Phoenix art from phyrebird"
-if [ -f "$PX/Channels/BLANK_RED.png" ] && [ -f "$PX/CommandWindow/icons 11x11.png" ] && [ -d "$PX/RecordGrades" ]; then
+if [ -f "$PX/Channels/BLANK_RED.png" ] && [ -f "$PX/CommandWindow/icons 11x11.png" ] && [ -d "$PX/RecordGrades" ] && [ -f "$PX/Evaluation/info.ini" ]; then
     echo "already there"
 else
     "$PY" "$HERE/assets/phyrebird.py" "$THEME"
