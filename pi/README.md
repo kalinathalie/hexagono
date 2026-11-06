@@ -64,6 +64,7 @@ The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the 
 | `Graphics/Phoenix/CommandWindow` | phyrebird's command window; the sharp category labels made by `tools/make_phoenix_labels.py` |
 | `Graphics/Phoenix` | difficulty balls, MY BEST, READY, cursors and arrows from phyrebird; `RecordGrades` too |
 | `Graphics/Phoenix/Evaluation` | the result screen's grades, plates, table labels (their band recolored green), voices and music from phyrebird; `info.ini` marks it complete |
+| `Graphics/Phoenix/Evaluation/Grades` | the 32 Phoenix 2 grades (normal and broken) cut out of a result video from YouTube by `assets/grades.py`; without them the screen uses phyrebird's Phoenix 1 style grades |
 | `Graphics/Phoenix/Logo` | the Phoenix 2 logo, cut out by `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | the Phoenix 2 title video from YouTube, cut where its attract loop repeats and converted to full-range color, by `assets/title.py` |
 | `Graphics/Phoenix/StageBreak` | the Phoenix 2 "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" animation shown when a player breaks the stage, from YouTube, by `assets/stagebreak.py` |

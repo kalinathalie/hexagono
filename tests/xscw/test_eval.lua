@@ -191,3 +191,11 @@ Test("Eval.Result.IsCounting is true while the table or the score counts (the ti
     CheckEq(R.IsCounting(2.49), true, "score still counting")
     CheckEq(R.IsCounting(2.5), false, "score done")
 end)
+
+Test("Eval.Result.GradeZoom draws the grades cut from the video at 2/3 and phyrebird's at 0.92", function()
+    local R = LoadModule("Eval.Result.lua")
+    CheckEq(R.GradeZoom(520), 2 / 3, "video cut (1080p scale): one texture pixel per screen pixel")
+    CheckEq(R.GradeZoom(400), 2 / 3, "400 px or more is a video cut")
+    CheckEq(R.GradeZoom(256), 0.92, "phyrebird icon")
+    CheckEq(R.GradeZoom(nil), 0.92, "unknown size: phyrebird's")
+end)

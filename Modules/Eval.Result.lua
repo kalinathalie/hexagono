@@ -14,6 +14,7 @@
 --       pumpTiming false or nil: the normal windows (W1..W5)
 --   PlateArt(plate) -> "MARVELOUS GAME" | nil
 --   GradeArt(grade) -> "R_SS+" | "B_A" | nil     (Select.Records GradeName)
+--   GradeZoom(width) -> 2/3 (grade cut from the video) | 0.92 (phyrebird icon)
 --   Voice(grade) -> "RANK_SS+_R" | "RANK_A_B" | nil
 --   VoicePlayer(scores) -> "PlayerNumber_P1" | "PlayerNumber_P2" | nil
 --   IsImage(path) -> boolean
@@ -127,6 +128,14 @@ end
 
 function R.GradeArt(Grade)
     return Records.GradeName(Grade)
+end
+
+-- Zoom of a grade icon by its texture width: the Phoenix 2 grades cut from the result
+-- video (pi/assets/grades.py, 520 px at 1080p scale) at 2/3, one texture pixel per
+-- screen pixel on a 1080p screen; phyrebird's Phoenix 1 style icons (256 px) at 0.92.
+function R.GradeZoom(Width)
+    if type(Width) == "number" and Width >= 400 then return 2 / 3 end
+    return 0.92
 end
 
 -- Rank voice: "R_SS+" -> "RANK_SS+_R", "B_A" -> "RANK_A_B"

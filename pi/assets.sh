@@ -6,8 +6,9 @@
 #                      command window, difficulty balls, READY, grades, the result
 #                      screen's art, voices and music (Evaluation/); then the extra
 #                      cards and the sharp labels made by tools/, the Phoenix 2 logo and
-#                      the title video and the stage break animation (YouTube), cut and
-#                      converted (pi/assets/title.py, pi/assets/stagebreak.py)
+#                      the title video, the stage break animation and the result screen's
+#                      grades (YouTube), cut and converted (pi/assets/title.py,
+#                      pi/assets/stagebreak.py, pi/assets/grades.py)
 #   Graphics/XSanity, Graphics/XSCommandWindow and XSanity's Pump noteskins, from
 #                      XSanity 0.96.0 on xsanity.net (or an install or zip you already
 #                      have: --xsanity PATH); 0.97 changed the art
@@ -103,6 +104,16 @@ elif [ -f "$PX/StageBreak/info.ini" ]; then
 else
     "$PY" "$HERE/assets/stagebreak.py" "$PX/StageBreak" --work "$WORK/stagebreak" --yt-dlp "$VENV/bin/yt-dlp" \
         || { rm -f "$PX/StageBreak/info.ini"; warn "the stage break animation could not be built; a broken stage shows the theme's own animation"; }
+fi
+
+say "Result screen grades"
+if [ "$VIDEO" = 0 ]; then
+    echo "skipped (--no-video): the result screen shows phyrebird's grades"
+elif [ -f "$PX/Evaluation/Grades/info.ini" ]; then
+    echo "already there"
+else
+    "$PY" "$HERE/assets/grades.py" "$PX/Evaluation/Grades" --work "$WORK/grades" --yt-dlp "$VENV/bin/yt-dlp" \
+        || { rm -f "$PX/Evaluation/Grades/info.ini"; warn "the grades could not be cut from the video; the result screen shows phyrebird's"; }
 fi
 
 say "XSanity art and noteskins"

@@ -64,6 +64,7 @@ As artes pertencem à Andamiro e aos autores do phyrebird e do XSanity, então o
 | `Graphics/Phoenix/CommandWindow` | a command window do phyrebird; os nomes nítidos das categorias feitos pelo `tools/make_phoenix_labels.py` |
 | `Graphics/Phoenix` | bolas de dificuldade, MY BEST, READY, cursores e setas do phyrebird; `RecordGrades` também |
 | `Graphics/Phoenix/Evaluation` | notas, placas, rótulos da tabela (com a faixa recolorida de verde), vozes e música de resultado do phyrebird; `info.ini` marca a pasta como completa |
+| `Graphics/Phoenix/Evaluation/Grades` | as 32 notas do Phoenix 2 (normais e quebradas) recortadas de um vídeo de resultado do YouTube pelo `assets/grades.py`; sem elas, a tela usa as do phyrebird, no estilo do Phoenix 1 |
 | `Graphics/Phoenix/Logo` | o logo do Phoenix 2, recortado pelo `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | o vídeo de abertura do Phoenix 2 no YouTube, cortado onde o loop de espera se repete e convertido para a faixa completa de cor, pelo `assets/title.py` |
 | `Graphics/Phoenix/StageBreak` | a animação "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" do Phoenix 2, mostrada quando um jogador estoura, do YouTube, pelo `assets/stagebreak.py` |

@@ -40,7 +40,8 @@ local DiffText, DiffKind = R.Diff(Score, Prev and Prev:GetScore(), Broken, Persi
 local ShineArt = Art(Prefix .. "_shine")
 local ScoreBox = Art(Prefix .. "_score_bg")
 local GradeName = R.GradeArt(Grade)
-local GradePath = GradeName and Art(Prefix .. GradeName) or nil
+-- the Phoenix 2 grade cut from the result video (pi/assets/grades.py), else phyrebird's
+local GradePath = GradeName and (Art(Prefix .. "Grades/" .. GradeName) or Art(Prefix .. GradeName)) or nil
 local PlateName = Plate and R.PlateArt(Plate) or nil
 local PlatePath = PlateName and Art(Prefix .. PlateName) or nil
 
@@ -162,35 +163,39 @@ end
 -- big grade: blur copies behind, the main one, an additive white flash and the shine
 if GradeName then
     local Big, Fin = 2.2, 0.92
+    -- the zooms here are for phyrebird's 256 px icon; a grade cut from the video is
+    -- 520 px at 1080p scale, so every zoom scales by R.GradeZoom (read from the texture)
+    local K = 1
+    local function Scale(self) K = R.GradeZoom(self:GetWidth()) / 0.92; return K end
     local InTime = T.GradeIn * 0.5
     local OutTime = T.GradeIn * 0.4
     if GradePath then
         for I = 1, 3 do
             Children[#Children + 1] = Def.Sprite {
                 Texture=GradePath,
-                InitCommand=function(self) self:xy(X, 428):zoom(Big + 0.15 * I):diffusealpha(0) end,
+                InitCommand=function(self) self:xy(X, 428):zoom((Big + 0.15 * I) * Scale(self)):diffusealpha(0) end,
                 OnCommand=function(self)
                     self:sleep(T.GradeAt + 0.03 * I):diffusealpha(0.4 - 0.1 * I)
-                        :decelerate(InTime):zoom(Fin):diffusealpha(0)
+                        :decelerate(InTime):zoom(Fin * K):diffusealpha(0)
                 end,
             }
         end
         Children[#Children + 1] = Def.Sprite {
             Texture=GradePath,
-            InitCommand=function(self) self:xy(X, 428):zoom(Big):diffusealpha(0):glow(1, 1, 1, 0) end,
+            InitCommand=function(self) self:xy(X, 428):zoom(Big * Scale(self)):diffusealpha(0):glow(1, 1, 1, 0) end,
             OnCommand=function(self)
                 self:sleep(T.GradeAt):glow(1, 1, 1, 0.9)
-                    :decelerate(InTime):zoom(Fin):diffusealpha(1)
+                    :decelerate(InTime):zoom(Fin * K):diffusealpha(1)
                     :linear(OutTime):glow(1, 1, 1, 0)
             end,
         }
         Children[#Children + 1] = Def.Sprite {
             Texture=GradePath,
             -- the glow is drawn even at alpha 0, so it starts off and only flashes at GradeAt
-            InitCommand=function(self) self:xy(X, 428):zoom(1.25):blend("BlendMode_Add"):diffusealpha(0):glow(1, 1, 1, 0) end,
+            InitCommand=function(self) self:xy(X, 428):zoom(1.25 * Scale(self)):blend("BlendMode_Add"):diffusealpha(0):glow(1, 1, 1, 0) end,
             OnCommand=function(self)
                 self:sleep(T.GradeAt):diffusealpha(0.9):glow(1, 1, 1, 1)
-                    :decelerate(InTime):zoom(Fin)
+                    :decelerate(InTime):zoom(Fin * K)
                     :linear(OutTime):diffusealpha(0):glow(1, 1, 1, 0)
             end,
         }
