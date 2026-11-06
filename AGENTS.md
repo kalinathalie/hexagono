@@ -46,7 +46,7 @@ Comando que ainda não rodou leva `(não verificado: <o que falta>)`. Rode da ra
 | Um teste Lua (arquivo) | `luajit tests/xscw/run.lua tests/xscw/test_<nome>.lua` (no Pi, `lua5.1`) |
 | Um teste Python (arquivo) | `python pi/tests/test_<nome>.py` (no Pi, `python3`) |
 | Verificação completa (testes) | `bash tools/verify.sh` (`LUA=` e `PYTHON=` escolhem os interpretadores) |
-| Deploy no Pi, a partir do PC | `bash docs/pi/deploy-from-pc.sh` (privado; ver `docs/pi.md`) (não verificado: o Pi estava desligado) |
+| Deploy no Pi, a partir do PC | `bash docs/pi/deploy-from-pc.sh` (privado; ver `docs/pi.md`) |
 
 ## Estrutura
 
