@@ -56,7 +56,7 @@ Options: `--no-assets` skips the art, `--no-system` skips the steps that need `s
 
 ## The theme's art: `assets.sh`
 
-The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the repository keeps the recipe instead of the files. `assets.sh` downloads it from its sources and builds the rest, into the git-ignored folders the theme reads:
+The art belongs to Andamiro and to the authors of phyrebird, XSanity and the LBPIU scoreboard, so the repository keeps the recipe instead of the files. `assets.sh` downloads it from its sources and builds the rest, into the git-ignored folders the theme reads:
 
 | Folder | Source |
 |---|---|
@@ -64,6 +64,7 @@ The art belongs to Andamiro and to the authors of phyrebird and XSanity, so the 
 | `Graphics/Phoenix/CommandWindow` | phyrebird's command window; the sharp category labels made by `tools/make_phoenix_labels.py` |
 | `Graphics/Phoenix` | difficulty balls, MY BEST, READY, cursors and arrows from phyrebird; `RecordGrades` too |
 | `Graphics/Phoenix/Evaluation` | the result screen's grades, plates, table labels (their band recolored green), voices and music from phyrebird; `info.ini` marks it complete |
+| `Graphics/Phoenix/Scoreboard` | the result screen's plates, chart balls (Single and Double 1-29, Co-op x2-x5) and score digits from the [LBPIU scoreboard](https://scoreboard.lbpiu.com.br), and the judgment labels drawn with its font by `assets/lbpiu.py`; without them the screen uses phyrebird's |
 | `Graphics/Phoenix/Evaluation/Grades` | the 32 Phoenix 2 grades (normal and broken) cut out of a result video from YouTube by `assets/grades.py`; without them the screen uses phyrebird's Phoenix 1 style grades |
 | `Graphics/Phoenix/Logo` | the Phoenix 2 logo, cut out by `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | the Phoenix 2 title video from YouTube, cut where its attract loop repeats and converted to full-range color, by `assets/title.py` |
@@ -89,11 +90,11 @@ A Pi set up with these steps opens the same game: the theme with its art, title 
 - **Category cards and labels**: in Verdana only when Microsoft's font license is accepted; otherwise in DejaVu Sans.
 - **Audio sync**: measured on the reference Pi (see [Calibration](#calibration)).
 
-The art comes from GitHub (phyrebird), YouTube, xsanity.net and piugame.com: when one of them is down, `assets.sh` lists what is missing and can be run again later.
+The art comes from GitHub (phyrebird), YouTube, xsanity.net, piugame.com and scoreboard.lbpiu.com.br: when one of them is down, `assets.sh` lists what is missing and can be run again later.
 
 ## Checks
 
-- `python3 pi/tests/test_<name>.py`, one per part: `display60` (60 Hz mode picker), `display_watch` (screen watcher), `merge_prefs` (preferences), `title` (title video timings), `noteskins` (explosion fix), `avatars` (player icons), `phyrebird` (the result screen's file list, music length and green label band).
+- `python3 pi/tests/test_<name>.py`, one per part: `display60` (60 Hz mode picker), `display_watch` (screen watcher), `merge_prefs` (preferences), `title` (title video timings), `noteskins` (explosion fix), `avatars` (player icons), `phyrebird` (the result screen's file list, music length and green label band), `lbpiu` (plate and ball names, score digit font, judgment labels).
 - FPS: OutFox writes one line per second with `:Video, , <fps> FPS` to `~/.project-outfox/Logs/ProjectOutfox.MainLog.*.log` while `ShowStats=1` is set in `Preferences.ini`.
 - `~/.cache/display-60hz.log` and `~/.cache/outfox-run.log` show what the screen and autostart scripts did.
 

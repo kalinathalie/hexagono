@@ -9,6 +9,9 @@
 #                      the title video, the stage break animation and the result screen's
 #                      grades (YouTube), cut and converted (pi/assets/title.py,
 #                      pi/assets/stagebreak.py, pi/assets/grades.py)
+#   Graphics/Phoenix/Scoreboard  the result screen's plates, chart balls, score digits
+#                      and judgment labels from the LBPIU scoreboard
+#                      (scoreboard.lbpiu.com.br, pi/assets/lbpiu.py)
 #   Graphics/XSanity, Graphics/XSCommandWindow and XSanity's Pump noteskins, from
 #                      XSanity 0.96.0 on xsanity.net (or an install or zip you already
 #                      have: --xsanity PATH); 0.97 changed the art
@@ -114,6 +117,13 @@ elif [ -f "$PX/Evaluation/Grades/info.ini" ]; then
 else
     "$PY" "$HERE/assets/grades.py" "$PX/Evaluation/Grades" --work "$WORK/grades" --yt-dlp "$VENV/bin/yt-dlp" \
         || { rm -f "$PX/Evaluation/Grades/info.ini"; warn "the grades could not be cut from the video; the result screen shows phyrebird's"; }
+fi
+
+say "Result screen art from the LBPIU scoreboard"
+if [ -f "$PX/Scoreboard/info.ini" ]; then
+    echo "already there"
+else
+    "$PY" "$HERE/assets/lbpiu.py" "$THEME"         || { rm -f "$PX/Scoreboard/info.ini"; warn "the scoreboard art could not be downloaded; the result screen shows phyrebird's plates, balls and labels"; }
 fi
 
 say "XSanity art and noteskins"

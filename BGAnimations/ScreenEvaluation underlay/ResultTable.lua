@@ -39,27 +39,31 @@ local function Finish()
     end
 end
 
--- Band behind a row: the art when present, otherwise Quads and the label text
+-- Band behind a row. With the scoreboard's labels (pi/assets/lbpiu.py): the green band
+-- and the label, as in the game. Else phyrebird's art (band and label in one image).
+-- Else the green band and the label as text.
+local BandW, BandH = 540, 24         -- 36 px tall at 1080p in the video, a dark gap between rows
+local LabelZoom = 0.316           -- the label's 2x art: PERFECT 150 px wide at 1080p, as in the video
 local function RowBand(Row)
+    local Label = Art("Phoenix/Scoreboard/Labels/" .. Row.art)
+    if Label then
+        return Def.ActorFrame {
+            LoadActor("GreenBand", { Width = BandW, Height = BandH }),
+            Def.Sprite { Texture = Label, InitCommand = function(self) self:zoom(LabelZoom) end },
+        }
+    end
     local Path = Art("Phoenix/Evaluation/" .. Row.art)
     if Path then
         return Def.Sprite { Texture = Path, InitCommand = function(self) self:zoom(0.95) end }
     end
-    local Band = {}
-    Band[#Band + 1] = Def.Quad { InitCommand = function(self)
-        self:zoomto(520, 30):diffuse(color(Green)):diffusealpha(0.15):fadeleft(0.3):faderight(0.3)
-    end }
-    for _, Dy in ipairs({ -14, 14 }) do
-        Band[#Band + 1] = Def.Quad { InitCommand = function(self)
-            self:y(Dy):zoomto(520, 2):diffuse(color(Green)):fadeleft(0.3):faderight(0.3)
-        end }
-    end
-    Band[#Band + 1] = Def.BitmapText {
-        Font = "Montserrat extrabold 20px",
-        Text = THEME:GetString("ResultScreen", Row.text),
-        InitCommand = function(self) self:diffuse(color(R.COLORS[Row.key])) end,
+    return Def.ActorFrame {
+        LoadActor("GreenBand", { Width = BandW, Height = BandH }),
+        Def.BitmapText {
+            Font = "Montserrat extrabold 20px",
+            Text = THEME:GetString("ResultScreen", Row.text),
+            InitCommand = function(self) self:diffuse(color(R.COLORS[Row.key])):shadowlength(1) end,
+        },
     }
-    return Def.ActorFrame(Band)
 end
 
 local Children = {}
@@ -74,7 +78,7 @@ for i, Row in ipairs(R.ROWS) do
         -- additive flash that fades right after the burst
         Def.Quad {
             InitCommand = function(self)
-                self:zoomto(560, 30):diffuse(color(Green)):diffusealpha(0):blend("BlendMode_Add")
+                self:zoomto(560, BandH):diffuse(color(Green)):diffusealpha(0):blend("BlendMode_Add")
                     :fadeleft(0.3):faderight(0.3)
             end,
             OnCommand = function(self)

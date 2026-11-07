@@ -13,6 +13,8 @@
 --       pumpTiming true: the "Pump *" judgment windows (W1..W4 only)
 --       pumpTiming false or nil: the normal windows (W1..W5)
 --   PlateArt(plate) -> "MARVELOUS GAME" | nil
+--   BallArt(style, meter) -> "S05" | "D22" | "C05" | nil   the scoreboard's chart ball (pi/assets/lbpiu.py):
+--       single and double 1-29, co-op x2-x5; nil for other charts
 --   GradeArt(grade) -> "R_SS+" | "B_A" | nil     (Select.Records GradeName)
 --   GradeZoom(width) -> 2/3 (grade cut from the video) | 0.92 (phyrebird icon)
 --   Voice(grade) -> "RANK_SS+_R" | "RANK_A_B" | nil
@@ -122,6 +124,14 @@ local PLATE_ART = {
     SuperbGame = "SUPERB GAME", MarvelousGame = "MARVELOUS GAME", TalentedGame = "TALENTED GAME",
     FairGame = "FAIR GAME", RoughGame = "ROUGH GAME",
 }
+local BALLS = { single = { "S", 1, 29 }, double = { "D", 1, 29 }, coop = { "C", 2, 5 } }
+function R.BallArt(Style, Meter)
+    local B = BALLS[Style]
+    if not B or type(Meter) ~= "number" or Meter ~= math.floor(Meter) then return nil end
+    if Meter < B[2] or Meter > B[3] then return nil end
+    return string.format("%s%02d", B[1], Meter)
+end
+
 function R.PlateArt(Plate)
     return PLATE_ART[Plate]
 end

@@ -56,7 +56,7 @@ Opções: `--no-assets` pula as artes, `--no-system` pula as etapas que precisam
 
 ## As artes do tema: `assets.sh`
 
-As artes pertencem à Andamiro e aos autores do phyrebird e do XSanity, então o repositório guarda a receita em vez dos arquivos. O `assets.sh` baixa cada uma da sua origem e gera o resto, nas pastas ignoradas pelo git que o tema lê:
+As artes pertencem à Andamiro e aos autores do phyrebird, do XSanity e do scoreboard da LBPIU, então o repositório guarda a receita em vez dos arquivos. O `assets.sh` baixa cada uma da sua origem e gera o resto, nas pastas ignoradas pelo git que o tema lê:
 
 | Pasta | Origem |
 |---|---|
@@ -64,6 +64,7 @@ As artes pertencem à Andamiro e aos autores do phyrebird e do XSanity, então o
 | `Graphics/Phoenix/CommandWindow` | a command window do phyrebird; os nomes nítidos das categorias feitos pelo `tools/make_phoenix_labels.py` |
 | `Graphics/Phoenix` | bolas de dificuldade, MY BEST, READY, cursores e setas do phyrebird; `RecordGrades` também |
 | `Graphics/Phoenix/Evaluation` | notas, placas, rótulos da tabela (com a faixa recolorida de verde), vozes e música de resultado do phyrebird; `info.ini` marca a pasta como completa |
+| `Graphics/Phoenix/Scoreboard` | as placas, as bolinhas dos charts (Single e Double 1-29, Co-op x2-x5) e os dígitos do score da tela de resultado, do [scoreboard da LBPIU](https://scoreboard.lbpiu.com.br), e os nomes dos julgamentos desenhados com a fonte dele pelo `assets/lbpiu.py`; sem eles, a tela usa os do phyrebird |
 | `Graphics/Phoenix/Evaluation/Grades` | as 32 notas do Phoenix 2 (normais e quebradas) recortadas de um vídeo de resultado do YouTube pelo `assets/grades.py`; sem elas, a tela usa as do phyrebird, no estilo do Phoenix 1 |
 | `Graphics/Phoenix/Logo` | o logo do Phoenix 2, recortado pelo `tools/make_phoenix_logo.py` |
 | `Graphics/Phoenix/Title` | o vídeo de abertura do Phoenix 2 no YouTube, cortado onde o loop de espera se repete e convertido para a faixa completa de cor, pelo `assets/title.py` |
@@ -89,11 +90,11 @@ Um Pi montado com estes passos abre o mesmo jogo: o tema com as artes, o vídeo 
 - **Cartões e nomes de categoria**: em Verdana só quando a licença das fontes da Microsoft é aceita; senão, em DejaVu Sans.
 - **Sincronia do áudio**: medida no Pi de referência (veja [Calibração](#calibração)).
 
-As artes vêm do GitHub (phyrebird), do YouTube, do xsanity.net e do piugame.com: quando um deles está fora do ar, o `assets.sh` lista o que faltou e pode ser rodado de novo depois.
+As artes vêm do GitHub (phyrebird), do YouTube, do xsanity.net, do piugame.com e do scoreboard.lbpiu.com.br: quando um deles está fora do ar, o `assets.sh` lista o que faltou e pode ser rodado de novo depois.
 
 ## Verificações
 
-- `python3 pi/tests/test_<nome>.py`, um por parte: `display60` (escolha do modo de 60 Hz), `display_watch` (vigia de telas), `merge_prefs` (preferências), `title` (tempos do vídeo de abertura), `noteskins` (correção das explosões), `avatars` (ícones de jogador), `phyrebird` (arquivos da tela de resultado, duração da música e faixa verde dos rótulos).
+- `python3 pi/tests/test_<nome>.py`, um por parte: `display60` (escolha do modo de 60 Hz), `display_watch` (vigia de telas), `merge_prefs` (preferências), `title` (tempos do vídeo de abertura), `noteskins` (correção das explosões), `avatars` (ícones de jogador), `phyrebird` (arquivos da tela de resultado, duração da música e faixa verde dos rótulos), `lbpiu` (nomes das placas e bolinhas, fonte dos dígitos do score, nomes dos julgamentos).
 - FPS: com `ShowStats=1` no `Preferences.ini`, o OutFox grava uma linha por segundo com `:Video, , <fps> FPS` em `~/.project-outfox/Logs/ProjectOutfox.MainLog.*.log`.
 - `~/.cache/display-60hz.log` e `~/.cache/outfox-run.log` mostram o que os scripts de tela e de inicialização fizeram.
 

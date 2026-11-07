@@ -43,7 +43,15 @@ local GradeName = R.GradeArt(Grade)
 -- the Phoenix 2 grade cut from the result video (pi/assets/grades.py), else phyrebird's
 local GradePath = GradeName and (Art(Prefix .. "Grades/" .. GradeName) or Art(Prefix .. GradeName)) or nil
 local PlateName = Plate and R.PlateArt(Plate) or nil
-local PlatePath = PlateName and Art(Prefix .. PlateName) or nil
+-- the LBPIU scoreboard's art (pi/assets/lbpiu.py) where it matches the game better than
+-- phyrebird's: plates, chart balls, score digits and the SCORE label
+local Board = "Phoenix/Scoreboard/"
+local BoardPlate = PlateName and Art(Board .. "Plates/" .. PlateName) or nil
+local PlatePath = BoardPlate or (PlateName and Art(Prefix .. PlateName)) or nil
+local PlateZoom = BoardPlate and 1 or 0.53        -- the scoreboard's ULTIMATE GAME is 176 px, as in the video
+local ScoreLabel = Art(Board .. "Labels/_score")
+local DigitsIni = "/Themes/" .. THEME:GetCurThemeName() .. "/Graphics/" .. Board .. "Digits/Score digits.ini"
+if not FILEMAN:DoesFileExist(DigitsIni) then DigitsIni = nil end
 
 -- chart ball art (same sources and fallbacks as the song select panel)
 local PX = {
@@ -56,6 +64,15 @@ local XS = {
     BigFrame = Art("XSanity/Difficulty_BigBalls frame"),
 }
 local UsePhoenixBall = PX.Big ~= nil and PX.Titles ~= nil
+local BoardBall = nil
+do
+    local Steps = GAMESTATE:GetCurrentSteps(pn)
+    if Steps then
+        local Style = Row.Style({ Type = ToEnumShortString(ToEnumShortString(Steps:GetStepsType())), Meter = Steps:GetMeter(), Description = Steps:GetDescription() })
+        local Name = R.BallArt(Style.Name, Steps:GetMeter())
+        BoardBall = Name and Art(Board .. "Balls/" .. Name) or nil
+    end
+end
 
 -- actors the ball fill needs (nil when that branch is not built)
 local Ref = {}
@@ -108,10 +125,11 @@ Children[#Children + 1] = Def.ActorFrame {
     Def.ActorFrame {
         InitCommand=function(self) self:zoom(1.3):diffusealpha(0) end,
         OnCommand=function(self)
-            FillBall()
+            if not BoardBall then FillBall() end
             self:decelerate(0.3):zoom(1):diffusealpha(1)
         end,
-        Inner,
+        -- the scoreboard's ball has the type and level drawn in; its ring is 74 px wide, as in the video
+        BoardBall and Def.Sprite { Texture=BoardBall, InitCommand=function(self) self:zoom(0.49) end } or Inner,
     },
 }
 if ShineArt then
@@ -135,17 +153,29 @@ else
         OnCommand=function(self) self:sleep(T.ScoreStart):diffusealpha(0.5) end,
     }
 end
-Children[#Children + 1] = Def.BitmapText {
-    Font="Montserrat extrabold 20px",
-    Text=THEME:GetString("ResultScreen", "Score"),
-    InitCommand=function(self) self:xy(X, 260):diffuse(color("#ffffff")):diffusealpha(0) end,
-    OnCommand=function(self) self:sleep(T.ScoreStart):diffusealpha(1) end,
-}
+if ScoreLabel then
+    -- the game's SCORE is wider than the font: 75 x 13 px at the theme's size
+    Children[#Children + 1] = Def.Sprite {
+        Texture=ScoreLabel,
+        InitCommand=function(self) self:xy(X, 260):zoomx(0.336):zoomy(0.27):diffusealpha(0) end,
+        OnCommand=function(self) self:sleep(T.ScoreStart):diffusealpha(1) end,
+    }
+else
+    Children[#Children + 1] = Def.BitmapText {
+        Font="Montserrat extrabold 20px",
+        Text=THEME:GetString("ResultScreen", "Score"),
+        InitCommand=function(self) self:xy(X, 260):diffuse(color("#ffffff")):diffusealpha(0) end,
+        OnCommand=function(self) self:sleep(T.ScoreStart):diffusealpha(1) end,
+    }
+end
 local ScoreActor
+-- the scoreboard's digits (51 px tall white, shown 33 px tall as in the video), else PumpFox's
+local ScoreFont = DigitsIni and { File=DigitsIni, Zoom=0.641 } or { Font="PIUx boost sc num 60px", Zoom=0.78 }
 Children[#Children + 1] = Def.BitmapText {
-    Font="PIUx boost sc num 60px",
+    File=ScoreFont.File,
+    Font=ScoreFont.Font,
     Text=R.ScoreText(0),
-    InitCommand=function(self) ScoreActor = self; self:xy(X, 297):zoom(0.78):diffusealpha(0) end,
+    InitCommand=function(self) ScoreActor = self; self:xy(X, 297):zoom(ScoreFont.Zoom):diffusealpha(0) end,
     OnCommand=function(self) self:sleep(T.ScoreStart):diffusealpha(1) end,
 }
 
@@ -222,8 +252,8 @@ if PlateName then
     if PlatePath then
         Children[#Children + 1] = Def.Sprite {
             Texture=PlatePath,
-            InitCommand=function(self) self:xy(X, 560):zoom(0.53 * 1.5):diffusealpha(0) end,
-            OnCommand=function(self) self:sleep(T.PlateAt):decelerate(T.PlateIn):zoom(0.53):diffusealpha(1) end,
+            InitCommand=function(self) self:xy(X, 560):zoom(PlateZoom * 1.5):diffusealpha(0) end,
+            OnCommand=function(self) self:sleep(T.PlateAt):decelerate(T.PlateIn):zoom(PlateZoom):diffusealpha(1) end,
         }
     else
         local TextZoom = 0.8

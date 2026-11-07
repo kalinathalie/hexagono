@@ -1,35 +1,16 @@
 -- Result screen background: theme gradient, dimmed song image (still) and a
--- green neon strip with the song title. Everything shows at once, no tweens.
+-- green band with the song title. Everything shows at once, no tweens.
 local R = LoadModule("Eval.Result.lua")
 
 local Song = GAMESTATE:GetCurrentSong()
 local Path = Song and Song:GetBackgroundPath()
 
--- Title strip: the dark band is centered at y 133.5; the neon lines sit at its edges
+-- Title strip: the green band of the result video (ScreenEvaluation underlay/GreenBand),
+-- between y 105 and 161, fading toward both ends
 local STRIP_X = 637.5
 local STRIP_W = 975
-local STRIP_Y = 133.5
-local STRIP_H = 53
-local LINE_YS = { 107, 160 }
-
--- Neon line: wide additive glow under a bright core, both ends fade out
-local function NeonLine(Y)
-    return Def.ActorFrame {
-        Def.Quad {
-            InitCommand=function(self)
-                self:xy(STRIP_X, Y):zoomto(STRIP_W, 14)
-                :diffuse(color("#3cff5c")):diffusealpha(0.35)
-                :blend("BlendMode_Add"):fadeleft(0.15):faderight(0.15)
-            end
-        },
-        Def.Quad {
-            InitCommand=function(self)
-                self:xy(STRIP_X, Y):zoomto(STRIP_W, 3)
-                :diffuse(color("#5dff6e")):fadeleft(0.15):faderight(0.15)
-            end
-        }
-    }
-end
+local STRIP_Y = 133
+local STRIP_H = 56
 
 local Frame = Def.ActorFrame {
     Def.Sprite {
@@ -49,18 +30,10 @@ if R.IsImage(Path) and FILEMAN:DoesFileExist(Path) then
     }
 end
 
--- Dark translucent band between the two neon lines
-Frame[#Frame + 1] = Def.Quad {
-    InitCommand=function(self)
-        self:xy(STRIP_X, STRIP_Y):zoomto(STRIP_W, STRIP_H)
-        :diffuse(color("#000000")):diffusealpha(0.35)
-        :fadeleft(0.15):faderight(0.15)
-    end
+Frame[#Frame + 1] = Def.ActorFrame {
+    InitCommand=function(self) self:xy(STRIP_X, STRIP_Y) end,
+    LoadActor("ScreenEvaluation underlay/GreenBand", { Width = STRIP_W, Height = STRIP_H }),
 }
-
-for _, Y in ipairs(LINE_YS) do
-    Frame[#Frame + 1] = NeonLine(Y)
-end
 
 -- Song title, centered in the strip (no song: no title)
 if Song then
