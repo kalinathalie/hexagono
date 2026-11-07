@@ -7,6 +7,8 @@
 --   Slots(Charts, MainIndex, Visible) -> { Offset, Items = { [1..Visible] = { Chart, Index } }, MoreLeft, MoreRight }
 --   MeterText(Meter) -> "05" | "17" | "??" (99 = unrated)
 --   Kind(Chart) -> "single" | "double" | "other"   (bubble color family)
+--   Move(Index, Count, Step, Wrap, Ready) -> new cursor index | nil (stays): Step -1/+1;
+--       the ends stop the cursor, or wrap with Wrap; a player in READY never moves
 
 local Row = {}
 
@@ -85,6 +87,14 @@ function Row.Slots(Charts, MainIndex, Visible)
         MoreLeft = Offset > 0,
         MoreRight = Offset + Visible < Count,
     }
+end
+
+function Row.Move(Index, Count, Step, Wrap, Ready)
+    if Ready or Count < 1 then return nil end
+    local New = Index + Step
+    if New < 1 then return Wrap and Count or nil end
+    if New > Count then return Wrap and 1 or nil end
+    return New
 end
 
 return Row

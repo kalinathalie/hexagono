@@ -33,6 +33,7 @@ local function FindGroupLevelChart(Charts, GroupName)
 end
 
 local CanWrap = LoadModule("Config.Load.lua")("WrapChartScroll", "Save/OutFoxPrefs.ini")
+local ChartRowModel = LoadModule("Select.ChartRow.lua")
 
 -- http://lua-users.org/wiki/CopyTable
 function ShallowCopy(orig)
@@ -70,25 +71,12 @@ local function InputHandler(event)
         if event.type == "InputEventType_Repeat" or event.type == "InputEventType_Release" then return end
 
         local button = event.button
-        if button == "Left" or button == "MenuLeft" or button == "DownLeft" then
-            if ChartIndex[pn] == 1 then
-                if CanWrap then
-                    ChartIndex[pn] = #ChartArray
-                else return end
-            else
-                ChartIndex[pn] = ChartIndex[pn] - 1
-            end
-            MESSAGEMAN:Broadcast("UpdateChartDisplay", { Player = pn })
-            ConfirmStart[pn] = false
-
-        elseif button == "Right" or button == "MenuRight" or button == "DownRight" then
-            if ChartIndex[pn] == #ChartArray then
-                if CanWrap then
-                    ChartIndex[pn] = 1
-                else return end
-            else
-                ChartIndex[pn] = ChartIndex[pn] + 1
-            end
+        local Left = button == "Left" or button == "MenuLeft" or button == "DownLeft"
+        if Left or button == "Right" or button == "MenuRight" or button == "DownRight" then
+            -- the blue panels move the cursor; in READY only red (take it back) and center count
+            local New = ChartRowModel.Move(ChartIndex[pn], #ChartArray, Left and -1 or 1, CanWrap, ConfirmStart[pn])
+            if not New then return end
+            ChartIndex[pn] = New
             MESSAGEMAN:Broadcast("UpdateChartDisplay", { Player = pn })
             ConfirmStart[pn] = false
 
@@ -141,14 +129,11 @@ local t = Def.ActorFrame {
         if params.Name == "OpenOpList" then
             local pn = params.PlayerNumber
 
+            -- in READY the code's blue presses did not move the cursor, so nothing to make up
             if SongIsChosen and PlayerCanMove[pn] then
-                if ChartIndex[pn] == #ChartArray then
-                    if CanWrap then
-                        ChartIndex[pn] = 1
-                    else return end
-                else
-                    ChartIndex[pn] = ChartIndex[pn] + 1
-                end
+                local New = ChartRowModel.Move(ChartIndex[pn], #ChartArray, 1, CanWrap, ConfirmStart[pn])
+                if not New then return end
+                ChartIndex[pn] = New
                 MESSAGEMAN:Broadcast("UpdateChartDisplay", { Player = pn })
             end
         end
