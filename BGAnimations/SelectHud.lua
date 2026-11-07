@@ -18,9 +18,9 @@ local OrbArt = Art("Phoenix/blackball")
 -- Geometry, in theme pixels measured on the Phoenix 2 video: u is the distance from the
 -- timer box edge outward (the timer box spans 47 px each side of the center)
 local Edge = 47
-local CardU = 456          -- the card's outer end
-local TitleU = 321         -- title bar and name area: u 0 .. TitleU
-local Top, Bottom = 10, 68 -- the card's yellow frame
+local CardU = 450          -- the card's outer end
+local TitleU = 324         -- title bar and name area: u 0 .. TitleU
+local Top, Bottom = 4, 65  -- the card's yellow frame (the title bar starts at Top too)
 local Yellow = color("#e3f31d")
 local Hidden = -90         -- y offset while the HUD is off screen
 
@@ -46,10 +46,10 @@ local function Card(pn)
         }
     end
     local function Heart(k)
-        local X, Y = Side * (15 + (k - 1) * 21), 51.5   -- k = 1 next to the timer
+        local X, Y = Side * (18 + (k - 1) * 20), 46.5   -- k = 1 next to the timer
         if HeartArt then
             return Def.Sprite { Name="Heart" .. k, Texture=HeartArt,
-                InitCommand=function(self) self:xy(X, Y):animate(false):setstate(0):zoom(0.5) end }
+                InitCommand=function(self) self:xy(X, Y):animate(false):setstate(0):zoom(0.7) end }
         end
         return Def.Sprite { Name="Heart" .. k, Texture=THEME:GetPathG("", "UI/Heart"),
             InitCommand=function(self) self:xy(X, Y):zoom(0.2) end }
@@ -60,31 +60,32 @@ local function Card(pn)
         -- outer end: the number over the orb
         Def.BitmapText {
             Name="Number", Font="Montserrat semibold 20px",
-            InitCommand=function(self) self:xy(Side * 423, 19.5):zoom(0.55):maxwidth(54 / 0.55):diffuse(color("#ffe24a")) end,
+            -- right-aligned in its strip on both sides, as in Phoenix 2
+            InitCommand=function(self) self:xy(Side < 0 and -396 or 443, 12.5):halign(1):zoom(0.55):maxwidth(48 / 0.55):diffuse(color("#ffe24a")) end,
         },
-        OrbArt and Def.Sprite { Texture=OrbArt, InitCommand=function(self) self:xy(Side * 423, 46):zoomto(32, 32) end }
-            or Box(415, 431, 38, 54, color("#8a8f98")),
+        OrbArt and Def.Sprite { Texture=OrbArt, InitCommand=function(self) self:xy(Side * 419.5, 40):zoomto(40, 40) end }
+            or Box(409, 430, 30, 50, color("#8a8f98")),
         -- avatar in the yellow frame (scaletocover also positions the sprite)
         Def.Sprite {
             Texture=LoadModule("Options.GetProfileData.lua")(pn)["Image"],
             InitCommand=function(self)
-                local x0, x1 = Side * 324, Side * 390
-                self:scaletocover(math.min(x0, x1), 13, math.max(x0, x1), 65)
+                local x0, x1 = Side * 326, Side * 390
+                self:scaletocover(math.min(x0, x1), 6, math.max(x0, x1), 62)
             end,
         },
         -- title, centered on the silver bar
         Def.BitmapText {
             Name="Title", Font="Montserrat extrabold 20px",
             InitCommand=function(self)
-                self:xy(Side * TitleU / 2, 24):zoom(0.8):maxwidth((TitleU - 24) / 0.8)
+                self:xy(Side * TitleU / 2, 21):zoom(0.8):maxwidth((TitleU - 24) / 0.8)
                     :diffuse(Color.White):shadowlength(2):shadowcolor(color("0,0,0,0.85"))
             end,
         },
         -- white name strip
-        Box(137, 319, 41, 62, color("#f4f6f8")),
+        Box(137, 321, 37, 56, color("#f4f6f8")),
         Def.BitmapText {
             Name="Name", Font="Montserrat extrabold 20px",
-            InitCommand=function(self) self:xy(Side * 228, 51.5):zoom(0.8):maxwidth(170 / 0.8):diffuse(color("#111318")) end,
+            InitCommand=function(self) self:xy(Side * 229, 46.5):zoom(0.8):maxwidth(170 / 0.8):diffuse(color("#111318")) end,
         },
     }
     for k = 1, 6 do Player[#Player + 1] = Heart(k) end
@@ -121,15 +122,19 @@ local function Card(pn)
             end
         end,
 
-        -- The card (shared by both states): yellow frame, black outer box, silver title
-        -- bar with a light streak, yellow-green line under it, black name area
-        Box(0, CardU, Top, Bottom, Yellow, function(self) self:diffusebottomedge(color("#b9e01a")) end),
-        Box(394, 452, 13, 64, color("#050608")),
-        Box(394, 452, 26, 27, Yellow),
-        Box(0, TitleU, Top, 37, color("#6b7079"), function(self) self:diffusebottomedge(color("#d7dbe0")) end),
-        Box(0, TitleU, 28, 31, Color.White, function(self) self:diffusealpha(0.45):fadeleft(0.4):faderight(0.4) end),
-        Box(0, TitleU, 37, 39, color("#c8f01e")),
-        Box(0, TitleU, 39, 64, Color.Black),
+        -- The card (shared by both states), as measured on the Phoenix 2 video: the yellow
+        -- frame around the avatar and the outer box, the black outer box (a number strip
+        -- over the orb's body), the silver title bar (lighter at the top, with a soft
+        -- highlight), a yellow-green line under it, the black name area and a yellow-green
+        -- line closing it
+        Box(TitleU, CardU, Top, Bottom, Yellow, function(self) self:diffusebottomedge(color("#b9e01a")) end),
+        Box(393, 446, 6, 59, color("#050608")),
+        Box(393, 446, 19, 21, Yellow),
+        Box(0, TitleU, Top, 35, color("#c3c8cf"), function(self) self:diffusebottomedge(color("#5d626b")) end),
+        Box(0, TitleU, 6, 13, Color.White, function(self) self:diffusealpha(0.35):fadeleft(0.35):faderight(0.35) end),
+        Box(0, TitleU, 35, 37, color("#c8f01e")),
+        Box(0, TitleU, 37, 56, Color.Black),
+        Box(0, TitleU, 56, 60, color("#c8f01e")),
 
         Player,
 
@@ -154,13 +159,13 @@ return Def.ActorFrame {
     Card(PLAYER_2),
 
     -- Green timer box at the center, with the card's yellow-green frame (the timer digits
-    -- are drawn above it by the engine, at the same height: metrics.ini)
+    -- are drawn above it by the engine: metrics.ini, centered at y 29 like Phoenix 2's)
     Def.ActorFrame {
-        InitCommand=function(self) self:xy(SCREEN_CENTER_X, 43 + Hidden) end,
-        OnCommand=function(self) self:easeoutexpo(0.5):y(43) end,
-        OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(43 + Hidden) end,
-        Def.Quad { InitCommand=function(self) self:zoomto(96, 64):diffuse(color("#d4f01c")):diffusebottomedge(color("#8fd41a")) end },
-        Def.Quad { InitCommand=function(self) self:zoomto(90, 58):diffuse(color("#0a2a10")) end },
-        Def.Quad { InitCommand=function(self) self:zoomto(86, 54):diffuse(color("#4fe25a")):diffusebottomedge(color("#10902a")) end },
+        InitCommand=function(self) self:xy(SCREEN_CENTER_X, 34 + Hidden) end,
+        OnCommand=function(self) self:easeoutexpo(0.5):y(34) end,
+        OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(34 + Hidden) end,
+        Def.Quad { InitCommand=function(self) self:zoomto(94, 60):diffuse(color("#d4f01c")):diffusebottomedge(color("#8fd41a")) end },
+        Def.Quad { InitCommand=function(self) self:zoomto(88, 54):diffuse(color("#0a2a10")) end },
+        Def.Quad { InitCommand=function(self) self:zoomto(84, 50):diffuse(color("#4fe25a")):diffusebottomedge(color("#10902a")) end },
     },
 }
