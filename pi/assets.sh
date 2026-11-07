@@ -125,7 +125,8 @@ say "Result screen art from the LBPIU scoreboard"
 if [ -f "$PX/Scoreboard/info.ini" ]; then
     echo "already there"
 else
-    "$PY" "$HERE/assets/lbpiu.py" "$THEME"         || { rm -f "$PX/Scoreboard/info.ini"; warn "the scoreboard art could not be downloaded; the result screen shows phyrebird's plates, balls and labels"; }
+    "$PY" "$HERE/assets/lbpiu.py" "$THEME" \
+        || { rm -f "$PX/Scoreboard/info.ini"; warn "the scoreboard art could not be downloaded; the result screen shows phyrebird's plates, balls and labels"; }
 fi
 
 say "XSanity art and noteskins"
@@ -149,8 +150,10 @@ else
 fi
 
 say "Co-op noteskins"
-# every run: only noteskins that changed are rebuilt
-"$PY" "$HERE/assets/coop_noteskins.py" "$NOTESKINS/pump"     || warn "the co-op noteskins could not be built; co-op charts show the noteskin's usual colors"
+# every run: only noteskins that changed are rebuilt; OutFox's own noteskins are read too
+OUTFOX_SKINS=$(ls -d "$HOME"/ProjectOutFox/OutFox-*/Appearance/NoteSkins/pump 2>/dev/null | head -1)
+"$PY" "$HERE/assets/coop_noteskins.py" "$NOTESKINS/pump" ${OUTFOX_SKINS:+"$OUTFOX_SKINS"} \
+    || warn "the co-op noteskins could not be built; co-op charts show the noteskin's usual colors"
 
 say "Player icons"
 "$PY" "$HERE/assets/avatars.py" "$PX/Avatars" \

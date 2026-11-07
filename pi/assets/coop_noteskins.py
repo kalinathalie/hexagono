@@ -12,10 +12,13 @@ P5 pink, as in Phoenix). For each noteskin X in NoteSkins/pump:
                        player's notes from X-coop<n>, and receptors, explosions and mines
                        from X itself
 
-A noteskin whose files did not change since the last run is skipped; copies of a removed
-noteskin are deleted. The art stays the noteskins' own, so this runs on the machine and
-never goes to the repository. Needs Pillow and numpy.
-Usage: python3 coop_noteskins.py NOTESKINS_PUMP_DIR
+OutFox's own Pump noteskins (its Appearance/NoteSkins/pump, given as extra folders) get
+co-op versions too, written to the user's folder; a noteskin that already handles co-op
+(NumPlayers above 1, like OutFox's "co-op") is left alone. A noteskin whose files did not
+change since the last run is skipped; copies of a removed noteskin are deleted. The art
+stays the noteskins' own, so this runs on the machine and never goes to the repository.
+Needs Pillow and numpy.
+Usage: python3 coop_noteskins.py NOTESKINS_PUMP_DIR [OUTFOX_NOTESKINS_PUMP_DIR ...]
 """
 import hashlib
 import os
@@ -122,18 +125,43 @@ def build_variant(src, dest, n, bases):
             shutil.copyfile(s, d)
 
 
-def build(pump, template_path=TEMPLATE):
-    """Builds what changed; returns (built, skipped) base noteskin names."""
+def declares_players(folder):
+    """True for a noteskin that handles co-op itself (NumPlayers above 1 in its metrics)."""
+    path = os.path.join(folder, "metrics.ini")
+    if not os.path.isfile(path):
+        return False
+    with open(path, errors="replace") as f:
+        m = re.search(r"^\s*NumPlayers\s*=\s*(\d+)", f.read(), re.M)
+    return m is not None and int(m.group(1)) > 1
+
+
+def sources(pump, extra):
+    """{noteskin: folder}: the user's noteskins, then OutFox's own ones (extra folders) not
+    shadowed by a user one; generated ones and those that handle co-op themselves left out."""
+    found = {}
+    for folder in [pump] + list(extra):
+        if not os.path.isdir(folder):
+            continue
+        for n in sorted(os.listdir(folder)):
+            path = os.path.join(folder, n)
+            if os.path.isdir(path) and not is_generated(n) and n not in found:
+                found[n] = path
+    return {n: p for n, p in found.items() if not declares_players(p)}
+
+
+def build(pump, template_path=TEMPLATE, extra=()):
+    """Builds what changed, into pump; extra are OutFox's own noteskin folders, read only.
+    Returns (built, skipped) base noteskin names."""
     with open(template_path, newline="") as f:
         template = f.read()
-    names = sorted(n for n in os.listdir(pump) if os.path.isdir(os.path.join(pump, n)))
-    bases = [n for n in names if not is_generated(n)]
-    for n in names:
-        if is_generated(n) and (n == LEGACY or GENERATED.sub("", n) not in bases):
+    found = sources(pump, extra)
+    bases = sorted(found)
+    for n in sorted(os.listdir(pump)):
+        if is_generated(n) and os.path.isdir(os.path.join(pump, n)) and (n == LEGACY or GENERATED.sub("", n) not in found):
             shutil.rmtree(os.path.join(pump, n))
     built, skipped = [], []
     for base in bases:
-        src = os.path.join(pump, base)
+        src = found[base]
         wrapper = os.path.join(pump, wrapper_name(base))
         sig = signature(src, template)
         sig_file = os.path.join(wrapper, SIGNATURE)
@@ -155,7 +183,7 @@ def build(pump, template_path=TEMPLATE):
 
 
 def main():
-    built, skipped = build(sys.argv[1])
+    built, skipped = build(sys.argv[1], TEMPLATE, sys.argv[2:])
     print("co-op noteskins: %d built, %d up to date" % (len(built), len(skipped)))
 
 

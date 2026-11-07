@@ -94,5 +94,35 @@ with tempfile.TemporaryDirectory() as root:
     built, skipped = cn.build(root, template)
     check(built == ["nx2"], "a changed noteskin is built again")
 
+# OutFox's own noteskins (another folder): made co-op ready too, into the user's folder;
+# a noteskin that already declares several players is left alone
+with tempfile.TemporaryDirectory() as root:
+    user, bundled = os.path.join(root, "user"), os.path.join(root, "bundled")
+    os.makedirs(user)
+    os.makedirs(bundled)
+    make_skin(user, "nx2")
+    make_skin(bundled, "default")
+    make_skin(bundled, "rhythm", fallback="default")
+    make_skin(bundled, "nx2")                                  # the user's own one wins
+    make_skin(bundled, "co-op")
+    with open(os.path.join(bundled, "co-op", "metrics.ini"), "a") as f:
+        f.write("[NoteDisplay]\nNumPlayers=5\n")
+    template = os.path.join(root, "template.lua")
+    with open(template, "w") as f:
+        f.write("-- wrapper\n")
+    built, skipped = cn.build(user, template, [bundled])
+    names = sorted(os.listdir(user))
+    check(built == ["default", "nx2", "rhythm"], "OutFox's noteskins built into the user's folder (got %s)" % built)
+    check("co-op-coop" not in names and "co-op-coop1" not in names, "a co-op noteskin is left alone")
+    check(sorted(os.listdir(bundled)) == ["co-op", "default", "nx2", "rhythm"], "OutFox's folder is not touched")
+    with open(os.path.join(user, "rhythm-coop2", "metrics.ini")) as f:
+        check("FallbackNoteSkin=default-coop2" in f.read(), "rhythm's copy falls back to default's copy")
+    with open(os.path.join(user, "nx2-coop1", "NoteSkin.lua")) as f:
+        check(f.read() == "return {} -- nx2", "the user's nx2 is the source, not OutFox's")
+    built, skipped = cn.build(user, template, [bundled])
+    check(built == [] and skipped == ["default", "nx2", "rhythm"], "second run: all up to date")
+    built, skipped = cn.build(user, template)
+    check("default-coop" not in os.listdir(user), "without OutFox's folder, its copies are removed as stale")
+
 print("all passed" if failures == 0 else "%d failed" % failures)
 sys.exit(1 if failures else 0)
