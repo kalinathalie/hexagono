@@ -37,6 +37,8 @@ local t = Def.ActorFrame {
         -- Reset machine profile mods
         ResetLuaMods(PLAYER_1)
         ResetLuaMods(PLAYER_2)
+        -- the operator's CPU AutoPlay option, both ways
+        ApplyCpuAutoPlay()
 
         GAMESTATE:UpdateDiscordGameMode(GAMESTATE:GetCurrentGame():GetName())
         GAMESTATE:UpdateDiscordScreenInfo("Title Menu", "", 1)

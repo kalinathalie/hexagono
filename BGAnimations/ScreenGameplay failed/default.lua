@@ -5,9 +5,11 @@
 -- the engine plays on every screen): the video, sound and fade use a command of their
 -- own, StageBreakStart, played once when the transition starts on a failed stage.
 
--- A broken play is not saved as a record: the engine saves the stage's scores when this
--- transition ends, unless the song options say not to. Saving is turned back on when
--- the next gameplay screen loads.
+-- A broken play is not saved as a record, and nothing is while the operator's CPU AutoPlay
+-- option is on (Modules/Gameplay.CpuAutoPlay.lua): the engine saves the stage's scores when
+-- this transition ends, unless the song options say not to. Saving is set again when the
+-- next gameplay screen loads.
+local CpuAutoPlay = LoadModule("Gameplay.CpuAutoPlay.lua")
 local function SaveScores(Save)
     for _, Level in ipairs({ "ModsLevel_Song", "ModsLevel_Current" }) do
         GAMESTATE:GetSongOptionsObject(Level):SaveScore(Save)
@@ -15,9 +17,9 @@ local function SaveScores(Save)
 end
 local function WithoutBrokenScores(Frame)
     return Def.ActorFrame {
-        InitCommand=function() SaveScores(true) end,
+        InitCommand=function() SaveScores(CpuAutoPlay.SaveScore(CpuAutoPlayOn(), false)) end,
         StartTransitioningCommand=function()
-            if STATSMAN:GetCurStageStats():AllFailed() then SaveScores(false) end
+            if not CpuAutoPlay.SaveScore(CpuAutoPlayOn(), STATSMAN:GetCurStageStats():AllFailed()) then SaveScores(false) end
         end,
         Frame,
     }

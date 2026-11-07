@@ -201,6 +201,13 @@ return {
         Choices = { OptionNameString('Off'), OptionNameString('On') },
         Values = {false, true}
     },
+    -- the engine's CPU plays every song, for viewing only (Modules/Gameplay.CpuAutoPlay.lua)
+    CpuAutoPlay =
+    {
+        Default = false,
+        Choices = { OptionNameString('Off'), OptionNameString('On') },
+        Values = {false, true}
+    },
     ScoringSystem =
     {
         Default = "Old",

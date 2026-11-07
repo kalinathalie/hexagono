@@ -40,7 +40,7 @@ local Files = {
     "tests/xscw/test_records.lua", "tests/xscw/test_chartrow.lua", "tests/xscw/test_wheel.lua", "tests/xscw/test_groups.lua",
     "tests/xscw/test_title.lua", "tests/xscw/test_profiles.lua", "tests/xscw/test_hidden.lua", "tests/xscw/test_startsong.lua", "tests/xscw/test_confirm.lua", "tests/xscw/test_editor.lua",
     "tests/xscw/test_judgeoffset.lua", "tests/xscw/test_receptors.lua", "tests/xscw/test_avatars.lua",
-    "tests/xscw/test_eval.lua",
+    "tests/xscw/test_eval.lua", "tests/xscw/test_cpuautoplay.lua",
 }
 local function Exists(File)
     local Fh = io.open(File, "r")

@@ -22,6 +22,7 @@ Leia só o que a tarefa toca. `docs/` é privado (fora do git) e só existe na m
   - `gameplay-visuals` — brilho do receptor, explosões das noteskins, notas ocultas
   - `evaluation-and-hud` — HUD das seleções: barras de perfil, cronômetro, setas dos cantos, fundo (a avaliação foi para `evaluation-screen`)
   - `evaluation-screen` — tela de resultado do Phoenix 2: tabela, score, diferença, nota, placa, voz e música
+  - `cpu-autoplay` — opção do operador: o CPU do motor joga sozinho, só para ver; nada é salvo
   - `pi-setup` — kit do Pi: sistema, tela a 60 Hz, inicialização, preferências, tapete, perfis reservados
   - `theme-art` — arte de terceiros: `pi/assets.sh`, `pi/assets/`, `tools/make_*`
 - `docs/plans/` — planos de implementação por ondas; cada um tem uma seção "Estado" no topo.

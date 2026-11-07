@@ -72,6 +72,22 @@ end
 
 LoadModule("Row.Prefs.lua")(LoadModule("Options.Prefs.lua"))
 
+-- Operator option "CPU AutoPlay" (Modules/Gameplay.CpuAutoPlay.lua): the engine's CPU plays
+-- every song, for viewing only. ScreenGameplay reads the engine's AutoPlay preference for
+-- every joined player; the title screen sets it both ways, so turning the option off puts
+-- the game back to normal there (the engine saves the preference when it exits).
+function CpuAutoPlayOn()
+    return LoadModule("Config.Load.lua")("CpuAutoPlay", "Save/OutFoxPrefs.ini") == true
+end
+function ApplyCpuAutoPlay()
+    local Want = LoadModule("Gameplay.CpuAutoPlay.lua").Controller(CpuAutoPlayOn())
+    if PREFSMAN:GetPreference("AutoPlay") == Want then return end
+    -- the enum name; Preferences.ini writes the short one ("Cpu"), tried if the long one fails
+    if not pcall(PREFSMAN.SetPreference, PREFSMAN, "AutoPlay", Want) then
+        PREFSMAN:SetPreference("AutoPlay", (Want:gsub("^PlayerController_", "")))
+    end
+end
+
 
 function ChartTypeToColor(Chart)
     local ChartMeter = Chart:GetMeter()
