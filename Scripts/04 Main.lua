@@ -89,21 +89,24 @@ function ApplyCpuAutoPlay()
 end
 
 -- Co-op charts: each player's notes in their own color (Modules/Gameplay.Coop.lua). Right
--- before the song starts, a player on a co-op chart gets the co-op noteskin; the gameplay
--- screen gives the player's own noteskin back as soon as its notes are loaded, so the
--- profile never keeps the co-op one.
+-- before the song starts, a player on a co-op chart gets the co-op version of their own
+-- noteskin ("<noteskin>-coop", made by pi/assets/coop_noteskins.py); the gameplay screen
+-- gives the noteskin back as soon as its notes are loaded, so the profile never keeps the
+-- co-op one. A noteskin without a co-op version stays as it is.
 local CoopSaved = {}
 function ApplyCoopNoteSkins()
     local Coop = LoadModule("Gameplay.Coop.lua")
-    if not (NOTESKIN:DoesNoteSkinExist(Coop.SKIN) and NOTESKIN:DoesNoteSkinExist(Coop.BASE)) then return end
     for _, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         local Steps = GAMESTATE:GetCurrentSteps(pn)
         local Players = Steps and Steps.GetNumCoOpPlayers and Steps:GetNumCoOpPlayers() or 0
         if Steps and Coop.IsCoop(Players, Steps:GetDescription()) then
             local Options = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
             local Current = Options:NoteSkin()
-            if string.lower(tostring(Current)) ~= Coop.SKIN then CoopSaved[pn] = Current end
-            Options:NoteSkin(Coop.SKIN)
+            local Target = Coop.SkinFor(Current)
+            if Target and not Coop.IsGenerated(Current) and NOTESKIN:DoesNoteSkinExist(Target) then
+                CoopSaved[pn] = Current
+                Options:NoteSkin(Target)
+            end
         end
     end
 end

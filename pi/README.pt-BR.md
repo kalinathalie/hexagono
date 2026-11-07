@@ -70,7 +70,7 @@ As artes pertencem à Andamiro e aos autores do phyrebird, do XSanity e do score
 | `Graphics/Phoenix/Title` | o vídeo de abertura do Phoenix 2 no YouTube, cortado onde o loop de espera se repete e convertido para a faixa completa de cor, pelo `assets/title.py` |
 | `Graphics/Phoenix/StageBreak` | a animação "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" do Phoenix 2, mostrada quando um jogador estoura, do YouTube, pelo `assets/stagebreak.py` |
 | `Graphics/XSanity`, `Graphics/XSCommandWindow` | do XSanity 0.96.0, baixado de [xsanity.net](https://xsanity.net/downloads.php) (`--xsanity CAMINHO` usa uma instalação ou zip que você já tem; versões mais novas mudaram as artes e trazem menos noteskins) |
-| `~/.project-outfox/NoteSkins/pump/hexagono-coop` | a noteskin do co-op, uma cor por jogador, montada a partir das SanityP1-5 do XSanity pelo `assets/coop_noteskin.py` com o script de `pi/config/noteskins/hexagono-coop`; refeita a cada execução |
+| `~/.project-outfox/NoteSkins/pump/<noteskin>-coop`, `-coop1`..`-coop5` | a versão co-op de cada noteskin Pump, feita pelo `assets/coop_noteskins.py`: cinco cópias recoloridas por jogador (1P vermelho a 5P rosa) e a noteskin para a qual o tema troca nos charts co-op, com o script de `pi/config/noteskins/coop`; só as noteskins que mudaram são refeitas; ocupa cerca de 5 vezes o tamanho das noteskins |
 | `~/.project-outfox/NoteSkins/pump` | as noteskins Pump do XSanity: o download traz 11; o Pi de referência tem 61, de uma coleção pessoal guardada no `noteskins-xsanity.zip`, que não é publicada (guarde-a junto com as músicas; `--noteskins CAMINHO` instala esse ou qualquer outro conjunto); o skin `default` do XSanity vira `xs_default`; explosões que só apareciam durante um combo aparecem também na primeira nota e depois de um erro |
 | `Graphics/Phoenix/Avatars` | os 165 ícones de jogador do Phoenix, do piugame.com (`PIU 001.png` ..), oferecidos em EDIT PHOTO na seleção de perfil, pelo `assets/avatars.py` |
 | `Thumbs` | feitas a partir dos banners e fundos das músicas pelo `tools/make_thumbs.py`, quando as músicas já estão instaladas |
@@ -95,7 +95,7 @@ As artes vêm do GitHub (phyrebird), do YouTube, do xsanity.net, do piugame.com 
 
 ## Verificações
 
-- `python3 pi/tests/test_<nome>.py`, um por parte: `display60` (escolha do modo de 60 Hz), `display_watch` (vigia de telas), `merge_prefs` (preferências), `title` (tempos do vídeo de abertura), `noteskins` (correção das explosões), `avatars` (ícones de jogador), `phyrebird` (arquivos da tela de resultado, duração da música e faixa verde dos rótulos), `lbpiu` (nomes das placas e bolinhas, fonte dos dígitos do score, nomes dos julgamentos), `coop_noteskin` (arquivos da noteskin do co-op).
+- `python3 pi/tests/test_<nome>.py`, um por parte: `display60` (escolha do modo de 60 Hz), `display_watch` (vigia de telas), `merge_prefs` (preferências), `title` (tempos do vídeo de abertura), `noteskins` (correção das explosões), `avatars` (ícones de jogador), `phyrebird` (arquivos da tela de resultado, duração da música e faixa verde dos rótulos), `lbpiu` (nomes das placas e bolinhas, fonte dos dígitos do score, nomes dos julgamentos), `coop_noteskins` (versões co-op das noteskins).
 - FPS: com `ShowStats=1` no `Preferences.ini`, o OutFox grava uma linha por segundo com `:Video, , <fps> FPS` em `~/.project-outfox/Logs/ProjectOutfox.MainLog.*.log`.
 - `~/.cache/display-60hz.log` e `~/.cache/outfox-run.log` mostram o que os scripts de tela e de inicialização fizeram.
 

@@ -17,8 +17,8 @@
 #                      have: --xsanity PATH); 0.97 changed the art
 #                      The XSanity download has 11 noteskins; --noteskins PATH installs a
 #                      bigger set kept separately (a zip or folder with a "pump" folder)
-#   NoteSkins/pump/hexagono-coop  the co-op noteskin, one color per player, built from
-#                      XSanity's SanityP1-5 (pi/assets/coop_noteskin.py)
+#   NoteSkins/pump/<noteskin>-coop, -coop1..5  co-op versions of every noteskin, one
+#                      color per player (pi/assets/coop_noteskins.py)
 #   Graphics/Phoenix/Avatars  the Phoenix player icons from piugame.com, offered by
 #                      profile select (pi/assets/avatars.py)
 #   Thumbs             the wheel thumbnails, when songs are already installed
@@ -148,9 +148,9 @@ else
     rm -f "$WORK/xsanity.zip"
 fi
 
-say "Co-op noteskin"
-# rebuilt every run (it is only copies): the script may have changed with the theme
-"$PY" "$HERE/assets/coop_noteskin.py" "$NOTESKINS/pump"     || warn "the co-op noteskin needs XSanity's SanityP1-5; co-op charts show the player's own noteskin"
+say "Co-op noteskins"
+# every run: only noteskins that changed are rebuilt
+"$PY" "$HERE/assets/coop_noteskins.py" "$NOTESKINS/pump"     || warn "the co-op noteskins could not be built; co-op charts show the noteskin's usual colors"
 
 say "Player icons"
 "$PY" "$HERE/assets/avatars.py" "$PX/Avatars" \
