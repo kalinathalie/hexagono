@@ -1,143 +1,66 @@
-# Hexágono: Infinitesimal no estilo Pump It Up Phoenix
+# Hexágono
 
 [English](README.md) | **Português (Brasil)**
 
-Tema de Project OutFox que reproduz as telas do **Pump It Up Phoenix** (e do Phoenix 2), feito a partir do [Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal). O Infinitesimal original é inspirado no Pump It Up Infinity. Este fork troca essa base pelo Phoenix: tela inicial, seleção de perfil, seleção de músicas, roda de grupos, janela de comandos e gameplay foram refeitas para funcionar como no fliperama, tudo pelo tapete.
-
-Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
+Um tema do [Project OutFox](https://projectoutfox.com) que joga como o **Pump It Up Phoenix 2**, derivado do [Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal). Tudo funciona pelo tapete, e ele foi feito para um Raspberry Pi 5 a 60 FPS.
 
 ![Tela inicial](.github/readme/title.jpg)
 
-## O que muda em relação ao Infinitesimal
-
-- **Tela inicial de fliperama:** sem menu. O centro do tapete entra o jogador e um segundo toque começa; o outro lado pode entrar antes. Com o vídeo do Phoenix 2 (arte local), a abertura toca uma vez e a espera fica em loop sem emenda; o PRESS CENTER STEP aparece junto com o logo do jogo, depois do trailer. O código vermelho esquerdo, vermelho direito, azul esquerdo, azul direito, duas vezes, abre as opções.
-- **Perfis pelo tapete:** na seleção de perfil, CRIAR PERFIL abre um teclado na tela: os azuis escolhem a tecla, o centro aperta e os vermelhos apagam. Azul esquerdo, azul direito, três vezes, edita o nome ou a foto de um perfil, com os avatares do OutFox e os 165 ícones de jogador do Phoenix (arte local). Com dois jogadores, os vermelhos tiram um deles, também quando o segundo entrou pela seleção de músicas.
-- **Começa na versão mais nova:** cada jogo novo abre a seleção numa música aleatória da última versão (hoje o PHOENIX 2). Depois de jogar, a seleção volta para a música jogada.
-- **Seleção de músicas no layout do Phoenix:** faixa de preview com o BGA no centro e cópias espelhadas nas laterais, título com artista e BPM, roda de jaquetas 4:3 com setas amarelas na música selecionada e 13 bolinhas de dificuldade com a nota recorde de cada chart. A lista de dificuldades dá a volta: esquerda no primeiro chart vai para o último e direita no último volta para o primeiro (Rolar escolha de charts nas opções do tema, ligado no kit do Pi).
-- **Cronômetro no centro:** um cronômetro no estilo do Phoenix, com os cards do P1 e do P2 dos lados: foto, nome, vidas e o nível, colorido por ranking, de cinza no nível 1 a um arco-íris no nível 10000.
-- **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY. Os vermelhos no READY tiram só o READY; de novo, voltam para a roda.
-- **Roda de grupos com cartões do Phoenix:** versões do jogo, gêneros (Original, K-Pop, World Music, J-Music, Xross, pelo gênero de cada música; as versões Short Cut, Remix e Full Song ficam nos grupos próprios, como no arcade), níveis de Single (do 1 ao 26), Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
-- **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Na escolha da categoria, o nome dela aparece entre o da anterior e o da próxima. Tem Speed, Auto Velocity, Display, Note Skin (com prévia dos skins em volta do cursor), Judge (EJ, NJ, HJ, VJ; volta para NJ a cada jogo novo) e Judge Timing (adianta ou atrasa o julgamento de cada jogador em até 100 ms).
-- **Auto Velocity no modo do PIU:** a velocidade acompanha o BPM, então as gimmicks continuam funcionando. A velocidade constante segue disponível como opção.
-- **Gameplay como no fliperama:** a música só é perdida com 40 erros seguidos, com a animação "HEY! WHY DON'T YOU JUST GET UP AND DANCE MAN?" do Phoenix 2 e sem tela de notas depois; esvaziar a barra de vida não encerra a música, mas dá uma nota quebrada (cinza). Jogadas quebradas nunca viram recorde. Brilho no receptor do painel pisado com qualquer noteskin (no double, no tapete que foi pisado) e explosão em todo acerto, inclusive na primeira nota e na seguinte a um erro (o kit do Pi corrige as noteskins que só a mostravam durante um combo); notas marcadas como ocultas nos charts (gimmicks) ficam invisíveis.
-- **Tela de resultado do Phoenix 2:** o título da música numa faixa verde, a bolinha do chart, a tabela de julgamentos (PERFECT a MAX COMBO e KCAL) contando, o score com a diferença para o seu recorde (dourado na primeira vez, verde acima, vermelho abaixo), a nota grande com o brilho e a voz, e a placa, sobre a música de resultado do Phoenix. Jogada quebrada mostra a nota prata rachada, sem placa. O tapete só sai da tela depois que a nota aparece; o cronômetro dá 20 s. As notas são recortadas de um vídeo de resultado do Phoenix 2; as placas, as bolinhas dos charts, os dígitos do score e os nomes dos julgamentos vêm do scoreboard da LBPIU, e o resto da arte, as vozes e a música, do phyrebird (tudo arte local); sem elas, a tela usa texto.
-- **Charts CO-OP nas cores dos jogadores:** num chart CO-OP, as notas de cada jogador têm a sua cor, como no Phoenix (1P vermelho, 2P azul, 3P amarelo, 4P verde, 5P rosa), em qualquer noteskin que o jogador escolher: o kit faz uma versão co-op de cada noteskin, recolorida por jogador.
-- **AutoPlay CPU, para assistir:** uma opção do operador (Options › Theme options › Gameplay) faz o jogador CPU do motor jogar todas as músicas sozinho, com julgamentos de verdade na tela de resultado. Nada do que ele joga é salvo.
-- **Listas por número de jogadores:** com dois jogadores somem Double, Half-Double e Co-op; os charts de co-op ficam só no grupo Co-op.
-- **Setas BACK e SHIFT nos cantos**, vindas do InfiniteWorlds.
-- **Miniaturas nítidas na roda**, geradas a partir do fundo de cada música.
-- **Fundo estático** no lugar do vídeo animado, para não pesar na navegação.
-
-## Capturas
-
 | | |
 |---|---|
-| ![Jogador 1 entrou](.github/readme/title-ready.jpg) | ![Seleção de perfil](.github/readme/profile-select.jpg) |
-| Tela inicial: o jogador 1 entrou; mais um toque no centro começa | Seleção de perfil com CRIAR PERFIL |
-| ![Teclado do perfil](.github/readme/profile-keyboard.jpg) | ![Seleção de músicas](.github/readme/song-select.jpg) |
-| Nome do perfil digitado pelo tapete | Seleção de músicas, aberta numa música do PHOENIX 2 |
-| ![Música escolhida](.github/readme/song-chosen.jpg) | ![Dois jogadores](.github/readme/two-players.jpg) |
-| Música escolhida: MY BEST, bola grande e READY | Dois jogadores, cronômetro no centro |
-| ![Dois jogadores em READY](.github/readme/two-players-chosen.jpg) | ![Versões](.github/readme/versions.jpg) |
-| Os dois jogadores em READY | Roda de grupos: versões |
-| ![Categorias](.github/readme/categories.jpg) | ![Níveis de Double](.github/readme/double-levels.jpg) |
-| Roda de grupos: categorias | Níveis de Double, do 1 ao 28 |
-| ![Janela de comandos](.github/readme/command-window.jpg) | ![Gameplay](.github/readme/gameplay.jpg) |
-| Janela de comandos: Auto Velocity | Gameplay com dois jogadores: o receptor do painel pisado brilha |
-
-As capturas mostram o tema com as suas artes, que o `pi/assets.sh` baixa e gera (veja [Artes do tema](#artes-do-tema)).
-
-## Requisitos
-
-- [Project OutFox](https://projectoutfox.com/downloads) 0.5.0-pre043 ou mais novo, no modo `pump`.
-- Testado num Raspberry Pi 5 (Raspberry Pi OS, Wayland com Xwayland) a 60 Hz.
+| ![Seleção de perfil](.github/readme/profile-select.jpg) | ![Seleção de músicas](.github/readme/song-select.jpg) |
+| Seleção de perfil | Seleção de músicas |
+| ![Roda de grupos: versões](.github/readme/versions.jpg) | ![Roda de grupos: categorias](.github/readme/categories.jpg) |
+| Roda de grupos: versões | Roda de grupos: categorias |
+| ![Dificuldade escolhida, READY](.github/readme/ready.jpg) | ![Janela de comandos](.github/readme/command-window.jpg) |
+| Dificuldade escolhida: MY BEST e READY | Janela de comandos |
+| ![Gameplay em co-op](.github/readme/gameplay.jpg) | ![Tela de resultado](.github/readme/result.jpg) |
+| Chart co-op: as notas de cada jogador na sua cor | Tela de resultado |
 
 ## Instalação
 
-### Num Raspberry Pi 5
+### Raspberry Pi 5
 
-Quatro passos transformam um Raspberry Pi 5 na máquina de referência. Você precisa do Pi (o de referência tem 8 GB), de um cartão microSD com espaço para as músicas (o de referência usa 128 GB; as músicas ocupam 47 GB), de internet, de uma tela e de um tapete (um teclado também serve).
-
-1. **Grave o sistema.** No [Raspberry Pi Imager](https://www.raspberrypi.com/software/), escolha *Raspberry Pi 5*, depois *Raspberry Pi OS (64-bit)*, a versão com área de trabalho, e depois o seu cartão. Nas configurações do Imager, defina um nome de usuário, uma senha e o Wi-Fi. Grave o cartão, coloque no Pi e ligue.
-
-2. **Instale tudo** com um comando. No Pi, abra o Terminal (o ícone fica na barra de cima), ou conecte por SSH, e cole:
+1. Grave o **Raspberry Pi OS (64-bit)** com área de trabalho num cartão microSD pelo [Raspberry Pi Imager](https://www.raspberrypi.com/software/); nas configurações dele, defina usuário, senha e Wi-Fi. Ligue o Pi.
+2. Abra o Terminal (ou entre por SSH) e rode:
 
    ```bash
    git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal && bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh
    ```
 
-   Leva cerca de 20 minutos e instala o Project OutFox, este tema com todas as suas artes (vídeo de abertura, cartões, noteskins, ícones de jogador...), 60 Hz em qualquer tela, o jogo abrindo no login, as preferências e o mapeamento do tapete. Ele pede a sua senha e, no meio, mostra a licença das fontes da Microsoft: aceite (escolha `<Ok>` e depois `<Yes>`, com as setas e Enter) para os cartões usarem a mesma fonte da máquina de referência.
-
-   No fim aparece *Done*. Se aparecerem avisos (warnings) antes dele, algo não pôde ser baixado: rode de novo mais tarde só a segunda metade, `bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh`, e ele busca o que faltou.
-
-3. **Coloque as músicas.** Copie as pastas de músicas para `~/.project-outfox/Songs`, uma pasta por versão, com nomes como `17 - PHOENIX 2` (veja [Músicas](pi/README.pt-BR.md#músicas)). Depois gere as miniaturas da roda:
+   Leva uns 20 minutos: Project OutFox, o tema e as artes dele, 60 Hz em qualquer tela, o jogo abrindo no login e o mapeamento do tapete. Aceite a licença das fontes da Microsoft quando ela aparecer. Se terminar com avisos, rode `bash ~/.project-outfox/Themes/Infinitesimal/pi/setup.sh` de novo depois.
+3. Copie as músicas para `~/.project-outfox/Songs`, uma pasta por versão (como `17 - PHOENIX 2`), e gere as miniaturas da roda:
 
    ```bash
    cd ~/.project-outfox/Themes/Infinitesimal && python3 tools/make_thumbs.py
    ```
 
-4. **Reinicie:**
+4. Reinicie com `sudo reboot`: o jogo abre sozinho na tela inicial.
 
-   ```bash
-   sudo reboot
-   ```
+Cada passo em detalhe: [kit do Raspberry Pi](pi/README.pt-BR.md).
 
-   O Pi entra sozinho e o jogo abre na tela inicial, em 60 Hz.
+### Outros computadores
 
-Pronto: o Pi fica como o de referência, menos o que é pessoal (músicas, perfis, notas) e as noteskins extras: o de referência tem 61, de uma coleção particular; um Pi novo recebe as 11 do XSanity e as 6 do OutFox ([como instalar um conjunto seu](pi/README.pt-BR.md#passos)). Se o tapete não responder, mapeie em INPUT OPTIONS: na tela inicial, pise vermelho esquerdo, vermelho direito, azul esquerdo, azul direito, duas vezes. Cada passo em detalhe: [kit do Raspberry Pi](pi/README.pt-BR.md).
-
-### Em outro computador
-
-Com o [Project OutFox](https://projectoutfox.com/downloads) instalado, clone o tema dentro da pasta [Themes](https://outfox.wiki/user-guide/config/folders/#themes) dele com o nome `Infinitesimal`, gere as artes (veja abaixo) e escolha o tema nas opções do OutFox. No Linux:
+Precisa do [Project OutFox](https://projectoutfox.com/downloads) 0.5.0-pre043 ou mais novo, no modo `pump`. Clone o tema na pasta Themes do OutFox com o nome `Infinitesimal`, gere as artes (Linux, com Python 3, Pillow, numpy, ffmpeg e node) e escolha o tema nas opções do OutFox:
 
 ```bash
 git clone https://github.com/kalinathalie/hexagono.git ~/.project-outfox/Themes/Infinitesimal
-```
-
-## Artes do tema
-
-A arte do Pump It Up, do phyrebird e do XSanity **não está neste repositório**. Um comando baixa cada uma da sua origem e gera o resto nas pastas do tema ignoradas pelo git. No Raspberry Pi, o `setup.sh` já roda ele; à mão (no Linux, com Python 3, Pillow, numpy, ffmpeg e node):
-
-```bash
 bash ~/.project-outfox/Themes/Infinitesimal/pi/assets.sh
 ```
 
-A maior parte do tempo vai para os downloads e o vídeo de abertura. Ele pula o que já existe e termina com a lista do que não conseguiu, então rodar de novo completa o trabalho. O que ele cria:
+As artes do Pump It Up, do phyrebird, do XSanity e do scoreboard da LBPIU não estão neste repositório: o `assets.sh` baixa e gera tudo na sua máquina.
 
-- `Graphics/Phoenix/`: cartões de canal do Phoenix, bolinhas de dificuldade, MY BEST, READY, ícones de nota, janela de comandos, logo do Phoenix 2, vídeo de abertura, animação de estouro e os ícones de jogador.
-- `Graphics/XSanity/` e `Graphics/XSCommandWindow/`: as artes do XSanity, e as noteskins de Pump dele em `~/.project-outfox/NoteSkins`.
-- `Thumbs/`: as miniaturas da roda, depois que as músicas estão instaladas.
+## Códigos secretos
 
-O que faltar é trocado pelos gráficos do próprio tema. Origens e opções: [README do kit](pi/README.pt-BR.md#as-artes-do-tema-assetssh).
+↖ ↗ são os painéis vermelhos de cima, ↙ ↘ os azuis de baixo e ● o centro amarelo. Pise com menos de 2 segundos entre os painéis.
 
-## Ferramentas
-
-- `tools/make_thumbs.py`: gera as miniaturas da roda em `Thumbs/`. Rode no computador que tem as músicas e de novo quando adicionar músicas:
-
-  ```bash
-  python3 tools/make_thumbs.py
-  ```
-
-- `tools/make_phoenix_cards.py`: gera, a partir dos cartões do Phoenix baixados, os cartões de Single Lv. 24 a 26, de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
-- `tools/make_phoenix_logo.py`: recorta o logo do Phoenix 2 do fundo branco para a tela inicial.
-- `tools/make_phoenix_labels.py`: redesenha em 4x, com a fonte do tema, os nomes das categorias da command window (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...), para ficarem nítidos quando ampliados, e acrescenta JUDGE TIMING.
-- `tools/make_timer.py`: desenha o cronômetro do topo no estilo do Phoenix, a moldura e a fumaça (`Graphics/UI/Timer frame.png`, `Timer smoke.png`) e os dígitos (`Fonts/Timer digits`), arte do próprio tema, já no repositório.
-
-## Herdado do Infinitesimal
-
-Continuam valendo as funções do tema original: janelas de julgamento e barra de vida no estilo K-Pump, outras janelas de timing (StepMania, ITG, Infinity, Pro, Jump), Basic Mode, filtros de fundo, modificadores de aparência e as opções próprias do tema no menu do operador. Veja o [README do Infinitesimal](https://github.com/Team-Infinitesimal/Infinitesimal) para a lista completa.
-
-## Idiomas
-
-Inglês, português do Brasil e polonês.
+| Onde | Painéis | O que faz |
+|---|---|---|
+| Tela inicial | ↖ ↗ ↙ ↘ ↖ ↗ ↙ ↘ | Opções do operador: mapeamento do tapete, opções do tema, AutoPlay CPU |
+| Seleção de perfil | ↙ ↘ ↙ ↘ ↙ ↘ | Edita o nome ou a foto do perfil |
+| Seleção de músicas | ↙ ↘ ↙ ↘ ↙ ↘ | Janela de comandos: velocidade, Auto Velocity, display, noteskin, judge (vale também escolhendo a dificuldade) |
+| Seleção de músicas do Basic Mode | ↙ ↖ ● ↗ ↘ ↗ ● ↖ ↙ | Passa para a seleção de músicas completa |
 
 ## Créditos
 
-- **Infinitesimal:** dj505, SheepyChris e toda a equipe listada em `credits.txt`.
-- **InfiniteWorlds**, de tiny-goat (GPL-3.0): setas dos cantos e moldura da roda.
-- **Pump It Up Phoenix e Phoenix 2**, da Andamiro: referência de layout. Logos e arte do jogo pertencem à Andamiro.
-- **XSanity**, **phyrebird** e o **scoreboard da LBPIU** (scoreboard.lbpiu.com.br): fontes da arte opcional usada localmente.
-
-## Licença
-
-GPL-3.0, a mesma do Infinitesimal. Veja `LICENSE`.
+Infinitesimal por dj505, SheepyChris e a equipe em `credits.txt`; setas dos cantos e moldura da roda do InfiniteWorlds, de tiny-goat. O Pump It Up e as artes dele são da Andamiro. Licença: GPL-3.0, veja `LICENSE`.
