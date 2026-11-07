@@ -120,6 +120,7 @@ O que faltar é trocado pelos gráficos do próprio tema. Origens e opções: [R
 - `tools/make_phoenix_cards.py`: gera, a partir dos cartões do Phoenix baixados, os cartões de Single Lv. 24 a 26, de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
 - `tools/make_phoenix_logo.py`: recorta o logo do Phoenix 2 do fundo branco para a tela inicial.
 - `tools/make_phoenix_labels.py`: redesenha em 4x, com a fonte do tema, os nomes das categorias da command window (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...), para ficarem nítidos quando ampliados, e acrescenta JUDGE TIMING.
+- `tools/make_orb.py`: desenha a esfera cinza do card do jogador no topo (`Graphics/UI/Orb.png`, arte do próprio tema, já no repositório).
 
 ## Herdado do Infinitesimal
 

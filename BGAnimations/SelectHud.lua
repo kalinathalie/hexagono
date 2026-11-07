@@ -2,7 +2,7 @@
 -- the center (the engine timer is placed there by metrics.ini) and each player's card
 -- beside it (P1 left, P2 right, mirrored), drawn after the Phoenix 2 card:
 --   outer end   black box with a yellow number (Phoenix's rating; here the songs the
---               profile played) over an orb
+--               profile played) over a gray orb
 --   avatar      inside the card's yellow frame
 --   title bar   silver bar with the title in bold (here "LEVEL n")
 --   name strip  white strip with the name; the lives (6 hearts) toward the timer
@@ -13,7 +13,7 @@
 local Opts = (...) or {}
 local Art = LoadModule("Select.Art.lua")
 local HeartArt = Art("XSanity/SM-HEARTS 2x1")
-local OrbArt = Art("Phoenix/blackball")
+local OrbArt = THEME:GetPathG("", "UI/Orb")   -- the theme's own (tools/make_orb.py)
 
 -- Geometry, in theme pixels measured on the Phoenix 2 video: u is the distance from the
 -- timer box edge outward (the timer box spans 47 px each side of the center)
@@ -63,14 +63,13 @@ local function Card(pn)
             -- right-aligned in its strip on both sides, as in Phoenix 2
             InitCommand=function(self) self:xy(Side < 0 and -396 or 443, 12.5):halign(1):zoom(0.55):maxwidth(48 / 0.55):diffuse(color("#ffe24a")) end,
         },
-        OrbArt and Def.Sprite { Texture=OrbArt, InitCommand=function(self) self:xy(Side * 419.5, 40):zoomto(40, 40) end }
-            or Box(409, 430, 30, 50, color("#8a8f98")),
+        Def.Sprite { Texture=OrbArt, InitCommand=function(self) self:xy(Side * 419.5, 40):zoomto(40, 40) end },
         -- avatar in the yellow frame (scaletocover also positions the sprite)
         Def.Sprite {
             Texture=LoadModule("Options.GetProfileData.lua")(pn)["Image"],
             InitCommand=function(self)
-                local x0, x1 = Side * 326, Side * 390
-                self:scaletocover(math.min(x0, x1), 6, math.max(x0, x1), 62)
+                local x0, x1 = Side * 327, Side * 389
+                self:scaletocover(math.min(x0, x1), 7, math.max(x0, x1), 61)
             end,
         },
         -- title, centered on the silver bar

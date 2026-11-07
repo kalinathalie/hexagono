@@ -120,6 +120,7 @@ Anything missing falls back to the theme's own graphics. Sources and options: [t
 - `tools/make_phoenix_cards.py`: builds, from the downloaded Phoenix cards, the cards for Single Lv. 24 to 26, Double Lv. 1 to 4 and 26 to 28, Half-Double and the categories.
 - `tools/make_phoenix_logo.py`: cuts the Phoenix 2 logo out of its white background for the title screen.
 - `tools/make_phoenix_labels.py`: redraws the command window category labels (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...) at 4x with the theme font, so they stay sharp when enlarged, and adds JUDGE TIMING.
+- `tools/make_orb.py`: draws the gray orb of the player card in the top HUD (`Graphics/UI/Orb.png`, the theme's own art, already in the repository).
 
 ## Inherited from Infinitesimal
 
