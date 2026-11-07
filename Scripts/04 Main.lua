@@ -88,6 +88,32 @@ function ApplyCpuAutoPlay()
     end
 end
 
+-- Co-op charts: each player's notes in their own color (Modules/Gameplay.Coop.lua). Right
+-- before the song starts, a player on a co-op chart gets the co-op noteskin; the gameplay
+-- screen gives the player's own noteskin back as soon as its notes are loaded, so the
+-- profile never keeps the co-op one.
+local CoopSaved = {}
+function ApplyCoopNoteSkins()
+    local Coop = LoadModule("Gameplay.Coop.lua")
+    if not (NOTESKIN:DoesNoteSkinExist(Coop.SKIN) and NOTESKIN:DoesNoteSkinExist(Coop.BASE)) then return end
+    for _, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+        local Steps = GAMESTATE:GetCurrentSteps(pn)
+        local Players = Steps and Steps.GetNumCoOpPlayers and Steps:GetNumCoOpPlayers() or 0
+        if Steps and Coop.IsCoop(Players, Steps:GetDescription()) then
+            local Options = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+            local Current = Options:NoteSkin()
+            if string.lower(tostring(Current)) ~= Coop.SKIN then CoopSaved[pn] = Current end
+            Options:NoteSkin(Coop.SKIN)
+        end
+    end
+end
+function RestoreCoopNoteSkins()
+    for pn, Skin in pairs(CoopSaved) do
+        GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred"):NoteSkin(Skin)
+        CoopSaved[pn] = nil
+    end
+end
+
 
 function ChartTypeToColor(Chart)
     local ChartMeter = Chart:GetMeter()

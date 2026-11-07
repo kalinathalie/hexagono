@@ -8,6 +8,8 @@ local t = Def.ActorFrame {
     InitCommand=function(self)
         self:sleep(0.5):queuecommand("CheckTimer")
     end,
+    -- back from a song: a co-op noteskin left over gives way to the player's own
+    OnCommand=function(self) RestoreCoopNoteSkins() end,
     CheckTimerCommand=function(self)
         if SCREENMAN:GetTopScreen():GetChild("Timer"):GetSeconds() <= 0 then
             self:queuecommand("TimerExpired")
@@ -19,6 +21,7 @@ local t = Def.ActorFrame {
         -- Set these or else we crash.
         GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
         GAMESTATE:SetCurrentStyle(GAMESTATE:GetNumSidesJoined() > 1 and "versus" or string.lower(ShortType(GAMESTATE:GetCurrentSteps(GAMESTATE:GetMasterPlayerNumber()))))
+        ApplyCoopNoteSkins()
         SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
     end
 }

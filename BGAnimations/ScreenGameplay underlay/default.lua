@@ -1,7 +1,9 @@
 local TimingMode = LoadModule("Config.Load.lua")("SmartTimings","Save/OutFoxPrefs.ini") or "Unknown"
 local Scoring = LoadModule("Config.Load.lua")("ScoringSystem", "Save/OutFoxPrefs.ini") or "Old"
 
-local t = Def.ActorFrame {}
+-- the notes are loaded by now: the player's own noteskin goes back to the profile
+-- (a co-op chart was switched to the co-op one, Scripts/04 Main.lua)
+local t = Def.ActorFrame { OnCommand=function(self) RestoreCoopNoteSkins() end }
 
 if LoadModule("Config.Load.lua")("StarField","Save/OutFoxPrefs.ini") then
     t[#t+1] = Def.ActorFrame {

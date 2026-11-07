@@ -103,6 +103,7 @@ local function InputHandler(event)
                 -- Set these or else we crash.
                 GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
                 GAMESTATE:SetCurrentStyle(GAMESTATE:GetNumSidesJoined() > 1 and "versus" or string.lower(ShortType(GAMESTATE:GetCurrentSteps(pn))))
+                ApplyCoopNoteSkins()
                 SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
             else
                 MESSAGEMAN:Broadcast("StepsChosen", { Player = pn })

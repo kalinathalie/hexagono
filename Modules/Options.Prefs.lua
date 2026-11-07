@@ -75,8 +75,8 @@ return {
         Default = "default",
         UserPref = true,
         OneInRow = true,
-        Choices = NOTESKIN:GetNoteSkinNames(),
-        Values = NOTESKIN:GetNoteSkinNames(),
+        Choices = LoadModule("Gameplay.Coop.lua").Choosable(NOTESKIN:GetNoteSkinNames()),
+        Values = LoadModule("Gameplay.Coop.lua").Choosable(NOTESKIN:GetNoteSkinNames()),
         LoadFunction = function(self,list,pn)
             local CurNoteSkin = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred"):NoteSkin()
             for i,v2 in ipairs(self.Choices) do

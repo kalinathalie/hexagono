@@ -55,7 +55,7 @@ local Deps = {
     end,
     GetNoteSkin = function(pn) return PlayerOpts(pn):NoteSkin() end,
     SetNoteSkin = function(pn, name) PlayerOpts(pn):NoteSkin(name) end,
-    NoteSkinNames = NOTESKIN:GetNoteSkinNames(),
+    NoteSkinNames = LoadModule("Gameplay.Coop.lua").Choosable(NOTESKIN:GetNoteSkinNames()),
     -- Infinitesimal per-player preferences (screen filter etc.)
     GetPref = function(pn, key) return LoadModule("Config.Load.lua")(key, PrefsFile(pn)) end,
     SetPref = function(pn, key, value) LoadModule("Config.Save.lua")(key, value, PrefsFile(pn)) end,
