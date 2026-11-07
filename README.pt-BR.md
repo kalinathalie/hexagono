@@ -14,7 +14,7 @@ Foi feito para rodar num Raspberry Pi 5 com tapete USB, travado em 60 FPS.
 - **Perfis pelo tapete:** na seleção de perfil, CRIAR PERFIL abre um teclado na tela: os azuis escolhem a tecla, o centro aperta e os vermelhos apagam. Azul esquerdo, azul direito, três vezes, edita o nome ou a foto de um perfil, com os avatares do OutFox e os 165 ícones de jogador do Phoenix (arte local). Com dois jogadores, os vermelhos tiram um deles, também quando o segundo entrou pela seleção de músicas.
 - **Começa na versão mais nova:** cada jogo novo abre a seleção numa música aleatória da última versão (hoje o PHOENIX 2). Depois de jogar, a seleção volta para a música jogada.
 - **Seleção de músicas no layout do Phoenix:** faixa de preview com o BGA no centro e cópias espelhadas nas laterais, título com artista e BPM, roda de jaquetas 4:3 com setas amarelas na música selecionada e 13 bolinhas de dificuldade com a nota recorde de cada chart. A lista de dificuldades dá a volta: esquerda no primeiro chart vai para o último e direita no último volta para o primeiro (Rolar escolha de charts nas opções do tema, ligado no kit do Pi).
-- **Cronômetro no centro:** as barras de perfil do P1 e do P2 ficam dos lados do cronômetro, com nível, nome e vidas.
+- **Cronômetro no centro:** um cronômetro no estilo do Phoenix, com os cards do P1 e do P2 dos lados: foto, nome, vidas e o nível, colorido por ranking, de cinza no nível 1 a um arco-íris no nível 10000.
 - **Transição ao escolher a música:** a roda sai, as bolinhas sobem e cada jogador ganha o painel MY BEST com nota, grade e placa, a bola grande do chart e o selo READY. Os vermelhos no READY tiram só o READY; de novo, voltam para a roda.
 - **Roda de grupos com cartões do Phoenix:** versões do jogo, gêneros (Original, K-Pop, World Music, J-Music, Xross, pelo gênero de cada música; as versões Short Cut, Remix e Full Song ficam nos grupos próprios, como no arcade), níveis de Single (do 1 ao 26), Double (do 1 ao 28) e Half-Double, especiais e uma tela de categorias, cada uma com seu cartão.
 - **Janela de comandos gráfica:** abre com o código de painéis (baixo-esquerda, baixo-direita, três vezes), também durante a escolha da dificuldade, e é navegada só pelo tapete. Na escolha da categoria, o nome dela aparece entre o da anterior e o da próxima. Tem Speed, Auto Velocity, Display, Note Skin (com prévia dos skins em volta do cursor), Judge (EJ, NJ, HJ, VJ; volta para NJ a cada jogo novo) e Judge Timing (adianta ou atrasa o julgamento de cada jogador em até 100 ms).
@@ -120,7 +120,7 @@ O que faltar é trocado pelos gráficos do próprio tema. Origens e opções: [R
 - `tools/make_phoenix_cards.py`: gera, a partir dos cartões do Phoenix baixados, os cartões de Single Lv. 24 a 26, de Double Lv. 1 a 4 e 26 a 28, de Half-Double e das categorias.
 - `tools/make_phoenix_logo.py`: recorta o logo do Phoenix 2 do fundo branco para a tela inicial.
 - `tools/make_phoenix_labels.py`: redesenha em 4x, com a fonte do tema, os nomes das categorias da command window (SPEED, DISPLAY, NOTE SKIN, AUTO VELOCITY...), para ficarem nítidos quando ampliados, e acrescenta JUDGE TIMING.
-- `tools/make_orb.py`: desenha a esfera cinza do card do jogador no topo (`Graphics/UI/Orb.png`, arte do próprio tema, já no repositório).
+- `tools/make_timer.py`: desenha o cronômetro do topo no estilo do Phoenix, a moldura e a fumaça (`Graphics/UI/Timer frame.png`, `Timer smoke.png`) e os dígitos (`Fonts/Timer digits`), arte do próprio tema, já no repositório.
 
 ## Herdado do Infinitesimal
 

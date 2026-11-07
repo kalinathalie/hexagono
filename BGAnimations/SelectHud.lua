@@ -1,36 +1,32 @@
--- Phoenix 2 top HUD of the select and result screens: the menu timer in a green box at
--- the center (the engine timer is placed there by metrics.ini) and each player's card
--- beside it (P1 left, P2 right, mirrored), drawn after the Phoenix 2 card:
---   outer end   black box with a yellow number (Phoenix's rating; here the songs the
---               profile played) over a gray orb
---   avatar      inside the card's yellow frame
---   title bar   silver bar with the title in bold (here "LEVEL n")
+-- Phoenix 2 top HUD of the select and result screens: the menu timer at the center and
+-- each player's card beside it (P1 left, P2 right, mirrored), drawn after Phoenix 2:
+--   timer       the theme's own Phoenix-style frame and digits (tools/make_timer.py);
+--               the engine timer still counts, hidden (metrics.ini), and its seconds
+--               are shown here
+--   avatar      inside the card's yellow frame, at the outer end
+--   title bar   silver bar with "LEVEL n" in bold, colored by rank (Select.Hud:
+--               gray at level 1 up to a rainbow at level 10000)
 --   name strip  white strip with the name; the lives (6 hearts) toward the timer
 -- A side without a player shows the dim card with "PRESS CENTER STEP" (or "INSERT
 -- CREDIT" when credits are needed).
 -- LoadActor("../SelectHud", { HideEmpty = true }) hides that side's card entirely
 -- (the evaluation screen, where nobody can join).
 local Opts = (...) or {}
+local Hud = LoadModule("Select.Hud.lua")
 local Art = LoadModule("Select.Art.lua")
 local HeartArt = Art("XSanity/SM-HEARTS 2x1")
-local OrbArt = THEME:GetPathG("", "UI/Orb")   -- the theme's own (tools/make_orb.py)
 
 -- Geometry, in theme pixels measured on the Phoenix 2 video: u is the distance from the
 -- timer box edge outward (the timer box spans 47 px each side of the center)
 local Edge = 47
-local CardU = 450          -- the card's outer end
+local CardU = 392          -- the card's outer end, past the avatar's frame
 local TitleU = 324         -- title bar and name area: u 0 .. TitleU
 local Top, Bottom = 4, 65  -- the card's yellow frame (the title bar starts at Top too)
 local Yellow = color("#e3f31d")
 local Hidden = -90         -- y offset while the HUD is off screen
 
-local function ProfileLevel(pn)
-    local Profile = PROFILEMAN:GetProfile(pn)
-    if not Profile then return 0 end
-    local lvl = math.floor(math.sqrt(Profile:GetTotalDancePoints() / 500)) + 1
-    if (lvl < 0) or (lvl ~= lvl) then lvl = 0 end
-    return lvl
-end
+-- 1.5 px black outline around the level, so every rank color reads on the silver bar
+local Outline = { { -1.5, 0 }, { 1.5, 0 }, { 0, -1.5 }, { 0, 1.5 }, { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }
 
 local function Joined(pn) return GAMESTATE:IsHumanPlayer(pn) end
 
@@ -55,15 +51,30 @@ local function Card(pn)
             InitCommand=function(self) self:xy(X, Y):zoom(0.2) end }
     end
 
+    -- the level on the silver bar: the outline copies, then the colored text
+    local Title = Def.ActorFrame {
+        Name="Title",
+        InitCommand=function(self) self:xy(Side * TitleU / 2, 21) end,
+        SetCommand=function(self, params)
+            for i = 1, #Outline do self:GetChild("Outline" .. i):settext(params.Text) end
+            local Text = self:GetChild("Text")
+            Text:settext(params.Text):stopeffect():diffuse(Hud.Color(params.Level))
+            if Hud.Rainbow(params.Level) then Text:rainbow():effectperiod(2) end
+        end,
+    }
+    for i, O in ipairs(Outline) do
+        Title[#Title + 1] = Def.BitmapText {
+            Name="Outline" .. i, Font="Montserrat extrabold 20px",
+            InitCommand=function(self) self:xy(O[1], O[2]):zoom(0.8):maxwidth((TitleU - 24) / 0.8):diffuse(color("0,0,0,0.9")) end,
+        }
+    end
+    Title[#Title + 1] = Def.BitmapText {
+        Name="Text", Font="Montserrat extrabold 20px",
+        InitCommand=function(self) self:zoom(0.8):maxwidth((TitleU - 24) / 0.8) end,
+    }
+
     local Player = Def.ActorFrame {
         Name="Player",
-        -- outer end: the number over the orb
-        Def.BitmapText {
-            Name="Number", Font="Montserrat semibold 20px",
-            -- right-aligned in its strip on both sides, as in Phoenix 2
-            InitCommand=function(self) self:xy(Side < 0 and -396 or 443, 12.5):halign(1):zoom(0.55):maxwidth(48 / 0.55):diffuse(color("#ffe24a")) end,
-        },
-        Def.Sprite { Texture=OrbArt, InitCommand=function(self) self:xy(Side * 419.5, 40):zoomto(40, 40) end },
         -- avatar in the yellow frame (scaletocover also positions the sprite)
         Def.Sprite {
             Texture=LoadModule("Options.GetProfileData.lua")(pn)["Image"],
@@ -72,14 +83,7 @@ local function Card(pn)
                 self:scaletocover(math.min(x0, x1), 7, math.max(x0, x1), 61)
             end,
         },
-        -- title, centered on the silver bar
-        Def.BitmapText {
-            Name="Title", Font="Montserrat extrabold 20px",
-            InitCommand=function(self)
-                self:xy(Side * TitleU / 2, 21):zoom(0.8):maxwidth((TitleU - 24) / 0.8)
-                    :diffuse(Color.White):shadowlength(2):shadowcolor(color("0,0,0,0.85"))
-            end,
-        },
+        Title,
         -- white name strip
         Box(137, 321, 37, 56, color("#f4f6f8")),
         Def.BitmapText {
@@ -112,8 +116,11 @@ local function Card(pn)
             local Name = Profile and Profile:GetDisplayName() or ""
             if Name == "" then Name = THEME:GetString("ProfileStats", "No Profile") end
             P:GetChild("Name"):settext(Name)
-            P:GetChild("Title"):settext(ToUpper(THEME:GetString("ProfileStats", "Level") .. " " .. ProfileLevel(pn)))
-            P:GetChild("Number"):settext(tostring(Profile and Profile:GetNumTotalSongsPlayed() or 0))
+            local Level = Hud.Level(Profile and Profile:GetTotalDancePoints() or 0)
+            P:GetChild("Title"):playcommand("Set", {
+                Level = Level,
+                Text = ToUpper(THEME:GetString("ProfileStats", "Level") .. " " .. Level),
+            })
             local Left = GAMESTATE:IsEventMode() and 6 or GAMESTATE:GetNumStagesLeft(pn)
             for k = 1, 6 do
                 local H = P:GetChild("Heart" .. k)
@@ -122,13 +129,10 @@ local function Card(pn)
         end,
 
         -- The card (shared by both states), as measured on the Phoenix 2 video: the yellow
-        -- frame around the avatar and the outer box, the black outer box (a number strip
-        -- over the orb's body), the silver title bar (lighter at the top, with a soft
+        -- frame around the avatar, the silver title bar (lighter at the top, with a soft
         -- highlight), a yellow-green line under it, the black name area and a yellow-green
         -- line closing it
         Box(TitleU, CardU, Top, Bottom, Yellow, function(self) self:diffusebottomedge(color("#b9e01a")) end),
-        Box(393, 446, 6, 59, color("#050608")),
-        Box(393, 446, 19, 21, Yellow),
         Box(0, TitleU, Top, 35, color("#c3c8cf"), function(self) self:diffusebottomedge(color("#5d626b")) end),
         Box(0, TitleU, 6, 13, Color.White, function(self) self:diffusealpha(0.35):fadeleft(0.35):faderight(0.35) end),
         Box(0, TitleU, 35, 37, color("#c8f01e")),
@@ -153,18 +157,39 @@ local function Card(pn)
     }
 end
 
+-- The timer: the frame and its smoke (a second smoke fading in and out over it), and
+-- the engine timer's seconds in the Phoenix-style digits. Sizes from the video: the
+-- frame art spans 150 x 91 video pixels from y 2, the digits are 42 px tall at y 42.5.
+local Timer = Def.ActorFrame {
+    InitCommand=function(self)
+        self:xy(SCREEN_CENTER_X, Hidden)
+        local Digits, Last
+        self:SetUpdateFunction(function(frame)
+            Digits = Digits or frame:GetChild("Digits")
+            local Screen = SCREENMAN:GetTopScreen()
+            local Engine = Screen and Screen:GetChild("Timer")
+            local Text = Hud.TimerText(Engine and Engine:GetSeconds() or nil)
+            if Text ~= Last then
+                Last = Text
+                Digits:settext(Text)
+            end
+        end)
+    end,
+    OnCommand=function(self) self:easeoutexpo(0.5):y(0) end,
+    OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(Hidden) end,
+    Def.Sprite { Texture=THEME:GetPathG("", "UI/Timer frame"),
+        InitCommand=function(self) self:y(47.5 * 2 / 3):zoomto(100, 91 * 2 / 3) end },
+    Def.Sprite { Texture=THEME:GetPathG("", "UI/Timer smoke"),
+        InitCommand=function(self)
+            self:y(47.5 * 2 / 3):zoomto(100, 91 * 2 / 3)
+                :diffuseshift():effectcolor1(color("1,1,1,1")):effectcolor2(color("1,1,1,0")):effectperiod(4)
+        end },
+    Def.BitmapText { Name="Digits", Font="Timer digits", Text="99",
+        InitCommand=function(self) self:y(42.5 * 2 / 3):zoom(28 / 86) end },
+}
+
 return Def.ActorFrame {
     Card(PLAYER_1),
     Card(PLAYER_2),
-
-    -- Green timer box at the center, with the card's yellow-green frame (the timer digits
-    -- are drawn above it by the engine: metrics.ini, centered at y 29 like Phoenix 2's)
-    Def.ActorFrame {
-        InitCommand=function(self) self:xy(SCREEN_CENTER_X, 34 + Hidden) end,
-        OnCommand=function(self) self:easeoutexpo(0.5):y(34) end,
-        OffCommand=function(self) self:stoptweening():easeoutexpo(0.5):y(34 + Hidden) end,
-        Def.Quad { InitCommand=function(self) self:zoomto(94, 60):diffuse(color("#d4f01c")):diffusebottomedge(color("#8fd41a")) end },
-        Def.Quad { InitCommand=function(self) self:zoomto(88, 54):diffuse(color("#0a2a10")) end },
-        Def.Quad { InitCommand=function(self) self:zoomto(84, 50):diffuse(color("#4fe25a")):diffusebottomedge(color("#10902a")) end },
-    },
+    Timer,
 }
